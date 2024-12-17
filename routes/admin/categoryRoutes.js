@@ -20,7 +20,7 @@ router
     .route('/create-category')
     .get(categoryController.getAddCategory)
     .post(
-        upload.fields([{ name: 'image', maxCount: 1 }]),
+        upload.single('image'),
         categoryController.postAddCategory
     );
 
@@ -28,7 +28,7 @@ router
     .route('/update-category/:id')
     .get(categoryController.getEditCategory)
     .post(
-        upload.fields([{ name: 'image', maxCount: 1 }]),
+        upload.single('image'),
         categoryController.postEditCategory
     );
 

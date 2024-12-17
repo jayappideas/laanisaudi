@@ -1,3 +1,5 @@
+const fs = require('fs');
+const path = require('path');
 const businessTypeModel = require('../../models/businessTypeModel');
 
 
@@ -24,9 +26,13 @@ exports.getAddCategory = async (req, res) => {
 
 exports.postAddCategory = async (req, res) => {
     try {
+        
+        const image = req.file ? `${req.file.filename}` : undefined;
+
         await businessTypeModel.create({
-            name: req.body.name,
-            image: req.files.image[0].filename
+            en: { name: req.body.ename },
+            ar: { name: req.body.aname },
+            image,
         });
 
         req.flash('green', 'Category created successfully.');
@@ -55,11 +61,22 @@ exports.postEditCategory = async (req, res) => {
     try {
         const category = await businessTypeModel.findById(req.params.id);
 
-        category.name = req.body.name;
-        category.image = req.files.image ? `${req.files.image[0].filename}` : category.image;
+        category.en.name = req.body.ename;
+        category.ar.name = req.body.aname;
+        
+        if (req.file) {
+            const oldImagePath = path.join(
+                __dirname,
+                '../../public/uploads/',
+                category.image
+            );
+            fs.unlink(oldImagePath, () => {});
+
+            category.image = req.file.filename;
+        }
 
         await category.save();
-
+        
         req.flash('green', 'Category updated successfully.');
         res.redirect('/category');
     } catch (error) {
@@ -73,7 +90,6 @@ exports.updateCategoryStatus = async (req, res) => {
         const category = await businessTypeModel.findById(req.params.id);
 
         category.isActive = req.params.status;
-        // banner.image = req.files.image ? `${req.files.image[0].filename}` : banner.image;
 
         await category.save();
 
