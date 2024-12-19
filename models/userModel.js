@@ -41,6 +41,10 @@ const userSchema = new mongoose.Schema(
     token: { 
       type: String 
     },
+    isNotification: {
+      type: Boolean,
+      default: true,
+    },
     isDelete: {
       type: Boolean,
       default: false,

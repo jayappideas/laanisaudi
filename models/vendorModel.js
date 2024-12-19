@@ -7,14 +7,14 @@ const bcrypt = require('bcryptjs');
 const vendorSchema = new mongoose.Schema(
   {
     qrCode: {
-        type: String,
+      type: String,
     },
     email: {
-        type: String,
-        required: [true, 'validation.email'],
-        unique: true,
-        lowercase: true,
-        validate: [validator.isEmail, 'validation.emailInvalid'],
+      type: String,
+      required: [true, 'validation.email'],
+      unique: true,
+      lowercase: true,
+      validate: [validator.isEmail, 'validation.emailInvalid'],
     },
     password: {
       type: String,
@@ -30,41 +30,44 @@ const vendorSchema = new mongoose.Schema(
     },
 
     businessType : {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'BusinessType',
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'BusinessType',
     },
-    businessName: { 
-      type: String
+
+    businessInfo: {
+      name: { type: String },
+      mobile: { type: String },
+      logo: { type: String },
+      license: { type: String },
+      buildingNo : { type: String },
+      buildingName : { type: String },
+      road : { type: String },
+      city : { type: String },
+      country : { type: String },
+      latitude : { type: String },
+      longitude : { type: String }
     },
-    businessMobile: { 
-      type: String 
-    },
-    businessLicense: { 
-        type: String 
-    },
+    
     businessMenu: [
-        String 
+      String 
     ],
-    businessLocation: {
-        buildingNo : { type: String },
-        buildingName : { type: String },
-        road : { type: String },
-        city : { type: String },
-        country : { type: String },
-        latitude : { type: String },
-        longitude : { type: String }
-    },
 
     adminApproved: {
-        type: Boolean,
-        default: false,
+      type: Boolean,
+      default: false,
     },
-
+    signupStep: {
+      type: Number
+    },
     fcmToken: { 
-        type: String 
+      type: String 
     },
     token: { 
-        type: String 
+      type: String 
+    },
+    isNotification: {
+      type: Boolean,
+      default: true,
     },
     isDelete: {
         type: Boolean,

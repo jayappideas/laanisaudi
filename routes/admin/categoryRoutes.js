@@ -11,6 +11,7 @@ const storage = multer.diskStorage({
         cb(null, Date.now() + file.originalname.replaceAll(' ', ''));
     },
 });
+
 // Initialize multer with storage engine
 const upload = multer({ storage: storage });
 
