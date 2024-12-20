@@ -5,7 +5,7 @@
 <head>
     <%- include('_layouts/head') %>
 
-    <title>User List | <%= title %></title>
+    <title>Vendor List | <%= title %></title>
 
     <link rel="stylesheet" type="text/css" href="/app-assets/vendors/data-tables/css/jquery.dataTables.min.css">
     <link rel="stylesheet" type="text/css" href="/app-assets/vendors/data-tables/extensions/responsive/css/responsive.dataTables.min.css">
@@ -17,7 +17,6 @@
             text-align: center;
         }
     </style>
-
 </head>
 <!-- END: Head-->
 
@@ -34,13 +33,13 @@
                     <div class="row">
                         <%- include('messages', { messages: messages }) %>
                         <div class="col s12 m6 l6">
-                            <h6 class="breadcrumbs-title"><span>Manage Users</span></h6>
+                            <h6 class="breadcrumbs-title"><span>Manage Vendors</span></h6>
                         </div>
                         <div class="col s12 m6 l6 right-align-md" style="margin-top: -10px;">
                             <ol class="breadcrumbs mb-0">
                                 <li class="breadcrumb-item"><a href="/">Dashboard</a>
                                 </li>
-                                <li class="breadcrumb-item active">User List
+                                <li class="breadcrumb-item active">Vendor List
                                 </li>
                             </ol>
                         </div>
@@ -64,26 +63,30 @@
                                                         <tr>
                                                             <th>Sr</th>
                                                             <th>QR Code</th>
-                                                            <th>Name</th>
-                                                            <th>Mobile Number</th>
-                                                            <th>Birth Date</th>
-                                                            <th>Gender</th>
+                                                            <th>Email</th>
+                                                            <th>Business Type</th>
+                                                            <th>Application Status</th>
                                                             <th>Created Date</th>
                                                             <th data-orderable="false">Status</th>
-                                                            <!-- <th data-orderable="false">Action</th> -->
+                                                            <th data-orderable="false">Action</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
-                                                        <% for( let i=0; i < users.length; i++ ) { %>
+                                                        <% for( let i=0; i < vendors.length; i++ ) { %>
                                                         <tr>
                                                             <td><%= i+1 %></td>
-                                                            <td><img src="<%= process.env.IMAGE_URL%><%= users[i].qrCode %>" style="width: 30%;"/></td>
-                                                            <td><%= users[i].name %></td>
-                                                            <td><%= users[i].mobileNumber %></td>
-                                                            <td><%= users[i].birthDate ? new Date(users[i].birthDate).toISOString().split('T')[0] : '-' %></td>
-                                                            <td><%= users[i].gender %></td>
-                                                            <td><%= users[i].createdAt.toISOString().split('T')[0] %> <%= 
-                                                                users[i].createdAt.toLocaleString('en-US', {
+                                                            <td width="50px"><img src="<%= process.env.IMAGE_URL%><%= vendors[i].qrCode %>" style="width: 80%;"/></td>
+                                                            <td><%= vendors[i].email %></td>
+                                                            <td><%= vendors[i].businessType.en.name %></td>
+                                                            <td>
+                                                                <% if (vendors[i].adminApproved) { %>
+                                                                    <a style="background-color: rgb(212, 240, 216);padding: 5px 10px 5px 10px;color: green;border-radius: 5px;">Approved</a>
+                                                                <% } else { %>
+                                                                    <a style="background-color: rgb(240, 212, 212);padding: 5px 10px 5px 10px;color: red;border-radius: 5px;">Pending</a>
+                                                                <% } %>
+                                                            </td>
+                                                            <td><%= vendors[i].createdAt.toISOString().split('T')[0] %> <%= 
+                                                                vendors[i].createdAt.toLocaleString('en-US', {
                                                                     timeZone: 'UTC', 
                                                                     hour: '2-digit',
                                                                     minute: '2-digit',
@@ -91,12 +94,14 @@
                                                                   }).replace(',', ''); %>
                                                             </td>
                                                             <td>
-                                                                <% if (users[i].isActive) { %>
-                                                                    <a href="/user/change-status/<%= users[i]._id %>/0" class="waves-effect border-round waves-light btn green mr-1 mb-2"  onclick="return confirm('Are you sure want to De-Active this user?');">Active</a>
+                                                                <% if (vendors[i].isActive) { %>
+                                                                    <a href="/user/change-status/<%= vendors[i]._id %>/0" class="waves-effect border-round waves-light btn green mr-1 mb-2"  onclick="return confirm('Are you sure want to De-Active this user?');">Active</a>
                                                                 <% } else { %>
-                                                                    <a href="/user/change-status/<%= users[i]._id %>/1" class="waves-effect border-round waves-light btn red mr-1 mb-2"  style="padding: 0px 16px 0px 16px;" onclick="return confirm('Are you sure want to Active this user?');">De-Active</a>
+                                                                    <a href="/user/change-status/<%= vendors[i]._id %>/1" class="waves-effect border-round waves-light btn red mr-1 mb-2"  style="padding: 0px 16px 0px 16px;" onclick="return confirm('Are you sure want to Active this user?');">De-Active</a>
                                                                 <% } %>
-
+                                                            </td>
+                                                            <td>
+                                                                <a href="/vendor/<%= vendors[i].id %>"><i class="material-icons">visibility</i></a>
                                                             </td>
                                                         </tr>
                                                         <% } %>

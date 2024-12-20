@@ -1,40 +1,6 @@
-const deleteFile = require('../../utils/deleteFile');
-
 const Page = require('../../models/pageModel.js');
 const faqModel = require('../../models/faqModel.js');
 
-exports.getAbout = async (req, res) => {
-    try {
-        const page = await Page.findOne({ key: 'about' });
-
-        res.render('about', { page });
-    } catch (error) {
-        req.flash('red', error.message);
-        res.redirect('/');
-    }
-};
-
-exports.postAbout = async (req, res) => {
-    try {
-        const page = await Page.findOne({ key: 'about' });
-
-        page.title = req.body.EnTitle;
-        page.content = req.body.EnContent;
-
-        // if (req.files.image) {
-        //     deleteFile(page.image);
-        //     page.image = `/uploads/${req.files.image[0].filename}`;
-        // }
-
-        await page.save();
-
-        req.flash('green', 'About us updated successfully.');
-        res.redirect('/cms/about');
-    } catch (error) {
-        req.flash('red', error.message);
-        res.redirect(req.originalUrl);
-    }
-};
 
 exports.getPrivacy = async (req, res) => {
     try {
@@ -51,8 +17,11 @@ exports.postPrivacy = async (req, res) => {
     try {
         const page = await Page.findOne({ key: 'privacy' });
 
-        page.title = req.body.EnTitle;
-        page.content = req.body.EnContent;
+        page.en.title = req.body.EnTitle;
+        page.en.content = req.body.EnContent;
+        
+        page.ar.title = req.body.ArTitle;
+        page.ar.content = req.body.ArContent;
 
         await page.save();
 
@@ -79,8 +48,11 @@ exports.postTerm = async (req, res) => {
     try {
         const page = await Page.findOne({ key: 'term' });
 
-        page.title = req.body.EnTitle;
-        page.content = req.body.EnContent;
+        page.en.title = req.body.EnTitle;
+        page.en.content = req.body.EnContent;
+        
+        page.ar.title = req.body.ArTitle;
+        page.ar.content = req.body.ArContent;
 
         await page.save();
 
@@ -103,7 +75,6 @@ exports.getFaq = async (req, res) => {
     }
 };
 
-
 exports.getFaqAdd = async (req, res) => {
   
     res.render('faq_add');
@@ -114,11 +85,11 @@ exports.postFaqAdd = async (req, res) => {
     try {
 
         await faqModel.create({
-            question: req.body.question,
-            answer: req.body.answer,
+            en: {question: req.body.question, answer: req.body.answer},
+            ar: {question: req.body.Aquestion, answer: req.body.Aanswer}
         });
 
-        req.flash('green', 'Faq added successfully.');
+        req.flash('green', 'FAQ added successfully.');
         res.redirect('/cms/faq');
     } catch (error) {
         req.flash('red', error.message);
@@ -136,12 +107,15 @@ exports.postFaqUpdate = async (req, res) => {
     try {
         const faq = await faqModel.findById(req.params.id);
 
-        faq.question = req.body.question;
-        faq.answer = req.body.answer;
+        faq.en.question = req.body.question;
+        faq.en.answer = req.body.answer;
+
+        faq.ar.question = req.body.Aquestion;
+        faq.ar.answer = req.body.Aanswer;
 
         await faq.save();
 
-        req.flash('green', 'Faq updated successfully.');
+        req.flash('green', 'FAQ updated successfully.');
         res.redirect('/cms/faq');
     } catch (error) {
         req.flash('red', error.message);
@@ -153,7 +127,7 @@ exports.getFaqDelete = async (req, res) => {
     try {
         await faqModel.findByIdAndDelete(req.params.id);
 
-        req.flash('green', 'Faq deleted successfully.');
+        req.flash('green', 'FAQ deleted successfully.');
         res.redirect('/cms/faq');
     } catch (error) {
         console.log(error)

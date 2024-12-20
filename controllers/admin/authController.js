@@ -7,6 +7,7 @@ const generateCode = require('../../utils/generateCode');
 const Admin = require('../../models/adminModel');
 const OTP = require('../../models/adminOtpModel');
 const User = require('../../models/userModel');
+const Vendor = require('../../models/vendorModel');
 
 exports.checkAdmin = async (req, res, next) => {
     try {
@@ -40,6 +41,8 @@ exports.checkAdmin = async (req, res, next) => {
 
 exports.getDashboard = async (req, res) => {
     var data = {};
+    data.user = await User.find({isDelete: false}).count();
+    data.vendor = await Vendor.find({isDelete: false}).count();
     res.render('index', { data });
 };
  

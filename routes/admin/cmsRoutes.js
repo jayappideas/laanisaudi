@@ -3,11 +3,6 @@ const router = require('express').Router();
 const cmsController = require('../../controllers/admin/cmsController');
 
 router
-    .route('/about')
-    .get(cmsController.getAbout)
-    .post(cmsController.postAbout);
-
-router
     .route('/privacy')
     .get(cmsController.getPrivacy)
     .post(cmsController.postPrivacy);

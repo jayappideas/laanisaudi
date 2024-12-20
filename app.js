@@ -109,6 +109,7 @@ app.use(function (req, res, next) {
 //ADMIN ROUTES
 app.use('/', require('./routes/admin/authRoutes'));
 app.use('/user', require('./routes/admin/userRoutes'));
+app.use('/vendor', require('./routes/admin/vendorRoutes'));
 app.use('/banner', require('./routes/admin/bannerRoutes'));
 app.use('/category', require('./routes/admin/categoryRoutes'));
 app.use('/cms', require('./routes/admin/cmsRoutes'));

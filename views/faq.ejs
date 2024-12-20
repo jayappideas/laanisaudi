@@ -20,7 +20,6 @@
                 <div class="pt-1 pb-0" id="breadcrumbs-wrapper">
                     <div class="container">
                         <div class="row">
-                            <%- include('messages', { messages: messages }) %>
                             <div class="col s12 m6 l6">
                                 <h6 class="breadcrumbs-title"><span>Manage FAQ's</span></h6>
                             </div>
@@ -37,6 +36,7 @@
                 </div>
             </div>
             <div class="container mt-2">
+                <%- include('messages', { messages: messages }) %>
                 <div class="row">
                     <div class="col s12 right-align-md" style="text-align: right;">
                         <a href="/cms/faq/add" class="btn pull-right btn-add btn-breadcrumbs white-text">Add FAQ</a>
@@ -49,9 +49,9 @@
                         <% if(faqs.length > 0){
                             for( let i=0; i < faqs.length; i++ ) { %>
                                 <li>
-                                    <div class="collapsible-header" tabindex="0">Que: &nbsp;<b><%= faqs[i].question %></b></div>
+                                    <div class="collapsible-header" tabindex="0">Que: &nbsp;<b><%= faqs[i].en.question %></b></div>
                                     <div class="collapsible-body row pl-1 pr-1">
-                                        <div class="col s10 m11 xl11"><%= faqs[i].answer %></span>
+                                        <div class="col s10 m11 xl11"><%= faqs[i].en.answer %></span>
                                         </div>
                                         <div class="col s2 m1 xl1">
                                             <a href="/cms/faq/edit/<%= faqs[i]._id %>" class="btn-floating theme-bg-warn">
