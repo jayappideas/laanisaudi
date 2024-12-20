@@ -87,9 +87,11 @@
     "remove": "Favourite removed successful"
   },
 
-  "order":{
-    "enquiry":"Thank you for your enquiry. We will contact you soon.",
-    "create": "Order submitted successfully, Please waiting for an order confirmation from an admin side."
+  "staff":{
+    "add":"Staff member added successfully.",
+    "update":"Staff member updated successfully.",
+    "delete":"Staff member deleted successfully.",
+    "credentials":"Invalid email address or password!"
   },
   "addMenu":"Menu added successfully.",
   "removeMenu":"Menu removed successfully.",

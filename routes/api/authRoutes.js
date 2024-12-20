@@ -17,7 +17,7 @@ router.post('/user/resetPassword', upload.none(), authController.resetPassword);
 router.post('/user/changePassword', authController.checkUser, upload.none(), authController.changePassword);
 router.get('/user/getProfile', authController.checkUser, upload.none(), authController.getProfile);
 router.put('/user/editProfile', authController.checkUser, upload.none(), authController.editProfile);
-router.post('/vendor/updateNotification/:status', authController.checkUser, upload.none(), authController.updateNotification);
+router.post('/user/updateNotification/:status', authController.checkUser, upload.none(), authController.updateNotification);
 router.delete('/user/deleteAccount', authController.checkUser, upload.none(), authController.deleteAccount);
 // router.put('/updateLocation', checkUser, upload.none(), authController.updateLocation);
 
@@ -41,7 +41,6 @@ router.post('/vendor/addBusinessMenu', authController.isVendor, upload.fields([
 router.post('/vendor/login', upload.none(), authController.loginVendor);
 router.post('/vendor/forgotPassword', upload.none(), authController.forgotPasswordVendor);
 router.post('/vendor/resetPassword', upload.none(), authController.resetPasswordVendor);
-
 
 router.get('/vendor/getProfile', authController.checkVendor, upload.none(), authController.getProfileVendor);
 

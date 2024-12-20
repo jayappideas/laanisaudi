@@ -54,6 +54,10 @@ const staffSchema = new mongoose.Schema(
       type: String 
     },
 
+    isNotification: {
+      type: Boolean,
+      default: true,
+    },
     isDelete: {
       type: Boolean,
       default: false,
