@@ -44,9 +44,7 @@
                   <div class="display-flex media">
                     <img src="<%= process.env.IMAGE_URL %><%= vendor.qrCode %>" alt="users view avatar" height="64" width="64">
                     <div class="media-body" style="margin-left: 10px;">
-                      <h6 class="media-heading">
-                        <span class="users-view-name"><%= vendor.name %></span>
-                      </h6>
+                      
                       <span>Email:</span>
                       <span class="users-view-id"><a href="mailto:<%= vendor.email %>"><%= vendor.email %></a></span>
                     </div>
@@ -73,35 +71,35 @@
                       <tbody>
                         <tr>
                           <th style="width: 200px;">Business Type</th>
-                          <td><%= vendor.businessType.en.name %></td>
+                          <td><%= vendor.businessType ? vendor.businessType.en.name : '-' %></td>
                         </tr>
                         <tr>
                           <th style="width: 200px;">Name</th>
-                          <td><%= vendor.businessInfo.name %></td>
+                          <td><%= vendor.businessInfo.name ? vendor.businessInfo.name : '-' %></td>
                         </tr>
                         <tr>
                           <th>Mobile Number</th>
-                          <td><%= vendor.businessInfo.mobile %></td>
+                          <td><%= vendor.businessInfo.mobile ? vendor.businessInfo.mobile : '-'%></td>
                         </tr>
                         <tr>
                           <th>Building No.</th>
-                          <td><%= vendor.businessInfo.buildingNo %></td>
+                          <td><%= vendor.businessInfo.buildingNo ? vendor.businessInfo.buildingNo : '-' %></td>
                         </tr>
                         <tr>
                           <th>Building Name</th>
-                          <td><%= vendor.businessInfo.buildingName %></td>
+                          <td><%= vendor.businessInfo.buildingName ? vendor.businessInfo.buildingName : '-' %></td>
                         </tr>
                         <tr>
                           <th>Road</th>
-                          <td><%= vendor.businessInfo.road %></td>
+                          <td><%=  vendor.businessInfo.road ? vendor.businessInfo.road: '-' %></td>
                         </tr>
                         <tr>
                           <th>City</th>
-                          <td><%= vendor.businessInfo.city %></td>
+                          <td><%=  vendor.businessInfo.city ? vendor.businessInfo.city : '-' %></td>
                         </tr>
                         <tr>
                           <th>Country</th>
-                          <td><%= vendor.businessInfo.country %></td>
+                          <td><%= vendor.businessInfo.country ? vendor.businessInfo.country : '-' %></td>
                         </tr>
                         <tr>
                           <th>Date</th>
@@ -133,10 +131,16 @@
                   <div class="col s12">
                     <h6>Business Menu</h6>
                   </div>
-                  <% for( let i=0; i < vendor.businessMenu.length; i++ ) { %>
-                  <div class="col s6 m2" style="text-align: center;">
-                    <img src="<%= process.env.IMAGE_URL %><%= vendor.businessMenu[i] %>" />
-                  </div>
+                  <% if(vendor.businessMenu.length > 0) { %>
+                    <% for( let i=0; i < vendor.businessMenu.length; i++ ) { %>
+                    <div class="col s6 m2" style="text-align: center;">
+                      <img src="<%= process.env.IMAGE_URL %><%= vendor.businessMenu[i] %>" />
+                    </div>
+                    <% } %>
+                  <% } else { %>
+                    <div class="col s12">
+                      <h6 class="red-text">Vendor hasn't upload any menu yet!</h6>
+                    </div>
                   <% } %>
                 </div>
                 <div class="row">
