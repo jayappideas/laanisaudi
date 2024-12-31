@@ -1,4 +1,5 @@
 module.exports = (doc, req) => {
+    
     const accepted = ['en', 'ar'];
     let language = accepted.includes(req.headers['accept-language'])
         ? req.headers['accept-language']

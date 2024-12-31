@@ -13,10 +13,9 @@ const staffSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Vendor',
     },
-
-    branchName: { 
-      type: String,
-      required: true
+    branch : {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Branch',
     },
     name: { 
       type: String,

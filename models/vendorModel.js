@@ -33,25 +33,19 @@ const vendorSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'BusinessType',
     },
-
-    businessInfo: {
-      name: { type: String },
-      mobile: { type: String },
-      logo: { type: String },
-      license: { type: String },
-      buildingNo : { type: String },
-      buildingName : { type: String },
-      road : { type: String },
-      city : { type: String },
-      country : { type: String },
-      latitude : { type: String },
-      longitude : { type: String }
+    businessName: {
+      type: String,
     },
-    
-    businessMenu: [
-      String 
-    ],
-
+    businessMobile: {
+      type: String,
+    },
+    businessLogo: {
+      type: String,
+    },
+    businessLicense: {
+      type: String,
+    },
+  
     adminApproved: {
       type: Boolean,
       default: false,

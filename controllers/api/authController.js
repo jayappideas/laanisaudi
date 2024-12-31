@@ -636,10 +636,10 @@ exports.loginVendor = async (req, res, next) => {
         if (!user || !(await user.correctPassword(password, user.password)))
             return next(createError.BadRequest('auth.vcredentials'));
 
-        if(user.signupStep == 0){    
-            if (!user.adminApproved)
-                return next(createError.Unauthorized('auth.pendingApproved'));
-        }
+        // if(user.signupStep == 0){    
+        if (!user.adminApproved)
+            return next(createError.Unauthorized('auth.pendingApproved'));
+        // }
         const token = await user.generateAuthToken();
 
         user.fcmToken = fcmToken;
@@ -742,26 +742,15 @@ exports.changePasswordVendor = async (req, res, next) => {
 exports.addBusinessInfo = async (req, res, next) => {
     try {
 
-        const {businessType, businessName, businessMobile, buildingNo,buildingName,road,city,country,latitude,longitude } = req.body
+        const {businessType, businessName, businessMobile} = req.body
         const vendor = await Vendor.findById(req.vendor.id);
 
-        const businessInfo = {
-            name: businessName,
-            mobile: businessMobile,
-            logo: req.files.businessLogo[0].filename,
-            license: req.files.businessLicense[0].filename,
-            buildingNo : buildingNo,
-            buildingName : buildingName,
-            road : road,
-            city : city,
-            country : country,
-            latitude : latitude,
-            longitude : longitude
-        }
-        
+        vendor.businessName = businessName
+        vendor.businessMobile = businessMobile
+        vendor.businessLogo = req.files.businessLogo[0].filename,
+        vendor.businessLicense = req.files.businessLicense[0].filename,
         vendor.businessType = businessType
-        vendor.businessInfo = businessInfo
-        vendor.signupStep = 2
+        vendor.signupStep = 0
 
         await vendor.save();
 
@@ -778,46 +767,38 @@ exports.addBusinessInfo = async (req, res, next) => {
 exports.updateBusinessInfo = async (req, res, next) => {
     try {
 
-        const {businessName, buildingNo,buildingName,road,city,country,latitude,longitude } = req.body
+        const { businessName,businessMobile } = req.body
         const vendor = await Vendor.findById(req.vendor.id);
 
-        const businessInfo = {
-            name: businessName,
-            // mobile: businessMobile,
-            buildingNo : buildingNo,
-            buildingName : buildingName,
-            road : road,
-            city : city,
-            country : country,
-            latitude : latitude,
-            longitude : longitude
-        }
-
-        if (req.files.businessLogo[0]) {
-            const oldImagePath = path.join(
-                __dirname,
-                '../../public/uploads/',
-                vendor.businessInfo.logo
-            );
-            fs.unlink(oldImagePath, () => {});
-            businessInfo.logo = req.files.businessLogo[0].filename;
-        }
-        if (req.files.businessLicense[0]) {
-            const oldImagePath = path.join(
-                __dirname,
-                '../../public/uploads/',
-                vendor.businessInfo.license
-            );
-            fs.unlink(oldImagePath, () => {});
-            businessInfo.logo = req.files.businessLicense[0].filename;
-        }
+        vendor.businessName = businessName
+        vendor.businessMobile = businessMobile
         
-        vendor.businessInfo = businessInfo
+        // if(req.files.length > 0){
+            if (req.files.businessLogo && req.files.businessLogo[0]) {
+                const oldImagePath = path.join(
+                    __dirname,
+                    '../../public/uploads/',
+                    vendor.businessLogo
+                );
+                fs.unlink(oldImagePath, () => {});
+                vendor.businessLogo = req.files.businessLogo[0].filename;
+            }
+            if (req.files.businessLicense && req.files.businessLicense[0]) {
+                const oldImagePath = path.join(
+                    __dirname,
+                    '../../public/uploads/',
+                    vendor.businessLogo.license
+                );
+                fs.unlink(oldImagePath, () => {});
+                vendor.businessLicense = req.files.businessLicense[0].filename;
+            }
+        // }
+
         await vendor.save();
 
         res.status(201).json({
             success: true,
-            message: req.t('auth.update')
+            message: req.t('auth.updated')
         });
     } catch (error) {
         console.log(error)

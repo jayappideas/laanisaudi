@@ -93,6 +93,11 @@
     "delete":"Staff member deleted successfully.",
     "credentials":"Invalid email address or password!"
   },
+  "branch":{
+    "add":"Branch added successfully.",
+    "update":"Branch updated successfully.",
+    "delete":"Branch deleted successfully."
+  },
   "addMenu":"Menu added successfully.",
   "removeMenu":"Menu removed successfully.",
   "wrongPasscode":"Current passcode is invalid!",

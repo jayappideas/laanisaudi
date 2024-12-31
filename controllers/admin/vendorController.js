@@ -1,4 +1,5 @@
 const staffModel = require("../../models/staffModel");
+const branchModel = require("../../models/branchModel");
 const vendorModel = require("../../models/vendorModel");
 
 exports.getAllVendors = async (req, res) => {
@@ -27,12 +28,13 @@ exports.viewVendor = async (req, res) => {
                             });
     if (!vendor) {
       req.flash("red", "vendor not found!");
-      return res.redirect("/vendor");
+      return res.redirect("/vendor"); 
     }
 
-    const staff = await staffModel.find({vendor: req.params.id, isDelete: false}).select('qrCode branchName name email mobileNumber occupation createdAt').sort('-_id')
+    const branch = await branchModel.find({vendor: req.params.id, isDelete: false}).select('-createdAt -updatedAt -__v').sort('-_id')
+    const staff = await branchModel.find({vendor: req.params.id, isDelete: false}).select('qrCode branchName name email mobileNumber occupation createdAt').sort('-_id')
 
-    res.render("vendor_view", { vendor, staff });
+    res.render("vendor_view", { vendor, staff, branch});
   } catch (error) {
       console.log(error);
     if (error.name === "CastError") req.flash("red", "vendor not found!");
@@ -43,11 +45,11 @@ exports.viewVendor = async (req, res) => {
 
 exports.changeVendorStatus = async (req, res) => {
     try {
-        const user = await User.findById(req.params.id);
+        const user = await vendorModel.findById(req.params.id);
 
         if (!user) {
-            req.flash('red', 'User not found.');
-            return res.redirect('/user');
+            req.flash('red', 'Vendor not found.');
+            return res.redirect('/vendor');
         }
 
         user.isActive = req.params.status
@@ -82,16 +84,3 @@ exports.approvedVendor = async (req, res) => {
     }
 };
 
-exports.getDeleteUser = async (req, res) => {
-    try {
-        await User.findByIdAndDelete(req.params.id);
-
-        req.flash('green', 'User deleted successfully.');
-        res.redirect('/user');
-    } catch (error) {
-        if (error.name === 'CastError' || error.name === 'TypeError')
-            req.flash('red', 'User not found!');
-        else req.flash('red', error.message);
-        res.redirect('/user');
-    }
-};

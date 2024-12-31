@@ -6,6 +6,12 @@
   <%- include('_layouts/head') %>
   <title>Vendor View | <%= title %></title>
   <link rel="stylesheet" type="text/css" href="/app-assets/css/pages/page-users.css">
+  
+  <link rel="stylesheet" type="text/css" href="/app-assets/vendors/data-tables/css/jquery.dataTables.min.css">
+  <link rel="stylesheet" type="text/css" href="/app-assets/vendors/data-tables/extensions/responsive/css/responsive.dataTables.min.css">
+  <link rel="stylesheet" type="text/css" href="/app-assets/vendors/data-tables/css/select.dataTables.min.css">
+  <link rel="stylesheet" type="text/css" href="/app-assets/css/pages/data-tables.css">
+
 </head>
 <!-- END: Head-->
 
@@ -74,35 +80,15 @@
                           <td><%= vendor.businessType ? vendor.businessType.en.name : '-' %></td>
                         </tr>
                         <tr>
-                          <th style="width: 200px;">Name</th>
-                          <td><%= vendor.businessInfo.name ? vendor.businessInfo.name : '-' %></td>
+                          <th style="width: 200px;">Business Name</th>
+                          <td><%= vendor.businessName ? vendor.businessName : '-' %></td>
                         </tr>
                         <tr>
-                          <th>Mobile Number</th>
-                          <td><%= vendor.businessInfo.mobile ? vendor.businessInfo.mobile : '-'%></td>
+                          <th style="width: 200px;">Business Mobile</th>
+                          <td><%= vendor.businessMobile ? vendor.businessMobile : '-' %></td>
                         </tr>
                         <tr>
-                          <th>Building No.</th>
-                          <td><%= vendor.businessInfo.buildingNo ? vendor.businessInfo.buildingNo : '-' %></td>
-                        </tr>
-                        <tr>
-                          <th>Building Name</th>
-                          <td><%= vendor.businessInfo.buildingName ? vendor.businessInfo.buildingName : '-' %></td>
-                        </tr>
-                        <tr>
-                          <th>Road</th>
-                          <td><%=  vendor.businessInfo.road ? vendor.businessInfo.road: '-' %></td>
-                        </tr>
-                        <tr>
-                          <th>City</th>
-                          <td><%=  vendor.businessInfo.city ? vendor.businessInfo.city : '-' %></td>
-                        </tr>
-                        <tr>
-                          <th>Country</th>
-                          <td><%= vendor.businessInfo.country ? vendor.businessInfo.country : '-' %></td>
-                        </tr>
-                        <tr>
-                          <th>Date</th>
+                          <th>Registered Date</th>
                           <td><%= vendor.createdAt.toISOString().split('T')[0] %> <%= 
                             vendor.createdAt.toLocaleString('en-US', {
                                 timeZone: 'UTC', 
@@ -117,80 +103,60 @@
                     <div class="col s12 m6">
                       <div class="col s12 m4">
                         <h6>Business Logo</h6>
-                        <img src="<%= process.env.IMAGE_URL%><%= vendor.businessInfo.logo %>" style="width: 50%;"/>
+                        <img src="<%= process.env.IMAGE_URL%><%= vendor.businessLogo %>" style="width: 50%;"/>
                       </div>
                       <div class="col s12 m8" style="text-align: right;">
                         <h6>Business License</h6>
-                        <img src="<%= process.env.IMAGE_URL%><%= vendor.businessInfo.license %>" style="width: 70%;"/>
+                        <img src="<%= process.env.IMAGE_URL%><%= vendor.businessLicense %>" style="width: 70%;"/>
                       </div>
                     </div>
+                  </div>
+                </div>
 
-                  </div>
-                </div>
-                <div class="row mt-2">
-                  <div class="col s12">
-                    <h6>Business Menu</h6>
-                  </div>
-                  <% if(vendor.businessMenu.length > 0) { %>
-                    <% for( let i=0; i < vendor.businessMenu.length; i++ ) { %>
-                    <div class="col s6 m2" style="text-align: center;">
-                      <img src="<%= process.env.IMAGE_URL %><%= vendor.businessMenu[i] %>" />
-                    </div>
-                    <% } %>
-                  <% } else { %>
-                    <div class="col s12">
-                      <h6 class="red-text">Vendor hasn't upload any menu yet!</h6>
-                    </div>
-                  <% } %>
-                </div>
                 <div class="row">
                   <div class="col s12">
-                    <h6>Staff Members</h6>
+                    <h5>Branches Information</h5>
                   </div>
-                  <div class="col s12">
-                      <div class="card">
-                          <div class="card-content">
-                              <div class="row">
-                                  <div class="col s12 overflow">
-                                      <table id="page-length-option" class="display">
-                                          <thead>
-                                              <tr>
-                                                  <th>Sr</th>
-                                                  <th>QR Code</th>
-                                                  <th>Branch Name</th>
-                                                  <th>Name</th>
-                                                  <th>Email</th>
-                                                  <th>Mobile Number</th>
-                                                  <th>Occupation</th>
-                                                  <th>Created Date</th>
-                                              </tr>
-                                          </thead>
-                                          <tbody>
-                                              <% for( let i=0; i < staff.length; i++ ) { %>
-                                              <tr>
-                                                  <td><%= i+1 %></td>
-                                                  <td width="100px"><img src="<%= process.env.IMAGE_URL%><%= staff[i].qrCode %>" style="width: 60%;"/></td>
-                                                  <td><%= staff[i].branchName %></td>
-                                                  <td><%= staff[i].name %></td>
-                                                  <td><%= staff[i].email %></td>
-                                                  <td><%= staff[i].mobileNumber %></td>
-                                                  <td><%= staff[i].occupation %></td>
-                                                  <td><%= staff[i].createdAt.toISOString().split('T')[0] %> <%= 
-                                                      staff[i].createdAt.toLocaleString('en-US', {
-                                                          timeZone: 'UTC', 
-                                                          hour: '2-digit',
-                                                          minute: '2-digit',
-                                                          hour12: true
-                                                        }).replace(',', ''); %>
-                                                  </td>
-                                              </tr>
-                                              <% } %>
-                                          </tbody>
-                                      </table>
+                  
+                  <div class="col s12" style="padding: 0%;">
+                    <div class="section section-data-tables">
+                      <div class="col s12">
+                          <div class="card">
+                              <div class="card-content">
+                                  <div class="row">
+                                      <div class="col s12 overflow">
+                                          <table id="page-length-option" class="display">
+                                              <thead>
+                                                  <tr>
+                                                    <th>Sr</th>
+                                                    <th>Building No.</th>
+                                                    <th>Building Name</th>
+                                                    <th>Road No/Name</th>
+                                                    <th>City</th>
+                                                    <th>Country</th>
+                                                    <th>Staff Members</th>
+                                                  </tr>
+                                              </thead>
+                                              <tbody>
+                                                  <% for( let i=0; i < branch.length; i++ ) { %>
+                                                  <tr>
+                                                      <td><%= i+1 %></td>
+                                                      <td><%= branch[i].buildingNo %></td>
+                                                      <td><%= branch[i].buildingName %></td>
+                                                      <td><%= branch[i].roadName %></td>
+                                                      <td><%= branch[i].city %></td>
+                                                      <td><%= branch[i].country %></td>
+                                                      <td><a href="">Staff Members </a></td>
+                                                  </tr>
+                                                  <% } %>
+                                              </tbody>
+                                          </table>
+                                      </div>
                                   </div>
                               </div>
                           </div>
                       </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -207,6 +173,9 @@
   <!-- END: Page Main-->
 
   <%- include('_layouts/commonJs')  %>
+  <script src="/app-assets/vendors/data-tables/js/jquery.dataTables.min.js"></script>
+  <script src="/app-assets/js/scripts/data-tables.js"></script>
+
 </body>
 
 </html>

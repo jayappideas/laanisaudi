@@ -1,18 +1,10 @@
 const mongoose = require('mongoose');
 
-const transactionSchema = new mongoose.Schema(
+const reviewSchema = new mongoose.Schema(
     {
-        user : {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'User',
-        },
         vendor : {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Vendor',
-        },
-        staff : {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'Staff',
         },
         type: {
             type: Number,
@@ -39,4 +31,4 @@ const transactionSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
-module.exports = mongoose.model('Transaction', transactionSchema);
+module.exports = mongoose.model('Review', reviewSchema);

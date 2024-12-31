@@ -47,7 +47,7 @@ exports.addStaff = async (req, res, next) => {
         // create user
         let user = await Staff.create({
             vendor: req.vendor.id,
-            branchName: req.body.branchName,
+            branch: req.body.branch,
             name: req.body.name,
             email: req.body.email,
             mobileNumber: req.body.mobileNumber,
@@ -86,7 +86,7 @@ exports.getStaffList = async (req, res, next) => {
 
         let staff = await Staff.find({vendor:req.vendor.id, isDelete: false}).select('name email password').sort({createdAt: -1});
 
-        res.status(201).json({
+        res.status(200).json({
             success: true,
             message: req.t('success'),
             data: staff,
@@ -100,9 +100,13 @@ exports.getStaffList = async (req, res, next) => {
 exports.getStaffDetail = async (req, res, next) => {
     try {
 
-        let staff = await Staff.findById(req.params.id).select('-language -vendor -isDelete -isActive -createdAt -updatedAt -__v -fcmToken -token');
+        let staff = await Staff.findById(req.params.id).select('-language -vendor -isDelete -isActive -createdAt -updatedAt -__v -fcmToken -token')
+        .populate({
+            path:'branch',
+            select : 'buildingName'
+        });
 
-        res.status(201).json({
+        res.status(200).json({
             success: true,
             message: req.t('success'),
             data: staff,
@@ -126,7 +130,7 @@ exports.updateStaff = async (req, res, next) => {
         
         const user = await Staff.findById(req.params.id);
 
-        user.branchName = req.body.branchName
+        user.branch = req.body.branch
         user.name = req.body.name
         user.email = req.body.email
         user.mobileNumber = req.body.mobileNumber
