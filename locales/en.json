@@ -98,6 +98,16 @@
     "update":"Branch updated successfully.",
     "delete":"Branch deleted successfully."
   },
+  "cat":{
+    "add":"Category added successfully.",
+    "update":"Category updated successfully.",
+    "delete":"Category deleted successfully."
+  },
+  "item":{
+    "add":"Menu item added successfully.",
+    "update":"Menu item updated successfully.",
+    "delete":"Menu item deleted successfully."
+  },
   "addMenu":"Menu added successfully.",
   "removeMenu":"Menu removed successfully.",
   "wrongPasscode":"Current passcode is invalid!",

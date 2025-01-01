@@ -1,8 +1,4 @@
 const mongoose = require('mongoose');
-const validator = require('validator');
-const createError = require('http-errors');
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
 
 const branchSchema = new mongoose.Schema(
   {
