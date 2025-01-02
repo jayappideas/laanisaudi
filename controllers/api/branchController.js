@@ -16,8 +16,10 @@ exports.addBranch = async (req, res, next) => {
             roadName: req.body.roadName,
             city: req.body.city,
             country: req.body.country,
-            latitude: req.body.latitude,
-            longitude: req.body.longitude
+            location: {
+                type: 'Point',
+                coordinates: [parseFloat(req.body.longitude), parseFloat(req.body.latitude)]
+            },
         });
 
         res.status(201).json({
@@ -72,9 +74,11 @@ exports.updateBranch = async (req, res, next) => {
         branch.roadName = req.body.roadName
         branch.city = req.body.city
         branch.country = req.body.country
-        branch.latitude = req.body.latitude
-        branch.longitude = req.body.longitude
-        
+        branch.location = {
+            type: 'Point',
+            coordinates: [parseFloat(req.body.longitude), parseFloat(req.body.latitude)]
+        },
+
         await branch.save();
 
         res.status(201).json({
@@ -105,6 +109,7 @@ exports.deleteBranch = async (req, res, next) => {
         next(error);
     }
 };
+
 
 
 exports.addCategory = async (req, res, next) => {
@@ -205,6 +210,7 @@ exports.addItem = async (req, res, next) => {
     try {
 
         await menuItemModel.create({
+            vendor: req.vendor.id,
             category: req.body.category,
             name: req.body.name,
             price : req.body.price,

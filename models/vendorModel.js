@@ -53,6 +53,14 @@ const vendorSchema = new mongoose.Schema(
     signupStep: {
       type: Number
     },
+    businessRating: {
+      type: Number,
+      default : 0
+    },
+    businessReview: {
+      type: Number,
+      default : 0
+    },
     fcmToken: { 
       type: String 
     },

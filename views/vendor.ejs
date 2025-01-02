@@ -63,10 +63,11 @@
                                                         <tr>
                                                             <th>Sr</th>
                                                             <th>QR Code</th>
-                                                            <th>Email</th>
+                                                            <th>Email Address</th>
+                                                            <th>Business Name</th>
                                                             <th>Business Type</th>
                                                             <th>Application Status</th>
-                                                            <th>Created Date</th>
+                                                            <!-- <th>Created Date</th> -->
                                                             <th data-orderable="false">Status</th>
                                                             <th data-orderable="false">Action</th>
                                                         </tr>
@@ -77,6 +78,7 @@
                                                             <td><%= i+1 %></td>
                                                             <td width="50px"><img src="<%= process.env.IMAGE_URL%><%= vendors[i].qrCode %>" style="width: 80%;"/></td>
                                                             <td><%= vendors[i].email %></td>
+                                                            <td><%= vendors[i].businessName %></td>
                                                             <td><%= vendors[i].businessType ? vendors[i].businessType.en.name : '-' %></td>
                                                             <td>
                                                                 <% if (vendors[i].adminApproved) { %>
@@ -85,14 +87,14 @@
                                                                     <a style="background-color: rgb(240, 212, 212);padding: 5px 10px 5px 10px;color: red;border-radius: 5px;">Pending</a>
                                                                 <% } %>
                                                             </td>
-                                                            <td><%= vendors[i].createdAt.toISOString().split('T')[0] %> <%= 
+                                                            <!-- <td><%= vendors[i].createdAt.toISOString().split('T')[0] %> <%= 
                                                                 vendors[i].createdAt.toLocaleString('en-US', {
                                                                     timeZone: 'UTC', 
                                                                     hour: '2-digit',
                                                                     minute: '2-digit',
                                                                     hour12: true
-                                                                  }).replace(',', ''); %>
-                                                            </td>
+                                                                  }).replace(',', ''); %>,
+                                                            </td> -->
                                                             <td>
                                                                 <% if (vendors[i].isActive) { %>
                                                                     <a href="/user/change-status/<%= vendors[i]._id %>/0" class="waves-effect border-round waves-light btn green mr-1 mb-2"  onclick="return confirm('Are you sure want to De-Active this user?');">Active</a>

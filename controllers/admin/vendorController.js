@@ -5,7 +5,7 @@ const vendorModel = require("../../models/vendorModel");
 exports.getAllVendors = async (req, res) => {
 
     try {
-        const vendors = await vendorModel.find({isDelete: false}).select('qrCode email adminApproved createdAt isActive')
+        const vendors = await vendorModel.find({isDelete: false}).select('qrCode email adminApproved createdAt isActive businessName')
                                 .populate({
                                     path: 'businessType',
                                     select: 'en ar'

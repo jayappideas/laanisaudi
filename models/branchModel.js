@@ -26,13 +26,16 @@ const branchSchema = new mongoose.Schema(
       type: String,
       required: true
     },
-    latitude: {
-      type: String,
-      required: true
-    },
-    longitude: {
-      type: String,
-      required: true
+    location: {
+      type: {
+        type: String,
+        enum: ['Point'],
+        required: true,
+      },
+      coordinates: {
+        type: [Number], // [longitude, latitude]
+        required: true,
+      },
     },
     isDelete: {
       type: Boolean,
@@ -42,5 +45,6 @@ const branchSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+branchSchema.index({ location: '2dsphere' });
 
 module.exports = new mongoose.model('Branch', branchSchema);
