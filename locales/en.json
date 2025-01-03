@@ -111,6 +111,9 @@
   "addMenu":"Menu added successfully.",
   "removeMenu":"Menu removed successfully.",
   "wrongPasscode":"Current passcode is invalid!",
-  "success":"Success"
+  "success":"Success",
 
+  "review": {
+    "add":"Review added successfully."
+  }
 }

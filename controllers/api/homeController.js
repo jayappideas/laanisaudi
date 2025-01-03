@@ -6,6 +6,7 @@ const branchModel = require('../../models/branchModel');
 const vendorModel = require('../../models/vendorModel');
 const menuItemModel = require('../../models/menuItemModel');
 const bannerModel = require('../../models/bannerModel');
+const reviewModel = require('../../models/reviewModel');
 
 
 exports.getCategoryList = async (req, res, next) => {
@@ -177,6 +178,65 @@ exports.getRestaurantList = async (req, res, next) => {
         });
 
     } catch (error) {
+        next(error);
+    }
+};
+
+exports.postAddReview = async (req, res, next) => {
+    try {
+
+        await reviewModel.create({
+            user: req.user.id,
+            vendor: req.body.vendorId,
+            rating: req.body.rating,
+            review: req.body.review,
+        });
+
+        // Calculate the average rating
+        const avgRatingData = await reviewModel.aggregate([
+            { $match: { vendor: mongoose.Types.ObjectId(req.body.vendorId) } },
+            { $group: { _id: "$vendor", avgRating: { $avg: "$rating" } } },
+        ]);
+
+        const avgRating = avgRatingData.length > 0 ? avgRatingData[0].avgRating : 0;
+
+        // Increment the review count and update the rating
+        await vendorModel.findByIdAndUpdate(
+            mongoose.Types.ObjectId(req.body.vendorId),
+            {
+                $set: { businessRating: avgRating.toFixed(1) },
+                $inc: { businessReview: 1 },
+            },       
+        );
+
+        res.status(201).json({
+            success: true,
+            message: req.t('review.add')
+        });
+    } catch (error) {
+        console.log(error)
+        next(error);
+    }
+};
+
+
+exports.getReviews = async (req, res, next) => {
+    try {
+
+        const reviews = await reviewModel.find({vendor: req.params.vendorId}).select('user rating review createdAt')
+                            .populate({
+                                path: 'user',
+                                select : 'name'
+                            }).sort({createdAt: -1})
+
+        res.status(200).json({
+            success: true,
+            message: req.t('success'),
+            data: reviews
+        });
+
+    } catch (error) {
+        console.log(error)
         next(error);
     }
 };

@@ -91,6 +91,7 @@ app.use('/api/branch', require('./routes/api/branchRoutes'));
 app.use('/api/menu', require('./routes/api/branchRoutes'));
 app.use('/api/cms', require('./routes/api/cmsRoutes'));
 app.use('/api/home', require('./routes/api/homeRoutes'));
+app.use('/api/review', require('./routes/api/homeRoutes'));
 
 // 404 api
 app.use('/api', (req, res, next) => {
