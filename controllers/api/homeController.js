@@ -7,6 +7,8 @@ const vendorModel = require('../../models/vendorModel');
 const menuItemModel = require('../../models/menuItemModel');
 const bannerModel = require('../../models/bannerModel');
 const reviewModel = require('../../models/reviewModel');
+const categoryModel = require('../../models/categoryModel');
+const wishlistModel = require('../../models/wishlistModel');
 
 
 exports.getCategoryList = async (req, res, next) => {
@@ -52,7 +54,7 @@ exports.getSearchSuggestion = async (req, res, next) => {
             { businessName: { $regex: query, $options: 'i' } },
             { businessName: 1, _id: 0 }
         );
-      
+        
         const menuItemResults = await menuItemModel.find(
             { name: { $regex: query, $options: 'i' } },
             { name: 1, _id: 0 }
@@ -182,6 +184,108 @@ exports.getRestaurantList = async (req, res, next) => {
     }
 };
 
+exports.restaurantDetail = async (req, res, next) => {
+    try {
+
+        const vendorId = req.body.vendorId
+        const branchId = req.body.branchId
+
+        const vendor = await vendorModel.findById(vendorId).select('businessName businessLogo businessMobile email businessRating businessReview').lean();
+
+        const branches = await branchModel.find({vendor: vendor._id, isDelete:false}).select('-vendor -createdAt -updatedAt -__v -isDelete').lean();
+        
+        const isFavourite = await wishlistModel.findOne({ user:req.user.id, vendor:vendorId })
+        
+        const selectedBranch = branches.find((branch) => branch._id.toString() == branchId);
+
+        if (selectedBranch)
+            selectedBranch.isSelected = true;
+
+        let categories = await categoryModel.find({vendor: vendor._id, isDelete:false}).select('name').lean();
+
+        let menu = await Promise.all(
+            categories.map(async (cat) => {
+              const items = await menuItemModel
+                .find({ vendor: vendor._id, category: cat._id, isDelete: false, isActive: true })
+                .select('name price image')
+                .lean();
+                return {
+                    category: cat.name,
+                    items: items,
+                };
+            })
+        );
+
+        vendor.branches = branches;
+        vendor.menu = menu;
+        vendor.isFavourite = isFavourite ? true : false
+
+        res.status(200).json({
+            success: true,
+            message: req.t('success'),
+            data: vendor
+        });
+
+    } catch (error) {
+        console.log(error)
+        next(error);
+    }
+};
+
+
+exports.postAddFavourite = async (req, res, next) => {
+    try {
+
+        const data = await wishlistModel.findOne({user:req.user.id, vendor:req.params.vendorId});
+
+        if(!data){
+            await wishlistModel.create({
+                user: req.user.id,
+                vendor: req.params.vendorId
+            });
+    
+            res.status(201).json({
+                success: true,
+                message: req.t('fav.add')
+            });
+        }else{
+            await wishlistModel.deleteOne({
+                user: req.user.id,
+                vendor: req.params.vendorId
+            });
+
+            res.status(200).json({
+                success: true,
+                message: req.t('fav.remove')
+            });
+        }
+    } catch (error) {
+        console.log(error)
+        next(error);
+    }
+};
+
+exports.getFavouriteList = async (req, res, next) => {
+    try {
+
+        const data = await wishlistModel.find({user: req.user.id}).select('_id').populate({
+            path: 'vendor',
+            select: 'businessName businessLogo businessRating businessReview'
+        })
+
+        res.status(200).json({
+            success: true,
+            message: req.t('success'),
+            data: data
+        });
+
+    } catch (error) {
+        console.log(error)
+        next(error);
+    }
+};
+
+
 exports.postAddReview = async (req, res, next) => {
     try {
 
@@ -219,15 +323,13 @@ exports.postAddReview = async (req, res, next) => {
     }
 };
 
-
 exports.getReviews = async (req, res, next) => {
     try {
 
-        const reviews = await reviewModel.find({vendor: req.params.vendorId}).select('user rating review createdAt')
-                            .populate({
-                                path: 'user',
-                                select : 'name'
-                            }).sort({createdAt: -1})
+        const reviews = await reviewModel.find({vendor: req.params.vendorId}).select('user rating review createdAt').populate({
+                        path: 'user',
+                        select : 'name'
+                    }).sort({createdAt: -1})
 
         res.status(200).json({
             success: true,
