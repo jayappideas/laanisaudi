@@ -1,34 +1,61 @@
 const mongoose = require('mongoose');
 
-const reviewSchema = new mongoose.Schema(
+const discountSchema = new mongoose.Schema(
     {
         vendor : {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Vendor',
         },
-        type: {
+        title: {
+            type: String,
+            required: true
+        },
+        totalUserCount: {
             type: Number,
-            enum: ['earn', 'spent'],  //earn = customer got points, spent = customer got bill discount
-            required: true,
-        }, 
-        billAmount: {
+            required: true
+        },
+        redeemUserCount: {
             type: Number,
-            required: true,
-        }, 
-        redeemPoint: { //type is earn then customer got redeem point else spent points and got bill discount.
+            default: 0
+        },
+        remainingUserCount: {
             type: Number,
-        }, 
-        discountAmount: { //type is spent then customer got bill discount.
-            type: Number,
-            required: true,
-        }, 
+            default: 50
+        },
         status: {
-            type: Number,
-            enum: ['pending', 'success', 'failed', 'expired'], 
+            type: String,
+            enum: ['Active', 'Inactive', 'Expired'], 
             required: true,
+        },
+        customerType: [
+            String
+        ],
+        minBillAmount: {
+            type: Number,
+            required: true,
+        },
+        discountType: {
+            type: String,
+            enum: ['Percentage', 'Fixed']
+        },
+        discountValue: {
+            type: Number,
+        },
+        couponUsage: {
+            type: Number,
+        },
+        expiryDate: {
+            type: String
+        },
+        description: {
+            type: String
+        },
+        adminApproved: {
+            type: Boolean,
+            default: false
         }
     },
     { timestamps: true }
 );
 
-module.exports = mongoose.model('Review', reviewSchema);
+module.exports = mongoose.model('Discount', discountSchema);

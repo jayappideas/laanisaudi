@@ -9,6 +9,7 @@ const bannerModel = require('../../models/bannerModel');
 const reviewModel = require('../../models/reviewModel');
 const categoryModel = require('../../models/categoryModel');
 const wishlistModel = require('../../models/wishlistModel');
+const discountModel = require('../../models/discountModel');
 
 
 exports.getCategoryList = async (req, res, next) => {
@@ -203,6 +204,14 @@ exports.restaurantDetail = async (req, res, next) => {
 
         let categories = await categoryModel.find({vendor: vendor._id, isDelete:false}).select('name').lean();
 
+        const offers = await discountModel.find({vendor: vendor._id, adminApproved: true}).select('title description customerType totalUserCount expiryDate').lean();
+
+        const filteredOffers = offers.filter(offer => {
+            const [day, month, year] = offer.expiryDate.split('/').map(Number);
+            const expiryDate = new Date(year, month - 1, day); // JS Date months are 0-based
+            return expiryDate >= new Date();
+        });
+
         let menu = await Promise.all(
             categories.map(async (cat) => {
               const items = await menuItemModel
@@ -216,6 +225,7 @@ exports.restaurantDetail = async (req, res, next) => {
             })
         );
 
+        vendor.offers = filteredOffers;
         vendor.branches = branches;
         vendor.menu = menu;
         vendor.isFavourite = isFavourite ? true : false
