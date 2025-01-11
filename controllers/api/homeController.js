@@ -204,7 +204,7 @@ exports.restaurantDetail = async (req, res, next) => {
 
         let categories = await categoryModel.find({vendor: vendor._id, isDelete:false}).select('name').lean();
 
-        const offers = await discountModel.find({vendor: vendor._id, adminApproved: true}).select('title description customerType totalUserCount expiryDate').lean();
+        const offers = await discountModel.find({vendor: vendor._id, adminApprovedStatus: "Approved"}).select('title description customerType totalUserCount expiryDate minBillAmount remainingUserCount').lean();
 
         const filteredOffers = offers.filter(offer => {
             const [day, month, year] = offer.expiryDate.split('/').map(Number);

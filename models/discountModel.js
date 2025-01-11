@@ -50,9 +50,10 @@ const discountSchema = new mongoose.Schema(
         description: {
             type: String
         },
-        adminApproved: {
-            type: Boolean,
-            default: false
+        adminApprovedStatus: {
+            type: String,
+            enum: ['Pending', 'Approved', 'Rejected'],
+            default: 'Pending'
         }
     },
     { timestamps: true }
