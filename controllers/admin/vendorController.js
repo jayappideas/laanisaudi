@@ -32,7 +32,11 @@ exports.viewVendor = async (req, res) => {
     }
 
     const branch = await branchModel.find({vendor: req.params.id, isDelete: false}).select('-createdAt -updatedAt -__v').sort('-_id')
-    const staff = await staffModel.find({vendor: req.params.id, isDelete: false}).select('qrCode branchName name email mobileNumber occupation createdAt').sort('-_id')
+    const staff = await staffModel.find({vendor: req.params.id, isDelete: false}).select('qrCode name email mobileNumber occupation')
+                                .populate({
+                                    path: 'branch',    
+                                    select: 'buildingName'
+                                }).sort('-_id')
 
     res.render("vendor_view", { vendor, staff, branch});
   } catch (error) {

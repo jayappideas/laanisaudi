@@ -117,7 +117,6 @@
                   <div class="col s12">
                     <h5>Branches Information</h5>
                   </div>
-                  
                   <div class="col s12" style="padding: 0%;">
                     <div class="section section-data-tables">
                       <div class="col s12">
@@ -129,24 +128,22 @@
                                               <thead>
                                                   <tr>
                                                     <th>Sr</th>
-                                                    <th>Building No.</th>
                                                     <th>Building Name</th>
+                                                    <th>Building No.</th>
                                                     <th>Road No/Name</th>
                                                     <th>City</th>
                                                     <th>Country</th>
-                                                    <th>Staff Members</th>
                                                   </tr>
                                               </thead>
                                               <tbody>
                                                   <% for( let i=0; i < branch.length; i++ ) { %>
                                                   <tr>
-                                                      <td><%= i+1 %></td>
-                                                      <td><%= branch[i].buildingNo %></td>
-                                                      <td><%= branch[i].buildingName %></td>
-                                                      <td><%= branch[i].roadName %></td>
-                                                      <td><%= branch[i].city %></td>
-                                                      <td><%= branch[i].country %></td>
-                                                      <td><a href="">Staff Members </a></td>
+                                                    <td><%= i+1 %></td>
+                                                    <td><%= branch[i].buildingName %></td>
+                                                    <td><%= branch[i].buildingNo %></td>
+                                                    <td><%= branch[i].roadName %></td>
+                                                    <td><%= branch[i].city %></td>
+                                                    <td><%= branch[i].country %></td>
                                                   </tr>
                                                   <% } %>
                                               </tbody>
@@ -159,6 +156,53 @@
                     </div>
                   </div>
                 </div>
+
+                <div class="row">
+                  <div class="col s12">
+                    <h5>Staff Members Information</h5>
+                  </div>
+                  <div class="col s12" style="padding: 0%;">
+                    <div class="section section-data-tables">
+                      <div class="col s12">
+                          <div class="card">
+                              <div class="card-content">
+                                  <div class="row">
+                                      <div class="col s12 overflow">
+                                          <table id="page-length-option" class="display">
+                                              <thead>
+                                                  <tr>
+                                                    <th>Sr</th>
+                                                    <th>QR Code</th>
+                                                    <th>Branch</th>
+                                                    <th>Name</th>
+                                                    <th>Email</th>
+                                                    <th>Mobile Number</th>
+                                                    <th>Occupation</th>
+                                                  </tr>
+                                              </thead>
+                                              <tbody>
+                                                  <% for(let i=0; i < staff.length; i++ ) { %>
+                                                  <tr>
+                                                    <td><%= i+1 %></td>
+                                                    <td width="100px"><img src="<%= process.env.IMAGE_URL%><%= staff[i].qrCode %>" style="width: 60%;"/></td>
+                                                    <td><%= staff[i].branch.buildingName %></td>
+                                                    <td><%= staff[i].name %></td>
+                                                    <td><%= staff[i].email %></td>
+                                                    <td><%= staff[i].mobileNumber %></td>
+                                                    <td><%= staff[i].occupation %></td>
+                                                  </tr>                                                                                      
+                                                  <% } %>
+                                              </tbody>
+                                          </table>
+                                      </div>
+                                  </div>
+                              </div>
+                          </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
               </div>
             </div>
             <!-- users view card details ends -->
