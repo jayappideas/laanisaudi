@@ -61,12 +61,12 @@ exports.changeVendorStatus = async (req, res) => {
         await user.save();
 
         req.flash('green', 'Status changed successfully.');
-        res.redirect('/user');
+        res.redirect('/vendor');
     } catch (error) {
         if (error.name === 'CastError' || error.name === 'TypeError')
             req.flash('red', 'User not found!');
         else req.flash('red', error.message);
-        res.redirect('/user');
+        res.redirect('/vendor');
     }
 };
 

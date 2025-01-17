@@ -97,9 +97,9 @@
                                                             </td> -->
                                                             <td>
                                                                 <% if (vendors[i].isActive) { %>
-                                                                    <a href="/user/change-status/<%= vendors[i]._id %>/0" class="waves-effect border-round waves-light btn green mr-1 mb-2"  onclick="return confirm('Are you sure want to De-Active this user?');">Active</a>
+                                                                    <a href="/vendor/change-status/<%= vendors[i]._id %>/0" class="waves-effect border-round waves-light btn green mr-1 mb-2"  onclick="return confirm('Are you sure want to De-Active this vendor?');">Active</a>
                                                                 <% } else { %>
-                                                                    <a href="/user/change-status/<%= vendors[i]._id %>/1" class="waves-effect border-round waves-light btn red mr-1 mb-2"  style="padding: 0px 16px 0px 16px;" onclick="return confirm('Are you sure want to Active this user?');">De-Active</a>
+                                                                    <a href="/vendor/change-status/<%= vendors[i]._id %>/1" class="waves-effect border-round waves-light btn red mr-1 mb-2"  style="padding: 0px 16px 0px 16px;" onclick="return confirm('Are you sure want to Active this vendor?');">De-Active</a>
                                                                 <% } %>
                                                             </td>
                                                             <td>
