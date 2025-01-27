@@ -93,6 +93,7 @@ app.use('/api/cms', require('./routes/api/cmsRoutes'));
 app.use('/api/home', require('./routes/api/homeRoutes'));
 app.use('/api/review', require('./routes/api/homeRoutes'));
 app.use('/api/discount', require('./routes/api/discountRoutes'));
+app.use('/api/redeem', require('./routes/api/scanRoutes'));
 
 // 404 api
 app.use('/api', (req, res, next) => {

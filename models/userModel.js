@@ -41,6 +41,10 @@ const userSchema = new mongoose.Schema(
     token: { 
       type: String 
     },
+    totalPoints: {
+      type: Number,
+      default: 0,
+    },
     isNotification: {
       type: Boolean,
       default: true,

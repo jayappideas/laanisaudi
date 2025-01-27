@@ -113,6 +113,7 @@
   "wrongPasscode":"Current passcode is invalid!",
   "success":"Success",
 
+
   "review": {
     "add":"Review added successfully."
   },
@@ -120,6 +121,8 @@
     "add":"Discount added successfully.",
     "update":"Discount updated successfully.",
     "delete":"Discount deleted successfully."
+  },
+  "redeem": {
+    "invalidQr":"Invalid QR Code, please try again!."
   }
-  
 }
