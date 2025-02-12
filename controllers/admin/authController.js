@@ -25,10 +25,28 @@ exports.checkAdmin = async (req, res, next) => {
                 req.flash('red', 'Please login as admin first!');
                 return res.redirect('/login');
             }
-            req.admin = admin;
-            res.locals.photo = admin.photo;
-            req.session.checkAdminSuccess = undefined;
-            next();
+
+            if(admin.role == 'A'){
+                if(admin.isActive){
+
+                    console.log(req)
+
+                    req.admin = admin;
+                    res.locals.photo = admin.photo;
+                    req.session.checkAdminSuccess = undefined;
+                    next();
+                }else{
+                    req.flash('red', 'Your account has been blocked, Please contact to admin.');
+                    res.redirect('/login');
+                }
+            }else{
+                req.admin = admin;
+                res.locals.photo = admin.photo;
+                req.session.checkAdminSuccess = undefined;
+                next();
+            }
+
+            
         } else {
             req.flash('red', 'Please login as admin first!');
             res.redirect('/login');
@@ -92,6 +110,7 @@ exports.postLogin = async (req, res) => {
             expires: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
             httpOnly: true,
         });
+        
         res.redirect('/');
     } catch (error) {
         req.flash('red', error.message);
