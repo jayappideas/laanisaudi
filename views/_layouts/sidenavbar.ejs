@@ -51,7 +51,7 @@
                                 </a>
                               </li>
                               <li class="bold <%= url == '/sub-admin' ? 'active' : '' %>">
-                                <a class="waves-effect waves-cyan" href="/sub-admin">
+                                <a class="waves-effect waves-cyan" href="/sub-admin/list">
                                   <i class="material-icons <%= url == '/sub-admin' ? 'theme-text' : 'black-text' %>">face</i>
                                   <span class="menu-title <%= url == '/sub-admin' ? 'theme-text' : 'black-text' %>">Subadmin</span>
                                 </a>
@@ -138,16 +138,7 @@
                   <li><a class="waves-effect waves-block waves-light profile-button" href="javascript:void(0);" data-target="profile-dropdown" style="height: 75px;"><span class="avatar-status avatar-online"><img src="/img/avatar.png" alt="avatar"><i></i></span></a></li>
                   <!-- profile-dropdown-->
                   <ul class="dropdown-content dropdown-horizontal-list" id="profile-dropdown" style="width: 188px !important;left: 1140px !important;">
-                      <li>
-                        <a href="/changepass">
-                            <i class="material-icons">person</i><span style="margin-left: -5px;">My Profile</span>
-                        </a>
-                      </li>
-                      <li>
-                        <a href="/changepass">
-                            <i class="material-icons">settings</i><span style="margin-left: -5px;">Setting</span>
-                        </a>
-                      </li>
+
                       <li>
                           <a href="/changepass">
                               <i class="material-icons">lock_outline</i><span style="margin-left: -5px;">Change Password</span>
@@ -181,7 +172,7 @@
         </a>
       </li>
       <li class="bold <%= url == '/sub-admin' ? 'active' : '' %>">
-        <a class="waves-effect waves-cyan" href="/sub-admin">
+        <a class="waves-effect waves-cyan" href="/sub-admin/list">
           <i class="material-icons <%= url == '/sub-admin' ? 'theme-text' : 'black-text' %>">face</i>
           <span class="menu-title <%= url == '/sub-admin' ? 'theme-text' : 'black-text' %>">Subadmin</span>
         </a>

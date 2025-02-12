@@ -36,5 +36,18 @@ router
     .post(authController.postChangePass);
 
 
+/* SUB ADMIN ROUTES */
+
+router.get('/list', authController.getSubAdminList);
+router.get('/change-status/:id/:status', authController.changeAdminStatus);
+router
+    .route('/add')
+    .get(authController.getSubAdmin)
+    .post(authController.postSubAdmin);
+router
+    .route('/edit/:id')
+    .get(authController.getEditSubAdmin)
+    .post(authController.postEditSubAdmin);
+
 
 module.exports = router;

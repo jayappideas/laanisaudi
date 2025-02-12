@@ -30,20 +30,12 @@ const adminSchema = new mongoose.Schema(
             type: String,
             enum: ['S', 'A']
         },
-        permission : [ //For A(subAdmin)
+        permission : [ //For A (subAdmin)
             {
-                key : { type: String },
-                module : { type: String },
-                isView : { type: Boolean, default: false},
-                isAdd : { type: Boolean, default: false},
-                isEdit : { type: Boolean, default: false},
-                isDelete : { type: Boolean, default: false}
+                key : { type: String},
+                isAccess : { type: Boolean, default: false}
             }
-        ],
-        isActive: {
-            type: Boolean,
-            default: true
-        }
+        ]
     },
     { timestamps: true }
 );
