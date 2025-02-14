@@ -66,7 +66,7 @@ exports.getBranchDetail = async (req, res, next) => {
 
 exports.updateBranch = async (req, res, next) => {
     try {
-        
+
         const branch = await Branch.findById(req.params.id);
 
         branch.buildingNo = req.body.buildingNo
@@ -132,7 +132,7 @@ exports.addCategory = async (req, res, next) => {
 
 exports.getCategoryList = async (req, res, next) => {
     try {
-        
+
         const categories = await categoryModel.aggregate([
             {
               $match: {
@@ -170,11 +170,11 @@ exports.getCategoryList = async (req, res, next) => {
 
 exports.updateCategory = async (req, res, next) => {
     try {
-        
+
         const category = await categoryModel.findById(req.params.id);
 
         category.name = req.body.name
-        
+
         await category.save();
 
         res.status(201).json({
@@ -189,7 +189,7 @@ exports.updateCategory = async (req, res, next) => {
 
 exports.deleteCategory = async (req, res, next) => {
     try {
-        
+
         await categoryModel.findByIdAndDelete(req.params.id);
 
         await menuItemModel.deleteMany({ category: mongoose.Types.ObjectId(req.params.id) });
@@ -214,7 +214,7 @@ exports.addItem = async (req, res, next) => {
             category: req.body.category,
             name: req.body.name,
             price : req.body.price,
-            image: req.file ? req.file.filename : '' 
+            image: req.file ? req.file.filename : ''
         });
 
         res.status(201).json({
@@ -229,7 +229,7 @@ exports.addItem = async (req, res, next) => {
 
 exports.getItemList = async (req, res, next) => {
     try {
-        
+
         let items = await menuItemModel.find({category: req.params.id, isDelete:false}).select('name price image isActive');
 
         res.status(200).json({
@@ -245,13 +245,13 @@ exports.getItemList = async (req, res, next) => {
 
 exports.updateItem = async (req, res, next) => {
     try {
-        
+
         const menu = await menuItemModel.findById(req.params.id);
 
         menu.name = req.body.name ? req.body.name : menu.name
         menu.price = req.body.price? req.body.price : menu.price
         menu.isActive = req.body.isActive? req.body.isActive : menu.isActive
-        
+
         if (req.file) {
             if(menu.image != ''){
                 const oldImagePath = path.join(
@@ -259,9 +259,9 @@ exports.updateItem = async (req, res, next) => {
                     '../../public/uploads/',
                     menu.image
                 );
-                fs.unlink(oldImagePath, () => {});    
+                fs.unlink(oldImagePath, () => {});
             }
-            
+
             menu.image = req.file.filename;
         }
 
@@ -279,7 +279,7 @@ exports.updateItem = async (req, res, next) => {
 
 exports.deleteItem = async (req, res, next) => {
     try {
-        
+
         await menuItemModel.findByIdAndDelete(req.params.id);
 
         res.status(201).json({

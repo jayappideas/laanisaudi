@@ -45,7 +45,7 @@ const vendorSchema = new mongoose.Schema(
     businessLicense: {
       type: String,
     },
-  
+
     adminApproved: {
       type: Boolean,
       default: false,
@@ -61,11 +61,11 @@ const vendorSchema = new mongoose.Schema(
       type: Number,
       default : 0
     },
-    fcmToken: { 
-      type: String 
+    fcmToken: {
+      type: String
     },
-    token: { 
-      type: String 
+    token: {
+      type: String
     },
     isNotification: {
       type: Boolean,

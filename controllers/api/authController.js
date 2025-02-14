@@ -13,10 +13,8 @@ const QRCode = require('qrcode');
 const fs = require('fs');
 const path = require('path');
 
-
-
 /* ===================================================
-                USER AUTH API 
+                USER AUTH API
 ======================================================*/
 
 // To ensure that a valid user is logged in.
@@ -55,7 +53,10 @@ exports.sendOtp = async (req, res, next) => {
     try {
         let { mobileNumber } = req.body;
 
-        const userExist = await User.findOne({ mobileNumber : mobileNumber, isDelete: false });
+        const userExist = await User.findOne({
+            mobileNumber: mobileNumber,
+            isDelete: false,
+        });
 
         if (userExist) {
             if (userExist.mobileNumber == mobileNumber) {
@@ -65,14 +66,14 @@ exports.sendOtp = async (req, res, next) => {
             }
         }
 
-        await otpModel.deleteMany({mobileNumber})
+        await otpModel.deleteMany({ mobileNumber });
 
         // generate and save OTP
         const otp = generateCode(4);
-        
+
         await otpModel.create({
             mobileNumber,
-            otp
+            otp,
         });
 
         // send OTP
@@ -134,18 +135,20 @@ exports.resendOtp = async (req, res, next) => {
 
 exports.signUp = async (req, res, next) => {
     try {
-
-        const userExists = await User.findOne({ mobileNumber: req.body.mobileNumber });
+        const userExists = await User.findOne({
+            mobileNumber: req.body.mobileNumber,
+        });
         if (userExists)
-            return next(createError.BadRequest('validation.alreadyRegisteredPhone'));
+            return next(
+                createError.BadRequest('validation.alreadyRegisteredPhone')
+            );
 
-        
         // create user
         let user = await User.create({
             name: req.body.name,
             mobileNumber: req.body.mobileNumber,
             password: req.body.password,
-            language : req.body.language,
+            language: req.body.language,
             fcmToken: req.body.fcmToken,
         });
         const token = await user.generateAuthToken();
@@ -163,8 +166,8 @@ exports.signUp = async (req, res, next) => {
             },
         });
 
-        user.qrCode = fileName
-        user.token = token
+        user.qrCode = fileName;
+        user.token = token;
         user.save();
 
         // hide fields
@@ -181,10 +184,10 @@ exports.signUp = async (req, res, next) => {
             success: true,
             message: req.t('auth.registered'),
             user,
-            token
+            token,
         });
     } catch (error) {
-        console.log(error)
+        console.log(error);
         next(error);
     }
 };
@@ -194,14 +197,17 @@ exports.login = async (req, res, next) => {
         const { mobileNumber, password, fcmToken } = req.body;
 
         if (!mobileNumber && !password)
-            return next(createError.BadRequest('Provide mobile number and password!'));
+            return next(
+                createError.BadRequest('Provide mobile number and password!')
+            );
 
-        let user = await User.findOne({ mobileNumber, isDelete: false }).select('+password -__v -createdAt -updatedAt');
+        let user = await User.findOne({ mobileNumber, isDelete: false }).select(
+            '+password -__v -createdAt -updatedAt'
+        );
 
-        if (!user)
-            return next(createError.BadRequest('auth.credentials'));
+        if (!user) return next(createError.BadRequest('auth.credentials'));
 
-        if(user.isActive == false)
+        if (user.isActive == false)
             return next(createError.BadRequest('auth.blocked'));
 
         if (!user || !(await user.correctPassword(password, user.password)))
@@ -210,8 +216,8 @@ exports.login = async (req, res, next) => {
         const token = await user.generateAuthToken();
 
         user.fcmToken = fcmToken;
-        user.token = token
-        
+        user.token = token;
+
         await user.save();
         // hide fields
         user = user.toObject();
@@ -227,9 +233,8 @@ exports.login = async (req, res, next) => {
             success: true,
             message: req.t('auth.login'),
             user,
-            token
+            token,
         });
-
     } catch (error) {
         next(error);
     }
@@ -238,7 +243,8 @@ exports.login = async (req, res, next) => {
 exports.forgotPassword = async (req, res, next) => {
     try {
         const mobileNumber = req.body.mobileNumber;
-        if (!mobileNumber) return next(createError.BadRequest('validation.phone'));
+        if (!mobileNumber)
+            return next(createError.BadRequest('validation.phone'));
 
         const user = await User.findOne({ mobileNumber });
         if (!user) return next(createError.BadRequest('phone.notRegistered'));
@@ -261,8 +267,9 @@ exports.forgotPassword = async (req, res, next) => {
 
 exports.resetPassword = async (req, res, next) => {
     try {
-
-        const user = await User.findOne({ mobileNumber: req.body.mobileNumber });
+        const user = await User.findOne({
+            mobileNumber: req.body.mobileNumber,
+        });
 
         // update passcode
         user.password = req.body.password;
@@ -288,7 +295,7 @@ exports.changePassword = async (req, res, next) => {
             return next(createError.BadRequest('changePass.wrongPass'));
 
         // update password
-        if(oldPassword == newPassword)
+        if (oldPassword == newPassword)
             return next(createError.BadRequest('changePass.samePass'));
 
         user.password = newPassword;
@@ -299,7 +306,6 @@ exports.changePassword = async (req, res, next) => {
             success: true,
             message: req.t('changePass.updated'),
         });
-
     } catch (error) {
         next(error);
     }
@@ -307,15 +313,15 @@ exports.changePassword = async (req, res, next) => {
 
 exports.getProfile = async (req, res, next) => {
     try {
-
-        let user = await User.findById(req.user.id).select('-isDelete -isActive -createdAt -updatedAt -__v -fcmToken -token');
+        let user = await User.findById(req.user.id).select(
+            '-isDelete -isActive -createdAt -updatedAt -__v -fcmToken -token'
+        );
 
         res.status(201).json({
             success: true,
             message: req.t('success'),
             data: user,
         });
-
     } catch (error) {
         next(error);
     }
@@ -323,38 +329,36 @@ exports.getProfile = async (req, res, next) => {
 
 exports.editProfile = async (req, res, next) => {
     try {
-
         const user = await User.findById(req.user.id);
-        
+
         // const phoneExists = await User.findOne({mobileNumber: req.body.mobileNumber, _id: { $ne: user._id } });
         // if (phoneExists)
         //     return next(createError.BadRequest('validation.alreadyRegisteredPhone'));
 
-        user.name = req.body.name
+        user.name = req.body.name;
         // user.mobileNumber = req.body.mobileNumber
-        user.birthDate = req.body.birthDate
-        user.gender = req.body.gender 
+        user.birthDate = req.body.birthDate;
+        user.gender = req.body.gender;
 
         await user.save();
 
         res.status(201).json({
             success: true,
-            message: req.t('auth.updated')
+            message: req.t('auth.updated'),
         });
     } catch (error) {
-        console.log(error)
+        console.log(error);
         next(error);
     }
 };
 
 exports.deleteAccount = async (req, res, next) => {
     try {
-
         const user = await User.findById(req.user.id);
 
         user.isDelete = true;
-        user.token = "";
-        user.fcmToken = ""
+        user.token = '';
+        user.fcmToken = '';
 
         //Points Removed
 
@@ -362,17 +366,16 @@ exports.deleteAccount = async (req, res, next) => {
 
         res.status(201).json({
             success: true,
-            message: req.t('auth.deleted_success')
+            message: req.t('auth.deleted_success'),
         });
     } catch (error) {
-        console.log(error)
+        console.log(error);
         next(error);
     }
 };
 
 exports.updateNotification = async (req, res, next) => {
     try {
-
         const user = await User.findById(req.user.id);
 
         user.isNotification = req.params.status;
@@ -381,43 +384,39 @@ exports.updateNotification = async (req, res, next) => {
 
         res.status(201).json({
             success: true,
-            message: req.t('success')
+            message: req.t('success'),
         });
     } catch (error) {
-        console.log(error)
+        console.log(error);
         next(error);
     }
 };
 
 exports.changeLanguage = async (req, res, next) => {
     try {
-
         const user = await User.findById(req.user.id);
 
         user.language = true;
-        user.token = "";
-        user.fcmToken = ""
-        
+        user.token = '';
+        user.fcmToken = '';
+
         //Points Removed
 
         await user.save();
 
         res.status(201).json({
             success: true,
-            message: req.t('auth.deleted_success')
+            message: req.t('auth.deleted_success'),
         });
     } catch (error) {
-        console.log(error)
+        console.log(error);
         next(error);
     }
 };
 
-
-
 /* ===================================================
-                VEDNOR AUTH API 
+                VEDNOR AUTH API
 ======================================================*/
-
 
 // To ensure that a valid vendor is logged in.
 exports.checkVendor = async (req, res, next) => {
@@ -473,7 +472,7 @@ exports.isVendor = async (req, res, next) => {
         );
 
         if (!vendor) return next(createError.Unauthorized('auth.pleaseLogin'));
-        
+
         req.vendor = vendor;
         next();
     } catch (error) {
@@ -485,7 +484,10 @@ exports.sendOtpVendor = async (req, res, next) => {
     try {
         let { email } = req.body;
 
-        const userExist = await Vendor.findOne({ email : email, isDelete: false });
+        const userExist = await Vendor.findOne({
+            email: email,
+            isDelete: false,
+        });
 
         if (userExist) {
             return next(
@@ -493,14 +495,14 @@ exports.sendOtpVendor = async (req, res, next) => {
             );
         }
 
-        await otpModel.deleteMany({mobileNumber: email})
+        await otpModel.deleteMany({ mobileNumber: email });
 
         // generate and save OTP
         const otp = generateCode(4);
-        
+
         await otpModel.create({
-            mobileNumber : email,
-            otp
+            mobileNumber: email,
+            otp,
         });
 
         // send OTP
@@ -562,19 +564,19 @@ exports.resendOtpVendor = async (req, res, next) => {
 
 exports.signUpVendor = async (req, res, next) => {
     try {
-
         const userExists = await Vendor.findOne({ email: req.body.email });
         if (userExists)
-            return next(createError.BadRequest('validation.alreadyRegisteredEmail'));
+            return next(
+                createError.BadRequest('validation.alreadyRegisteredEmail')
+            );
 
-        
         // create user
         let user = await Vendor.create({
             email: req.body.email,
             password: req.body.password,
-            language : req.body.language,
+            language: req.body.language,
             fcmToken: req.body.fcmToken,
-            signupStep : 1
+            signupStep: 1,
         });
         const token = await user.generateAuthToken();
 
@@ -591,8 +593,8 @@ exports.signUpVendor = async (req, res, next) => {
             },
         });
 
-        user.qrCode = fileName
-        user.token = token
+        user.qrCode = fileName;
+        user.token = token;
         user.save();
 
         // hide fields
@@ -610,10 +612,10 @@ exports.signUpVendor = async (req, res, next) => {
             success: true,
             message: req.t('auth.registered'),
             user,
-            token
+            token,
         });
     } catch (error) {
-        console.log(error)
+        console.log(error);
         next(error);
     }
 };
@@ -623,28 +625,31 @@ exports.loginVendor = async (req, res, next) => {
         const { email, password, fcmToken } = req.body;
 
         if (!email && !password)
-            return next(createError.BadRequest('Provide mobile number and password!'));
+            return next(
+                createError.BadRequest('Provide mobile number and password!')
+            );
 
-        let user = await Vendor.findOne({ email, isDelete: false }).select('+password -__v -createdAt -updatedAt');
+        let user = await Vendor.findOne({ email, isDelete: false }).select(
+            '+password -__v -createdAt -updatedAt'
+        );
 
-        if (!user)
-            return next(createError.BadRequest('auth.vcredentials'));
+        if (!user) return next(createError.BadRequest('auth.vcredentials'));
 
-        if(user.isActive == false)
+        if (user.isActive == false)
             return next(createError.BadRequest('auth.blocked'));
 
         if (!user || !(await user.correctPassword(password, user.password)))
             return next(createError.BadRequest('auth.vcredentials'));
 
-        // if(user.signupStep == 0){    
+        // if(user.signupStep == 0){
         if (!user.adminApproved)
             return next(createError.Unauthorized('auth.pendingApproved'));
         // }
         const token = await user.generateAuthToken();
 
         user.fcmToken = fcmToken;
-        user.token = token
-        
+        user.token = token;
+
         await user.save();
         // hide fields
         user = user.toObject();
@@ -661,9 +666,8 @@ exports.loginVendor = async (req, res, next) => {
             success: true,
             message: req.t('auth.login'),
             user,
-            token
+            token,
         });
-
     } catch (error) {
         next(error);
     }
@@ -695,7 +699,6 @@ exports.forgotPasswordVendor = async (req, res, next) => {
 
 exports.resetPasswordVendor = async (req, res, next) => {
     try {
-
         const user = await Vendor.findOne({ email: req.body.email });
 
         // update passcode
@@ -722,7 +725,7 @@ exports.changePasswordVendor = async (req, res, next) => {
             return next(createError.BadRequest('changePass.wrongPass'));
 
         // update password
-        if(oldPassword == newPassword)
+        if (oldPassword == newPassword)
             return next(createError.BadRequest('changePass.samePass'));
 
         user.password = newPassword;
@@ -733,7 +736,6 @@ exports.changePasswordVendor = async (req, res, next) => {
             success: true,
             message: req.t('changePass.updated'),
         });
-
     } catch (error) {
         next(error);
     }
@@ -741,147 +743,144 @@ exports.changePasswordVendor = async (req, res, next) => {
 
 exports.addBusinessInfo = async (req, res, next) => {
     try {
-
-        const {businessType, businessName, businessMobile} = req.body
+        const { businessType, businessName, businessMobile } = req.body;
         const vendor = await Vendor.findById(req.vendor.id);
 
-        vendor.businessName = businessName
-        vendor.businessMobile = businessMobile
-        vendor.businessLogo = req.files.businessLogo[0].filename,
-        vendor.businessLicense = req.files.businessLicense[0].filename,
-        vendor.businessType = businessType
-        vendor.signupStep = 0
+        vendor.businessName = businessName;
+        vendor.businessMobile = businessMobile;
+        (vendor.businessLogo = req.files.businessLogo[0].filename),
+            (vendor.businessLicense = req.files.businessLicense[0].filename),
+            (vendor.businessType = businessType);
+        vendor.signupStep = 0;
 
         await vendor.save();
 
         res.status(201).json({
             success: true,
-            message: req.t('success')
+            message: req.t('success'),
         });
     } catch (error) {
-        console.log(error)
+        console.log(error);
         next(error);
     }
 };
 
 exports.updateBusinessInfo = async (req, res, next) => {
     try {
-
-        const { businessName,businessMobile } = req.body
+        const { businessName, businessMobile } = req.body;
         const vendor = await Vendor.findById(req.vendor.id);
 
-        vendor.businessName = businessName
-        vendor.businessMobile = businessMobile
-        
+        vendor.businessName = businessName;
+        vendor.businessMobile = businessMobile;
+
         // if(req.files.length > 0){
-            if (req.files.businessLogo && req.files.businessLogo[0]) {
-                const oldImagePath = path.join(
-                    __dirname,
-                    '../../public/uploads/',
-                    vendor.businessLogo
-                );
-                fs.unlink(oldImagePath, () => {});
-                vendor.businessLogo = req.files.businessLogo[0].filename;
-            }
-            if (req.files.businessLicense && req.files.businessLicense[0]) {
-                const oldImagePath = path.join(
-                    __dirname,
-                    '../../public/uploads/',
-                    vendor.businessLogo.license
-                );
-                fs.unlink(oldImagePath, () => {});
-                vendor.businessLicense = req.files.businessLicense[0].filename;
-            }
+        if (req.files.businessLogo && req.files.businessLogo[0]) {
+            const oldImagePath = path.join(
+                __dirname,
+                '../../public/uploads/',
+                vendor.businessLogo
+            );
+            fs.unlink(oldImagePath, () => {});
+            vendor.businessLogo = req.files.businessLogo[0].filename;
+        }
+        if (req.files.businessLicense && req.files.businessLicense[0]) {
+            const oldImagePath = path.join(
+                __dirname,
+                '../../public/uploads/',
+                vendor.businessLogo.license
+            );
+            fs.unlink(oldImagePath, () => {});
+            vendor.businessLicense = req.files.businessLicense[0].filename;
+        }
         // }
 
         await vendor.save();
 
         res.status(201).json({
             success: true,
-            message: req.t('auth.updated')
+            message: req.t('auth.updated'),
         });
     } catch (error) {
-        console.log(error)
+        console.log(error);
         next(error);
     }
 };
 
 exports.addBusinessMenu = async (req, res, next) => {
     try {
-
         const vendor = await Vendor.findById(req.vendor.id);
-        
+
         var businessMenu = [];
-        if(req.files.image){
-            req.files.image.forEach((ele,index) => {
+        if (req.files.image) {
+            req.files.image.forEach((ele, index) => {
                 businessMenu.push(req.files.image[index].filename);
-            })
+            });
         }
 
-        vendor.businessMenu = businessMenu
-        vendor.signupStep = 0
+        vendor.businessMenu = businessMenu;
+        vendor.signupStep = 0;
         await vendor.save();
 
         res.status(201).json({
             success: true,
-            message: req.t('success')
+            message: req.t('success'),
         });
     } catch (error) {
-        console.log(error)
+        console.log(error);
         next(error);
     }
 };
 
 exports.deleteMenu = async (req, res, next) => {
     try {
-
-        const imageToRemove = req.params.image; 
+        const imageToRemove = req.params.image;
         const vendor = await Vendor.findById(req.vendor.id);
 
-        vendor.businessMenu = vendor.businessMenu.filter(image => image !== imageToRemove);
+        vendor.businessMenu = vendor.businessMenu.filter(
+            image => image !== imageToRemove
+        );
 
         await vendor.save();
 
         res.status(201).json({
             success: true,
-            message: req.t('removeMenu')
+            message: req.t('removeMenu'),
         });
     } catch (error) {
-        console.log(error)
+        console.log(error);
         next(error);
     }
 };
 
 exports.addSingleMenu = async (req, res, next) => {
     try {
-
         const vendor = await Vendor.findById(req.vendor.id);
-        
+
         vendor.businessMenu.push(req.file.filename);
 
         await vendor.save();
 
         res.status(201).json({
             success: true,
-            message: req.t('addMenu')
+            message: req.t('addMenu'),
         });
     } catch (error) {
-        console.log(error)
+        console.log(error);
         next(error);
     }
 };
 
 exports.getProfileVendor = async (req, res, next) => {
     try {
-
-        let vendor = await Vendor.findById(req.vendor.id).select('-isDelete -isActive -createdAt -updatedAt -__v -signupStep -fcmToken -token');
+        let vendor = await Vendor.findById(req.vendor.id).select(
+            '-isDelete -isActive -createdAt -updatedAt -__v -signupStep -fcmToken -token'
+        );
 
         res.status(201).json({
             success: true,
             message: req.t('success'),
             data: vendor,
         });
-
     } catch (error) {
         next(error);
     }
@@ -889,7 +888,6 @@ exports.getProfileVendor = async (req, res, next) => {
 
 exports.updateNotificationVendor = async (req, res, next) => {
     try {
-
         const user = await Vendor.findById(req.vendor.id);
 
         user.isNotification = req.params.status;
@@ -898,22 +896,21 @@ exports.updateNotificationVendor = async (req, res, next) => {
 
         res.status(201).json({
             success: true,
-            message: req.t('success')
+            message: req.t('success'),
         });
     } catch (error) {
-        console.log(error)
+        console.log(error);
         next(error);
     }
 };
 
 exports.deleteAccountVendor = async (req, res, next) => {
     try {
-
         const user = await Vendor.findById(req.vendor.id);
 
         user.isDelete = true;
-        user.token = "";
-        user.fcmToken = ""
+        user.token = '';
+        user.fcmToken = '';
 
         //Points Removed
 
@@ -921,10 +918,10 @@ exports.deleteAccountVendor = async (req, res, next) => {
 
         res.status(201).json({
             success: true,
-            message: req.t('auth.deleted_success')
+            message: req.t('auth.deleted_success'),
         });
     } catch (error) {
-        console.log(error)
+        console.log(error);
         next(error);
     }
 };

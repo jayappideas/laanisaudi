@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 const Staff = require('../../models/staffModel');
 const QRCode = require('qrcode');
 const path = require('path');
-
+const discountModel = require('../../models/discountModel');
 
 exports.checkStaff = async (req, res, next) => {
     try {
@@ -17,12 +17,12 @@ exports.checkStaff = async (req, res, next) => {
 
         if (!token) return next(createError.Unauthorized('auth.provideToken'));
 
-        const staff = await Staff.findOne({token: token}).select(
+        const staff = await Staff.findOne({ token: token }).select(
             '+isActive +passcode +token'
         );
 
         if (!staff) return next(createError.Unauthorized('auth.pleaseLogin'));
-        
+
         if (staff.isDelete)
             return next(createError.Unauthorized('auth.deleted'));
 
@@ -35,14 +35,19 @@ exports.checkStaff = async (req, res, next) => {
 
 exports.addStaff = async (req, res, next) => {
     try {
-
-        const userExists = await Staff.findOne({ mobileNumber: req.body.mobileNumber });
+        const userExists = await Staff.findOne({
+            mobileNumber: req.body.mobileNumber,
+        });
         if (userExists)
-            return next(createError.BadRequest('validation.alreadyRegisteredPhone'));
+            return next(
+                createError.BadRequest('validation.alreadyRegisteredPhone')
+            );
 
         const userEmailExists = await Staff.findOne({ email: req.body.email });
         if (userEmailExists)
-            return next(createError.BadRequest('validation.alreadyRegisteredEmail'));
+            return next(
+                createError.BadRequest('validation.alreadyRegisteredEmail')
+            );
 
         // create user
         let user = await Staff.create({
@@ -52,7 +57,7 @@ exports.addStaff = async (req, res, next) => {
             email: req.body.email,
             mobileNumber: req.body.mobileNumber,
             occupation: req.body.occupation,
-            password: req.body.password
+            password: req.body.password,
         });
 
         // Define the file path
@@ -67,31 +72,31 @@ exports.addStaff = async (req, res, next) => {
                 light: '#ffffff',
             },
         });
-        
-        user.qrCode = fileName
+
+        user.qrCode = fileName;
         user.save();
 
         res.status(201).json({
             success: true,
-            message: req.t('staff.add')
+            message: req.t('staff.add'),
         });
     } catch (error) {
-        console.log(error)
+        console.log(error);
         next(error);
     }
 };
 
 exports.getStaffList = async (req, res, next) => {
     try {
-
-        let staff = await Staff.find({vendor:req.vendor.id, isDelete: false}).select('name email password').sort({createdAt: -1});
+        let staff = await Staff.find({ vendor: req.vendor.id, isDelete: false })
+            .select('name email password')
+            .sort({ createdAt: -1 });
 
         res.status(200).json({
             success: true,
             message: req.t('success'),
             data: staff,
         });
-
     } catch (error) {
         next(error);
     }
@@ -99,19 +104,20 @@ exports.getStaffList = async (req, res, next) => {
 
 exports.getStaffDetail = async (req, res, next) => {
     try {
-
-        let staff = await Staff.findById(req.params.id).select('-language -vendor -isDelete -isActive -createdAt -updatedAt -__v -fcmToken -token')
-        .populate({
-            path:'branch',
-            select : 'buildingName'
-        });
+        let staff = await Staff.findById(req.params.id)
+            .select(
+                '-language -vendor -isDelete -isActive -createdAt -updatedAt -__v -fcmToken -token'
+            )
+            .populate({
+                path: 'branch',
+                select: 'buildingName',
+            });
 
         res.status(200).json({
             success: true,
             message: req.t('success'),
             data: staff,
         });
-
     } catch (error) {
         next(error);
     }
@@ -119,63 +125,69 @@ exports.getStaffDetail = async (req, res, next) => {
 
 exports.updateStaff = async (req, res, next) => {
     try {
-        
-        const userExists = await Staff.findOne({ mobileNumber: req.body.mobileNumber, _id: { $ne: req.params.id } });
+        const userExists = await Staff.findOne({
+            mobileNumber: req.body.mobileNumber,
+            _id: { $ne: req.params.id },
+        });
         if (userExists)
-            return next(createError.BadRequest('validation.alreadyRegisteredPhone'));
+            return next(
+                createError.BadRequest('validation.alreadyRegisteredPhone')
+            );
 
-        const userEmailExists = await Staff.findOne({ email: req.body.email, _id: { $ne: req.params.id } });
+        const userEmailExists = await Staff.findOne({
+            email: req.body.email,
+            _id: { $ne: req.params.id },
+        });
         if (userEmailExists)
-            return next(createError.BadRequest('validation.alreadyRegisteredEmail'));
-        
+            return next(
+                createError.BadRequest('validation.alreadyRegisteredEmail')
+            );
+
         const user = await Staff.findById(req.params.id);
 
-        user.branch = req.body.branch
-        user.name = req.body.name
-        user.email = req.body.email
-        user.mobileNumber = req.body.mobileNumber
-        user.occupation = req.body.occupation
-        
-        if(req.body.password != user.password)
-            user.token = ""
-        
-        user.password = req.body.password 
+        user.branch = req.body.branch;
+        user.name = req.body.name;
+        user.email = req.body.email;
+        user.mobileNumber = req.body.mobileNumber;
+        user.occupation = req.body.occupation;
+
+        if (req.body.password != user.password) user.token = '';
+
+        user.password = req.body.password;
         await user.save();
 
         res.status(201).json({
             success: true,
-            message: req.t('staff.update')
+            message: req.t('staff.update'),
         });
     } catch (error) {
-        console.log(error)
+        console.log(error);
         next(error);
     }
 };
 
 exports.deleteStaff = async (req, res, next) => {
     try {
-
         const user = await Staff.findById(req.params.id);
 
         user.isDelete = true;
-        user.token = "";
-        user.fcmToken = ""
+        user.token = '';
+        user.fcmToken = '';
 
         await user.save();
 
         res.status(201).json({
             success: true,
-            message: req.t('staff.delete')
+            message: req.t('staff.delete'),
         });
     } catch (error) {
-        console.log(error)
+        console.log(error);
         next(error);
     }
 };
 
 exports.updateNotification = async (req, res, next) => {
     try {
-
         const user = await Staff.findById(req.staff.id);
 
         user.isNotification = req.params.status;
@@ -184,25 +196,28 @@ exports.updateNotification = async (req, res, next) => {
 
         res.status(201).json({
             success: true,
-            message: req.t('success')
+            message: req.t('success'),
         });
     } catch (error) {
-        console.log(error)
+        console.log(error);
         next(error);
     }
 };
 
 exports.login = async (req, res, next) => {
     try {
-        const { email, password, fcmToken } = req.body;
+        const { email, password, fcmToken, language } = req.body;
 
         if (!email && !password)
-            return next(createError.BadRequest('Provide email address and password!'));
+            return next(
+                createError.BadRequest('Provide email address and password!')
+            );
 
-        let user = await Staff.findOne({ email, isDelete: false }).select('+password -__v -createdAt -updatedAt');
+        let user = await Staff.findOne({ email, isDelete: false }).select(
+            '+password -__v -createdAt -updatedAt'
+        );
 
-        if (!user)
-            return next(createError.BadRequest('staff.credentials'));
+        if (!user) return next(createError.BadRequest('staff.credentials'));
 
         if (user.password != password)
             return next(createError.BadRequest('staff.credentials'));
@@ -210,8 +225,9 @@ exports.login = async (req, res, next) => {
         const token = await user.generateAuthToken();
 
         user.fcmToken = fcmToken;
-        user.token = token
-        
+        user.token = token;
+        user.language = language;
+
         await user.save();
         // hide fields
         user = user.toObject();
@@ -227,9 +243,47 @@ exports.login = async (req, res, next) => {
             success: true,
             message: req.t('auth.login'),
             user,
-            token
+            token,
         });
+    } catch (error) {
+        next(error);
+    }
+};
 
+exports.getStaffDiscountList = async (req, res, next) => {
+    try {
+        let discounts = await discountModel
+            .find({
+                vendor: req.staff.vendor,
+                adminApprovedStatus: { $nin: ['Pending', 'Rejected'] },
+                status: { $nin: ['Inactive', 'Expired'] },
+            })
+            .select(
+                'title description status totalUserCount redeemUserCount expiryDate'
+            )
+            .sort({ createdAt: -1 });
+
+        res.status(200).json({
+            success: true,
+            message: req.t('success'),
+            data: discounts,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.getDiscountDetail = async (req, res, next) => {
+    try {
+        let discount = await discountModel
+            .findById(req.params.id)
+            .select('-updatedAt -__v -createdAt');
+
+        res.status(200).json({
+            success: true,
+            message: req.t('success'),
+            data: discount,
+        });
     } catch (error) {
         next(error);
     }
