@@ -12,15 +12,15 @@ const menuItemSchema = new mongoose.Schema(
       ref: 'Category',
       required: true
     },
-    name: { 
+    name: {
       type: String,
       required: true
     },
-    price: { 
+    price: {
       type: String,
       required: true
     },
-    image: { 
+    image: {
       type: String
     },
     isDelete: {

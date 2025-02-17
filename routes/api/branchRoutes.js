@@ -4,7 +4,7 @@ const { checkVendor } = require('../../controllers/api/authController');
 const branchController = require('../../controllers/api/branchController');
 
 
-/* ================================================== 
+/* ==================================================
         BRANCH API
 ===================================================*/
 
@@ -14,7 +14,7 @@ router.get('/:id',  checkVendor, upload.none(), branchController.getBranchDetail
 router.put('/update/:id',  checkVendor, upload.none(), branchController.updateBranch);
 router.delete('/delete/:id',  checkVendor, upload.none(), branchController.deleteBranch);
 
-/* ================================================== 
+/* ==================================================
         MENU CATEGORY API
 ===================================================*/
 
@@ -23,7 +23,7 @@ router.get('/category/list',  checkVendor, upload.none(), branchController.getCa
 router.put('/category-update/:id',  checkVendor, upload.none(), branchController.updateCategory);
 router.delete('/category-delete/:id',  checkVendor, upload.none(), branchController.deleteCategory);
 
-/* ================================================== 
+/* ==================================================
         MENU ITEM API
 ===================================================*/
 

@@ -24,7 +24,7 @@ const discountSchema = new mongoose.Schema(
         },
         status: {
             type: String,
-            enum: ['Active', 'Inactive', 'Expired'], 
+            enum: ['Active', 'Inactive', 'Expired'],
             required: true,
         },
         customerType: [
@@ -48,7 +48,7 @@ const discountSchema = new mongoose.Schema(
             type: String
         },
         description: {
-            type: String
+            type: String,
         },
         adminApprovedStatus: {
             type: String,

@@ -35,11 +35,11 @@ const userSchema = new mongoose.Schema(
       type: String,
       enum: ['male','female']
     },
-    fcmToken: { 
-      type: String 
+    fcmToken: {
+      type: String
     },
-    token: { 
-      type: String 
+    token: {
+      type: String
     },
     totalPoints: {
       type: Number,

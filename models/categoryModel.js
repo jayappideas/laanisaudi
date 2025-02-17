@@ -6,7 +6,7 @@ const categorySchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Vendor',
     },
-    name: { 
+    name: {
       type: String,
       required: true
     },

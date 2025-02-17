@@ -6,7 +6,7 @@ const branchSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Vendor',
     },
-    buildingNo: { 
+    buildingNo: {
       type: String,
       required: true
     },
@@ -14,7 +14,7 @@ const branchSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    roadName: { 
+    roadName: {
       type: String,
       required: true
     },

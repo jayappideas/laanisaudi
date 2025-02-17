@@ -17,7 +17,7 @@ const staffSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Branch',
     },
-    name: { 
+    name: {
       type: String,
       required: true
     },
@@ -32,7 +32,7 @@ const staffSchema = new mongoose.Schema(
       type: String,
       unique: true,
     },
-    occupation: { 
+    occupation: {
       type: String,
       required: true
     },
@@ -45,12 +45,12 @@ const staffSchema = new mongoose.Schema(
       enum: ['en','ar'],
       default: 'en'
     },
-   
-    fcmToken: { 
-      type: String 
+
+    fcmToken: {
+      type: String
     },
-    token: { 
-      type: String 
+    token: {
+      type: String
     },
 
     isNotification: {

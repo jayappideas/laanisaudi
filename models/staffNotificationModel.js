@@ -4,7 +4,7 @@ const notificationSchema = new mongoose.Schema({
     sentTo: [
         {
             type: mongoose.Schema.Types.ObjectId,
-            ref: 'User',
+            ref: 'Staff',
         },
     ],
 
@@ -24,7 +24,7 @@ const notificationSchema = new mongoose.Schema({
     readBy: [
         {
             type: mongoose.Schema.Types.ObjectId,
-            ref: 'User',
+            ref: 'Staff',
         },
     ],
     createdAt: { type: Date, default: Date.now },

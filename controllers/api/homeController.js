@@ -55,12 +55,12 @@ exports.getSearchSuggestion = async (req, res, next) => {
             { businessName: { $regex: query, $options: 'i' } },
             { businessName: 1, _id: 0 }
         );
-        
+
         const menuItemResults = await menuItemModel.find(
             { name: { $regex: query, $options: 'i' } },
             { name: 1, _id: 0 }
         );
-    
+
         // Combine results
         const suggestions = [
             ...vendorResults.map(vendor => ({ name: vendor.businessName })),
@@ -148,7 +148,7 @@ exports.getRestaurantList = async (req, res, next) => {
                     'vendorDetails.isActive': true,
                     'vendorDetails.adminApproved': true,
                     ...(categoryId && { 'vendorDetails.businessType': mongoose.Types.ObjectId(categoryId) }),
-                    ...(searchTerm && { 
+                    ...(searchTerm && {
                         $or: [
                             { 'vendorDetails.businessName': { $regex: searchTerm, $options: 'i' } },
                             { 'menuItems.name': { $regex: searchTerm, $options: 'i' } },
@@ -160,15 +160,15 @@ exports.getRestaurantList = async (req, res, next) => {
             },
             {
                 $group: {
-                    _id: '$vendorDetails._id', 
+                    _id: '$vendorDetails._id',
                     businessName: { $first: '$vendorDetails.businessName' },
                     businessLogo: { $first: '$vendorDetails.businessLogo' },
                     rating : { $first: '$vendorDetails.businessRating' },
                     review : { $first: '$vendorDetails.businessReview' },
-                    distance_in_mt: { $min: '$distance' }, 
+                    distance_in_mt: { $min: '$distance' },
                     branchId: { $first: '$_id' },
                 },
-            },     
+            },
             {
                 $sort: sortCondition,
             },
@@ -194,9 +194,9 @@ exports.restaurantDetail = async (req, res, next) => {
         const vendor = await vendorModel.findById(vendorId).select('businessName businessLogo businessMobile email businessRating businessReview').lean();
 
         const branches = await branchModel.find({vendor: vendor._id, isDelete:false}).select('-vendor -createdAt -updatedAt -__v -isDelete').lean();
-        
+
         const isFavourite = await wishlistModel.findOne({ user:req.user.id, vendor:vendorId })
-        
+
         const selectedBranch = branches.find((branch) => branch._id.toString() == branchId);
 
         if (selectedBranch)
@@ -253,7 +253,7 @@ exports.postAddFavourite = async (req, res, next) => {
                 user: req.user.id,
                 vendor: req.params.vendorId
             });
-    
+
             res.status(201).json({
                 success: true,
                 message: req.t('fav.add')
@@ -320,7 +320,7 @@ exports.postAddReview = async (req, res, next) => {
             {
                 $set: { businessRating: avgRating.toFixed(1) },
                 $inc: { businessReview: 1 },
-            },       
+            },
         );
 
         res.status(201).json({

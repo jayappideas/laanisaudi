@@ -30,13 +30,13 @@ router.post(
 
 router.get(
     '/',
-    checkStaff,
+    staffController.checkStaff,
     upload.none(),
     staffController.getStaffDiscountList
 );
 router.get(
     '/:id',
-    checkStaff,
+    staffController.checkStaff,
     upload.none(),
     staffController.getDiscountDetail
 );
