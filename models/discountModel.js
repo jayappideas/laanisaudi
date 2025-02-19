@@ -20,7 +20,7 @@ const discountSchema = new mongoose.Schema(
         },
         remainingUserCount: {
             type: Number,
-            default: 50
+            // default: 50
         },
         status: {
             type: String,
