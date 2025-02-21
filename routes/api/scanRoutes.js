@@ -26,5 +26,6 @@ router.get(
     checkStaff,
     scanController.checkDiscount
 );
+router.get('/checkout/:userId', checkStaff, scanController.checkout);
 
 module.exports = router;

@@ -5,68 +5,70 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 
 const staffSchema = new mongoose.Schema(
-  {
-    qrCode: {
-      type: String,
-    },
-    vendor : {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Vendor',
-    },
-    branch : {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Branch',
-    },
-    name: {
-      type: String,
-      required: true
-    },
-    email: {
-      type: String,
-      required: [true, 'validation.email'],
-      unique: true,
-      lowercase: true,
-      validate: [validator.isEmail, 'validation.emailInvalid'],
-    },
-    mobileNumber: {
-      type: String,
-      unique: true,
-    },
-    occupation: {
-      type: String,
-      required: true
-    },
-    password: {
-      type: String,
-      required: true
-    },
-    language: {
-      type: String,
-      enum: ['en','ar'],
-      default: 'en'
-    },
+    {
+        qrCode: {
+            type: String,
+        },
+        vendor: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Vendor',
+        },
+        branch: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Branch',
+        },
+        name: {
+            type: String,
+            required: true,
+            trim: true,
+        },
+        email: {
+            type: String,
+            required: [true, 'validation.email'],
+            unique: true,
+            lowercase: true,
+            trim: true,
+            validate: [validator.isEmail, 'validation.emailInvalid'],
+        },
+        mobileNumber: {
+            type: String,
+            unique: true,
+        },
+        occupation: {
+            type: String,
+            required: true,
+        },
+        password: {
+            type: String,
+            required: true,
+        },
+        language: {
+            type: String,
+            enum: ['en', 'ar'],
+            default: 'en',
+        },
 
-    fcmToken: {
-      type: String
-    },
-    token: {
-      type: String
-    },
+        fcmToken: {
+            type: String,
+        },
+        token: {
+            type: String,
+        },
 
-    isNotification: {
-      type: Boolean,
-      default: true,
+        isNotification: {
+            type: Boolean,
+            default: true,
+        },
+        isDelete: {
+            type: Boolean,
+            default: false,
+        },
+        isActive: {
+            type: Boolean,
+            default: true,
+        },
     },
-    isDelete: {
-      type: Boolean,
-      default: false,
-    },
-    isActive: {
-      type: Boolean,
-      default: true,
-    },
-  },
-  { timestamps: true }
+    { timestamps: true }
 );
 
 

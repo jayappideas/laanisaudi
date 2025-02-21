@@ -46,13 +46,13 @@
     "provideToken": "Please provide an authentication token.",
     "pleaseLogin": "Please login first.",
     "blocked": "Sorry! You are blocked. Please contact Admin.",
-    "updated":"Profile has been updated successfully",
+    "updated": "Profile has been updated successfully",
     "credentials": "Invalid mobile number or password!",
-    "vcredentials":"Invalid email address or password!",
-    "deleted":"This account has been deleted.",
-    "deleted_success":"Account has been deleted.",
+    "vcredentials": "Invalid email address or password!",
+    "deleted": "This account has been deleted.",
+    "deleted_success": "Account has been deleted.",
     "signup_pending": "Please first complete signup process.",
-    "pendingApproved":"Admin hasn't approved your account yet! Please contact to admin."
+    "pendingApproved": "Admin hasn't approved your account yet! Please contact to admin."
   },
   "changePass": {
     "pass": "Please provide a password.",
@@ -87,42 +87,50 @@
     "remove": "Favourite removed successful"
   },
 
-  "staff":{
-    "add":"Staff member added successfully.",
-    "update":"Staff member updated successfully.",
-    "delete":"Staff member deleted successfully.",
-    "credentials":"Invalid email address or password!"
+  "staff": {
+    "add": "Staff member added successfully.",
+    "update": "Staff member updated successfully.",
+    "delete": "Staff member deleted successfully.",
+    "credentials": "Invalid email address or password!"
   },
-  "branch":{
-    "add":"Branch added successfully.",
-    "update":"Branch updated successfully.",
-    "delete":"Branch deleted successfully."
+  "branch": {
+    "add": "Branch added successfully.",
+    "update": "Branch updated successfully.",
+    "delete": "Branch deleted successfully."
   },
-  "cat":{
-    "add":"Category added successfully.",
-    "update":"Category updated successfully.",
-    "delete":"Category deleted successfully."
+  "cat": {
+    "add": "Category added successfully.",
+    "update": "Category updated successfully.",
+    "delete": "Category deleted successfully."
   },
-  "item":{
-    "add":"Menu item added successfully.",
-    "update":"Menu item updated successfully.",
-    "delete":"Menu item deleted successfully."
+  "item": {
+    "add": "Menu item added successfully.",
+    "update": "Menu item updated successfully.",
+    "delete": "Menu item deleted successfully."
   },
-  "addMenu":"Menu added successfully.",
-  "removeMenu":"Menu removed successfully.",
-  "wrongPasscode":"Current passcode is invalid!",
-  "success":"Success",
-
+  "addMenu": "Menu added successfully.",
+  "removeMenu": "Menu removed successfully.",
+  "wrongPasscode": "Current passcode is invalid!",
+  "success": "Success",
 
   "review": {
-    "add":"Review added successfully."
+    "add": "Review added successfully."
   },
-  "discount":{
-    "add":"Discount added successfully.",
-    "update":"Discount updated successfully.",
-    "delete":"Discount deleted successfully."
+  "discount": {
+    "add": "Discount added successfully.",
+    "update": "Discount updated successfully.",
+    "delete": "Discount deleted successfully.",
+    "code": "Discount is required.",
+    "discount": "Discount percentage is required.",
+    "discountInvalid": "Discount percentage should be between 0 and 100.",
+    "expireDate": "Expire date is required.",
+    "expireDateInvalid": "Expiration date must be in the future.",
+    "invalid": "Please enter a valid Discount.",
+    "expired": "Discount has expired.",
+    "limit": "You have reached the maximum usage limit for this Discount.",
+    "applied": "Discount '{{code}}' applied successfully."
   },
   "redeem": {
-    "invalidQr":"Invalid QR Code, please try again!."
+    "invalidQr": "Invalid QR Code, please try again!."
   }
 }

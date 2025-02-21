@@ -2,39 +2,60 @@ const mongoose = require('mongoose');
 
 const transactionSchema = new mongoose.Schema(
     {
-        user : {
+        user: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'User',
         },
-        vendor : {
+        vendor: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Vendor',
         },
-        staff : {
+        staff: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Staff',
         },
-        type: {
-            type: Number,
-            enum: ['earn', 'spent'],  //earn = customer got points, spent = customer got bill discount
-            required: true,
+        items: [
+            {
+                menuItem: {
+                    type: mongoose.Schema.Types.ObjectId,
+                    ref: 'MenuItem',
+                    required: true,
+                },
+                quantity: { type: Number, default: 1 },
+                price: { type: Number, required: true },
+            },
+        ],
+        earnedPoints: {
+            type: Number, // Points earned from this transaction
+            default: 0,
+        },
+        spentPoints: {
+            type: Number, // Points used for discount
+            default: 0,
         },
         billAmount: {
             type: Number,
             required: true,
         },
-        redeemPoint: { //type is earn then customer got redeem point else spent points and got bill discount.
-            type: Number,
+        redeemBalancePoint: {
+            type: Boolean,
+            required: true, // User want to redeem balance point or not
+            default: false,
         },
-        discountAmount: { //type is spent then customer got bill discount.
+        // redeemPoint: {
+        //     //type is earn then customer got redeem point else spent points and got bill discount.
+        //     type: Number,
+        // },
+        discountAmount: {
+            //type is spent then customer got bill discount.
             type: Number,
             required: true,
         },
         status: {
-            type: Number,
+            type: String,
             enum: ['pending', 'success', 'failed', 'expired'],
             required: true,
-        }
+        },
     },
     { timestamps: true }
 );

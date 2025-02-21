@@ -1,9 +1,4 @@
 const createError = require('http-errors');
-const userModel = require('../../models/userModel');
-const categoryModel = require('../../models/categoryModel');
-const menuItemModel = require('../../models/menuItemModel');
-const cartModel = require('../../models/cartModel');
-const discountModel = require('../../models/discountModel');
 const transactionModel = require('../../models/transactionModel');
 
 exports.scanQr = async (req, res, next) => {
@@ -26,6 +21,19 @@ exports.scanQr = async (req, res, next) => {
     }
 };
 
+const getTransactionHistory = async (req, res, next) => {
+    try {
+        const transactions = await transactionModel
+            .find({ user: req.user.id })
+            .sort({
+                createdAt: -1,
+            });
+
+        res.status(200).json({ success: true, transactions });
+    } catch (error) {
+        next(error);
+    }
+};
 exports.getMenuList = async (req, res, next) => {
     try {
         const vendorId = req.staff.vendor;
@@ -180,10 +188,6 @@ exports.checkDiscount = async (req, res, next) => {
 
         const [day, month, year] = discount.expiryDate.split('/'); // Split the string
         const expiryDate = new Date(`${year}-${month}-${day}`); // Convert to Date object
-
-        // const [day, month, year] = discount.expiryDate.split('/').map(Number);
-        // const expiryDate = new Date(year, month - 1, day); // Month is 0-based
-
         if (expiryDate < new Date())
             return next(createError.BadRequest('discount.expired'));
 
@@ -253,10 +257,6 @@ exports.checkDiscount = async (req, res, next) => {
 
 exports.checkout = async (req, res, next) => {
     try {
-        let user = await userModel
-            .findOne({ _id: req.params.userId, isActive: true })
-            .select('name totalPoints');
-
         const cart = await cartModel
             .findOne({ user: req.params.userId })
             .populate('items.menuItem', 'name price');
@@ -265,83 +265,46 @@ exports.checkout = async (req, res, next) => {
                 createError.BadRequest('Cart is empty, can not checkout.')
             );
 
-        if (req.body.discountId) {
-            const discount = await discountModel
-                .findById(req.params.discountId)
-                .select('-__v -updatedAt')
-                .lean();
-            if (!discount)
-                return next(createError.BadRequest('discount.invalid'));
-
-            const [day, month, year] = discount.expiryDate.split('/'); // Split the string
-            const expiryDate = new Date(`${year}-${month}-${day}`); // Convert to Date object
-
-            // const [day, month, year] = discount.expiryDate.split('/').map(Number);
-            // const expiryDate = new Date(year, month - 1, day); // Month is 0-based
-
-            if (expiryDate < new Date())
-                return next(createError.BadRequest('discount.expired'));
-
-            // Check total max usage
-            if (
-                discount.totalUserCount &&
-                discount.redeemUserCount >= discount.totalUserCount
-            )
-                return next(createError.BadRequest('discount.expired'));
-
-            // Calculate the total amount in the cart
-            let totalCartAmount = cart.items.reduce((total, item) => {
-                return total + item.menuItem.price * item.quantity;
-            }, 0);
-
-            if (totalCartAmount < discount.minBillAmount)
-                return next(
-                    createError.BadRequest('discount.min_bill_not_met')
-                );
-
-            // Apply discount based on type
-            let discountAmount = 0;
-            if (discount.discountType === 'Percentage') {
-                discountAmount =
-                    (totalCartAmount * discount.discountValue) / 100;
-            } else if (discount.discountType === 'Fixed') {
-                discountAmount = discount.discountValue;
-            }
-            const amount = totalCartAmount - discountAmount;
-
-            if (req.body.redeemBalancePoint) {
-                if (user.totalPoints >= amount) {
-                    user.totalPoints -= amount;
-                    await user.save();
-                } else {
-                    return next(createError.BadRequest('Insufficient points'));
-                }
-            }
-
-            if (discountAmount > totalCartAmount)
-                // Prevent discount from exceeding the total cart amount
-                discountAmount = totalCartAmount;
-        }
+        const subtotal = cart.items.reduce((total, item) => {
+            return total + item.price * item.quantity;
+        }, 0);
 
         // Check promo code
+        const promoCodeResponse = await calculatePromoDiscount(
+            subscriber,
+            req.body.code,
+            subtotal,
+            cart.items
+        );
+        if (!promoCodeResponse.success)
+            return next(createError.BadRequest(promoCodeResponse.error));
+        const promoDiscount = promoCodeResponse.promoDiscount;
 
-        // Create transaction
-        // const orderItems = cart.items.map(item => ({
-        //     menuItem: item.menuItem,
-        //     quantity: item.quantity,
-        //     price: item.price,
-        // }));
+        const discount = calculateDiscount(cart.items);
 
-        // const data = await transactionModel.create({
-        //     user: req.params.userId,
-        //     staff: req.staff.id,
-        //     items: orderItems,
-        //     type: 'spent',
-        //     billAmount: subtotal,
-        //     discountAmount: discount,
-        //     status: 'pending',
-        //     redeemPoint,
-        // });
+        let subtotalWithDiscount = subtotal - discount - promoDiscount;
+        if (subtotalWithDiscount < 0) subtotalWithDiscount = 0;
+
+        const total = subtotalWithDiscount;
+
+        // Create order
+        const orderItems = cart.items.map(item => ({
+            menuItem: item.menuItem,
+            quantity: item.quantity,
+            price: item.price,
+        }));
+
+        const order = await transactionModel.create({
+            // orderId: generateOrderId(6),
+            user: req.params.userId,
+            staff: req.staff.id,
+            items: orderItems,
+            type: 'spent',
+            billAmount: subtotal,
+            discountAmount: discount,
+            status: 'pending',
+            redeemPoint,
+        });
 
         // Create invoice
         // await Invoice.create({ ...order._doc, order: order.id });
@@ -371,9 +334,10 @@ exports.checkout = async (req, res, next) => {
         // await cartModel.findOneAndUpdate({ subscriber }, { items: [] });
 
         res.status(201).json({
-            success: true,
+            status: 'success',
+            code: 201,
             message: req.t('order'),
-            // data,
+            order: removeFields(order),
         });
     } catch (error) {
         next(error);
