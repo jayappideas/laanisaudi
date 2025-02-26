@@ -251,6 +251,7 @@ exports.checkDiscount = async (req, res, next) => {
     }
 };
 
+// checkout staff
 exports.checkout = async (req, res, next) => {
     try {
         let user = await userModel

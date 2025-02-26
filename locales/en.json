@@ -128,7 +128,8 @@
     "invalid": "Please enter a valid Discount.",
     "expired": "Discount has expired.",
     "limit": "You have reached the maximum usage limit for this Discount.",
-    "applied": "Discount '{{code}}' applied successfully."
+    "applied": "Discount '{{code}}' applied successfully.",
+    "min_bill_not_met": "Discount cannot be applied. Minimum bill amount not met."
   },
   "redeem": {
     "invalidQr": "Invalid QR Code, please try again!."

@@ -188,10 +188,10 @@ exports.checkDiscount = async (req, res, next) => {
             .select('-__v -updatedAt')
             .lean();
         if (!discount) return next(createError.BadRequest('discount.invalid'));
-        if (discount.status !== 'Active')
-            return next(createError.BadRequest('discount.invalid'));
-        if (discount.adminApprovedStatus !== 'Approved')
-            return next(createError.BadRequest('discount.invalid'));
+        // if (discount.status !== 'Active')
+        //     return next(createError.BadRequest('discount.invalid'));
+        // if (discount.adminApprovedStatus !== 'Approved')
+        //     return next(createError.BadRequest('discount.invalid'));
 
         const [day, month, year] = discount.expiryDate.split('/'); // Split the string
         const expiryDate = new Date(`${year}-${month}-${day}`); // Convert to Date object
@@ -263,88 +263,6 @@ exports.checkDiscount = async (req, res, next) => {
 };
 
 // checkout staff
-// exports.checkout = async (req, res, next) => {
-//     try {
-//         const cart = await cartModel
-//             .findOne({ user: req.params.userId })
-//             .populate('items.menuItem', 'name price');
-//         if (!cart || !cart.items.length)
-//             return next(
-//                 createError.BadRequest('Cart is empty, can not checkout.')
-//             );
-
-//         const subtotal = cart.items.reduce((total, item) => {
-//             return total + item.price * item.quantity;
-//         }, 0);
-
-//         // Create order
-//         const orderItems = cart.items.map(item => ({
-//             menuItem: item.menuItem,
-//             quantity: item.quantity,
-//             price: item.price,
-//         }));
-
-//         if (req.body.redeemBalancePoint) {
-//             const user = await userModel
-//                 .findById(req.params.userId)
-//                 .select('totalPoints');
-
-//             const finalAmount = subtotal - user.totalPoints;
-//             if (finalAmount < 0) {
-//                 user.totalPoints = Math.abs(finalAmount);
-//                 await user.save();
-//             } else {
-//                 user.totalPoints = 0;
-//                 await user.save();
-//             }
-//         }
-//         const order = await transactionModel.create({
-//             // orderId: generateOrderId(6),
-//             user: req.params.userId,
-//             staff: req.staff.id,
-//             items: orderItems,
-//             type: 'spent',
-//             billAmount: subtotal,
-//             discountAmount: discount,
-//             status: 'pending',
-//             redeemPoint,
-//         });
-
-//         // Create invoice
-//         // await Invoice.create({ ...order._doc, order: order.id });
-
-//         // Create UserPromoAssociation
-//         // if (order.promoCode) {
-//         //     const promoCode = await PromoCode.findOne({
-//         //         code: order.promoCode,
-//         //     });
-
-//         //     // Increment usage count & Create Association
-//         //     if (promoCode) {
-//         //         promoCode.usageCount++;
-//         //         await Promise.all([
-//         //             promoCode.save(),
-//         //             UserPromoAssociation.create({
-//         //                 subscriber: subscriber,
-//         //                 promoCode: promoCode.id,
-//         //             }),
-//         //         ]);
-//         //     }
-//         // }
-
-//         // Empty cart
-//         // await cartModel.findOneAndUpdate({ subscriber }, { items: [] });
-
-//         res.status(201).json({
-//             success: true,
-//             message: req.t('order'),
-//             order: removeFields(order),
-//         });
-//     } catch (error) {
-//         next(error);
-//     }
-// };
-
 exports.checkout = async (req, res, next) => {
     try {
         const cart = await cartModel
@@ -369,12 +287,12 @@ exports.checkout = async (req, res, next) => {
         let spentPoints = 0;
 
         if (req.body.redeemBalancePoint) {
-            finalAmount = await handlePointsRedemption(
+            const redemptionResult = await handlePointsRedemption(
                 req.params.userId,
                 subtotal
             );
-            spentPoints = Math.min(subtotal, req.user.totalPoints); // Redeem up to the subtotal or the user's points balance
-            finalAmount = subtotal - spentPoints; // Remaining amount after redeeming points
+            finalAmount = redemptionResult.finalAmount;
+            spentPoints = redemptionResult.spentPoints;
         }
 
         const order = await transactionModel.create({
@@ -383,9 +301,10 @@ exports.checkout = async (req, res, next) => {
             items: orderItems,
             type: 'spent',
             billAmount: subtotal,
-            discountAmount: subtotal - finalAmount,
+            // discountAmount: subtotal - finalAmount, //! calculate discount
             status: 'pending',
             spentPoints,
+            finalAmount,
         });
 
         await cartModel.findOneAndUpdate(
@@ -407,18 +326,21 @@ const handlePointsRedemption = async (userId, subtotal) => {
     const user = await userModel.findById(userId).select('totalPoints');
 
     let finalAmount = subtotal;
+    let spentPoints = 0; // to track how many points are used
 
     if (user.totalPoints >= subtotal) {
         // User has enough points to cover the entire subtotal
         finalAmount = 0; // The final amount becomes 0 because points cover the entire subtotal
+        spentPoints = subtotal;
         user.totalPoints -= subtotal;
     } else {
         // User has fewer points than the subtotal
         finalAmount = subtotal - user.totalPoints; // Deduct all points and leave the remaining balance
+        spentPoints = user.totalPoints;
         user.totalPoints = 0;
     }
 
     await user.save();
 
-    return finalAmount;
+    return { finalAmount, spentPoints };
 };
