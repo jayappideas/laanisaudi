@@ -254,21 +254,30 @@ exports.checkDiscount = async (req, res, next) => {
 // checkout staff
 exports.checkout = async (req, res, next) => {
     try {
-        let user = await userModel
-            .findOne({ _id: req.params.userId, isActive: true })
-            .select('name totalPoints');
-
         const cart = await cartModel
-            .findOne({ user: req.params.userId })
+            .findOne({ user: req.body.userId })
             .populate('items.menuItem', 'name price');
         if (!cart || !cart.items.length)
             return next(
                 createError.BadRequest('Cart is empty, can not checkout.')
             );
 
+        const subtotal = cart.items.reduce((total, item) => {
+            return total + item.menuItem.price * item.quantity;
+        }, 0);
+
+        const orderItems = cart.items.map(item => ({
+            menuItem: item.menuItem,
+            quantity: item.quantity,
+        }));
+
+        let finalAmount = subtotal;
+        let spentPoints = 0;
+        let discountAmount = 0;
+
         if (req.body.discountId) {
             const discount = await discountModel
-                .findById(req.params.discountId)
+                .findById(req.body.discountId)
                 .select('-__v -updatedAt')
                 .lean();
             if (!discount)
@@ -276,9 +285,6 @@ exports.checkout = async (req, res, next) => {
 
             const [day, month, year] = discount.expiryDate.split('/'); // Split the string
             const expiryDate = new Date(`${year}-${month}-${day}`); // Convert to Date object
-
-            // const [day, month, year] = discount.expiryDate.split('/').map(Number);
-            // const expiryDate = new Date(year, month - 1, day); // Month is 0-based
 
             if (expiryDate < new Date())
                 return next(createError.BadRequest('discount.expired'));
@@ -290,93 +296,175 @@ exports.checkout = async (req, res, next) => {
             )
                 return next(createError.BadRequest('discount.expired'));
 
-            // Calculate the total amount in the cart
-            let totalCartAmount = cart.items.reduce((total, item) => {
-                return total + item.menuItem.price * item.quantity;
-            }, 0);
-
-            if (totalCartAmount < discount.minBillAmount)
+            if (subtotal < discount.minBillAmount)
                 return next(
                     createError.BadRequest('discount.min_bill_not_met')
                 );
 
-            // Apply discount based on type
-            let discountAmount = 0;
             if (discount.discountType === 'Percentage') {
-                discountAmount =
-                    (totalCartAmount * discount.discountValue) / 100;
+                discountAmount = (subtotal * discount.discountValue) / 100;
             } else if (discount.discountType === 'Fixed') {
                 discountAmount = discount.discountValue;
             }
-            const amount = totalCartAmount - discountAmount;
 
-            if (req.body.redeemBalancePoint) {
-                if (user.totalPoints >= amount) {
-                    user.totalPoints -= amount;
-                    await user.save();
-                } else {
-                    return next(createError.BadRequest('Insufficient points'));
-                }
-            }
-
-            if (discountAmount > totalCartAmount)
-                // Prevent discount from exceeding the total cart amount
-                discountAmount = totalCartAmount;
+            // Deduct discount from the subtotal first
+            finalAmount = subtotal - discountAmount;
         }
 
-        // Check promo code
+        if (req.body.redeemBalancePoint) {
+            const redemptionResult = await handlePointsRedemption(
+                req.body.userId,
+                finalAmount
+            );
+            finalAmount = redemptionResult.finalAmount;
+            spentPoints = redemptionResult.spentPoints;
+        }
 
-        // Create transaction
-        // const orderItems = cart.items.map(item => ({
-        //     menuItem: item.menuItem,
-        //     quantity: item.quantity,
-        //     price: item.price,
-        // }));
+        const expiredOrders = await transactionModel.updateMany(
+            { status: 'pending', user: req.body.userId },
+            { status: 'expired' }
+        );
 
-        // const data = await transactionModel.create({
-        //     user: req.params.userId,
-        //     staff: req.staff.id,
-        //     items: orderItems,
-        //     type: 'spent',
-        //     billAmount: subtotal,
-        //     discountAmount: discount,
-        //     status: 'pending',
-        //     redeemPoint,
-        // });
+        const order = await transactionModel.create({
+            user: req.body.userId,
+            staff: req.staff.id,
+            items: orderItems,
+            billAmount: subtotal,
+            discountAmount,
+            status: 'pending',
+            spentPoints,
+            finalAmount, // The final amount after discount and points redemption need to pay by the user
+            redeemBalancePoint: req.body.redeemBalancePoint,
+        });
 
-        // Create invoice
-        // await Invoice.create({ ...order._doc, order: order.id });
-
-        // Create UserPromoAssociation
-        // if (order.promoCode) {
-        //     const promoCode = await PromoCode.findOne({
-        //         code: order.promoCode,
-        //     });
-
-        //     // Increment usage count & Create Association
-        //     if (promoCode) {
-        //         promoCode.usageCount++;
-        //         await Promise.all([
-        //             promoCode.save(),
-        //             UserPromoAssociation.create({
-        //                 subscriber: subscriber,
-        //                 promoCode: promoCode.id,
-        //             }),
-        //         ]);
-        //     }
-        // }
-
-        // Add magazines
-
-        // Empty cart
-        // await cartModel.findOneAndUpdate({ subscriber }, { items: [] });
+        await cartModel.findOneAndUpdate(
+            { user: req.body.userId },
+            { items: [] }
+        );
 
         res.status(201).json({
             success: true,
             message: req.t('order'),
-            // data,
+            order,
         });
     } catch (error) {
         next(error);
     }
 };
+
+// For User call this every 10 sec to show the user then user can accept or reject the order
+exports.getCurrentTransaction = async (req, res, next) => {
+    try {
+        const transactions = await transactionModel
+            .findOne({ user: req.user.id, status: 'pending' })
+            .populate('items.menuItem', 'name price')
+            .sort({
+                createdAt: -1,
+            })
+            .select('-__v -updatedAt');
+        if (!transactions)
+            return next(
+                createError.BadRequest(
+                    'transactions is empty, can not checkout.'
+                )
+            );
+
+        const amount = transactions.billAmount - transactions.discountAmount;
+
+        // Calculate 0.5% of the bill amount
+        const points = amount * 0.005;
+
+        res.status(200).json({
+            success: true,
+            message: `You can receive ${points} points on this purchase.`,
+            transactions,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// Accept or Reject an order by User
+exports.updateOrderStatus = async (req, res, next) => {
+    try {
+        const { status } = req.body;
+        const user = req.user;
+
+        if (!status || !['accepted', 'rejected'].includes(status))
+            return next(
+                createError.BadRequest(
+                    'Invalid status. Must be "accepted" or "rejected"'
+                )
+            );
+
+        const order = await transactionModel
+            .findOne({
+                _id: req.body.orderId,
+                user: req.user.id,
+                status: 'pending',
+            })
+            .select('-__v -updatedAt');
+        if (!order) return next(createError.NotFound('Order not found'));
+
+        const amount = order.billAmount - order.discountAmount;
+
+        // Calculate 0.5% of the bill amount
+        const points = amount * 0.005;
+
+        if (status === 'accepted') {
+            order.status = 'accepted';
+            order.earnedPoints = points;
+
+            user.totalPoints += points;
+        } else {
+            order.status = 'rejected';
+            user.totalPoints += order.spentPoints; // Restore the spent points back to the user
+        }
+
+        await order.save();
+        await user.save();
+
+        res.status(200).json({
+            success: true,
+            message: `Order has been ${status}`,
+            order,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+const handlePointsRedemption = async (userId, subtotal) => {
+    const user = await userModel.findById(userId).select('totalPoints');
+
+    let finalAmount = subtotal;
+    let spentPoints = 0; // to track how many points are used by the user to pay bill amount
+
+    if (user.totalPoints >= subtotal) {
+        // User has enough points to cover the entire subtotal
+        finalAmount = 0; // The final amount becomes 0 because points cover the entire subtotal
+        spentPoints = subtotal;
+        user.totalPoints -= subtotal;
+    } else {
+        // User has fewer points than the subtotal
+        finalAmount = subtotal - user.totalPoints; // Deduct all points and leave the remaining balance
+        spentPoints = user.totalPoints;
+        user.totalPoints = 0;
+    }
+
+    await user.save();
+
+    return { finalAmount, spentPoints };
+};
+
+/* If user can not do accept/reject he lost his points
+   to solve this updateOrderStatus API in this deduct user.totalPoints
+   insted of checkout API whihc is use by staff
+        if (status === 'accepted') {
+            order.status = 'accepted';
+            order.earnedPoints = points;
+
+            // Deduct points from the user's total if the order is accepted
+            user.totalPoints -= order.spentPoints;  // Deduct the spent points from the user's account
+            user.totalPoints += points;  // Add the earned points to the user's account
+        } */

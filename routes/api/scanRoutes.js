@@ -26,6 +26,17 @@ router.get(
     checkStaff,
     scanController.checkDiscount
 );
-router.get('/checkout/:userId', checkStaff, scanController.checkout);
+router.post('/checkout', upload.none(), checkStaff, scanController.checkout);
+router.get(
+    '/current-transaction',
+    checkUser,
+    scanController.getCurrentTransaction
+);
+router.post(
+    '/update-order-status',
+    upload.none(),
+    checkUser,
+    scanController.updateOrderStatus
+);
 
 module.exports = router;

@@ -6,10 +6,6 @@ const transactionSchema = new mongoose.Schema(
             type: mongoose.Schema.Types.ObjectId,
             ref: 'User',
         },
-        vendor: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'Vendor',
-        },
         staff: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Staff',
@@ -22,7 +18,6 @@ const transactionSchema = new mongoose.Schema(
                     required: true,
                 },
                 quantity: { type: Number, default: 1 },
-                price: { type: Number, required: true },
             },
         ],
         earnedPoints: {
@@ -34,7 +29,7 @@ const transactionSchema = new mongoose.Schema(
             default: 0,
         },
         billAmount: {
-            type: Number,
+            type: Number, // Amount of the bill before discount
             required: true,
         },
         redeemBalancePoint: {
@@ -42,18 +37,18 @@ const transactionSchema = new mongoose.Schema(
             required: true, // User want to redeem balance point or not
             default: false,
         },
-        // redeemPoint: {
-        //     //type is earn then customer got redeem point else spent points and got bill discount.
-        //     type: Number,
-        // },
         discountAmount: {
-            //type is spent then customer got bill discount.
+            type: Number, // customer got bill discount...here store discountAmount.
+            required: true,
+        },
+        finalAmount: {
+            // The final amount after discount and points redemption need to pay by the user
             type: Number,
             required: true,
         },
         status: {
             type: String,
-            enum: ['pending', 'success', 'failed', 'expired'],
+            enum: ['pending', 'accepted', 'rejected', 'expired'],
             required: true,
         },
     },
