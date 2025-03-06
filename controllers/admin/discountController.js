@@ -8,7 +8,7 @@ exports.getAllDiscount = async (req, res) => {
                                     path: 'vendor',
                                     select: 'businessName'
                                 }).sort('-_id');
- 
+
         res.render('discount', { discounts });
     } catch (error) {
         req.flash('red', error.message);
@@ -33,4 +33,3 @@ exports.approvedDiscount = async (req, res) => {
         res.redirect('/discount');
     }
 };
-

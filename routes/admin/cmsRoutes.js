@@ -1,20 +1,30 @@
 const router = require('express').Router();
+const authController = require('../../controllers/admin/authController');
 
 const cmsController = require('../../controllers/admin/cmsController');
 
 router
     .route('/privacy')
-    .get(cmsController.getPrivacy)
-    .post(cmsController.postPrivacy);
+    .get(
+        authController.checkPermission('cms', 'isView'),
+        cmsController.getPrivacy
+    )
+    .post(
+        authController.checkPermission('cms', 'isAdd'),
+        cmsController.postPrivacy
+    );
 
 router
     .route('/term')
-    .get(cmsController.getTerm)
-    .post(cmsController.postTerm);
+    .get(authController.checkPermission('cms', 'isView'), cmsController.getTerm)
+    .post(
+        authController.checkPermission('cms', 'isAdd'),
+        cmsController.postTerm
+    );
 
 router
     .route('/faq')
-    .get(cmsController.getFaq)
+    .get(authController.checkPermission('cms', 'isView'), cmsController.getFaq);
 
 router
     .route('/faq/add')
@@ -26,7 +36,5 @@ router
     .get(cmsController.getFaqUpdate)
     .post(cmsController.postFaqUpdate);
 
-router
-    .route('/faq/delete/:id')
-    .get(cmsController.getFaqDelete)
+router.route('/faq/delete/:id').get(cmsController.getFaqDelete);
 module.exports = router;

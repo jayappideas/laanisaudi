@@ -26,27 +26,27 @@ exports.checkAdmin = async (req, res, next) => {
                 return res.redirect('/login');
             }
 
-            if(admin.role == 'A'){
-                if(admin.isActive){
-
-                    console.log(req)
+            if (admin.role == 'A') {
+                if (admin.isActive) {
+                    // console.log(req)
 
                     req.admin = admin;
                     res.locals.photo = admin.photo;
                     req.session.checkAdminSuccess = undefined;
                     next();
-                }else{
-                    req.flash('red', 'Your account has been blocked, Please contact to admin.');
+                } else {
+                    req.flash(
+                        'red',
+                        'Your account has been blocked, Please contact to admin.'
+                    );
                     res.redirect('/login');
                 }
-            }else{
+            } else {
                 req.admin = admin;
                 res.locals.photo = admin.photo;
                 req.session.checkAdminSuccess = undefined;
                 next();
             }
-
-            
         } else {
             req.flash('red', 'Please login as admin first!');
             res.redirect('/login');
@@ -59,13 +59,48 @@ exports.checkAdmin = async (req, res, next) => {
     }
 };
 
+exports.checkPermission = (moduleKey, action) => {
+    return async (req, res, next) => {
+        try {
+            const admin = req.admin;
+            if (!admin) {
+                req.flash('red', 'Unauthorized access!');
+                return res.redirect('/login');
+            }
+
+            // Super Admin has full access
+            if (admin.role === 'S') return next();
+
+            if (admin.role === 'A') {
+                const permission = admin.permission.find(
+                    p => p.key === moduleKey
+                );
+
+                if (!permission || !permission[action]) {
+                    req.flash(
+                        'red',
+                        'You do not have permission for this action.'
+                    );
+                    return res.redirect('/'); // Redirect to a safe place
+                }
+            }
+
+            next();
+        } catch (error) {
+            console.error(error);
+            req.flash('red', 'Something went wrong!');
+            res.redirect('/');
+        }
+    };
+};
+
 exports.getDashboard = async (req, res) => {
     var data = {};
-    data.user = await User.find({isDelete: false}).count();
-    data.vendor = await Vendor.find({isDelete: false}).count();
+    data.user = await User.find({ isDelete: false }).count();
+    data.vendor = await Vendor.find({ isDelete: false }).count();
     res.render('index', { data });
 };
- 
+
 exports.getLogin = async (req, res) => {
     try {
         if (req.session.checkAdminSuccess) {
@@ -110,7 +145,7 @@ exports.postLogin = async (req, res) => {
             expires: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
             httpOnly: true,
         });
-        
+
         res.redirect('/');
     } catch (error) {
         req.flash('red', error.message);
@@ -165,8 +200,7 @@ exports.postForgot = async (req, res) => {
         );
 
         // send mail
-       // sendOtp(admin.email, otp);
-
+        // sendOtp(admin.email, otp);
 
         req.session.adminId = admin.id;
         res.redirect('/reset');
@@ -267,55 +301,66 @@ exports.postChangePass = async (req, res) => {
     }
 };
 
-
 /* SUB ADMIN ROUTES */
 
 exports.getSubAdminList = async (req, res) => {
-    const subadmin = await adminModel.find({role: 'A'}).sort({createdAt : -1});
+    const subadmin = await adminModel
+        .find({ role: 'A' })
+        .sort({ createdAt: -1 });
 
-    res.render('subadmin', {subadmin} );
+    res.render('subadmin', { subadmin });
 };
 
 exports.getSubAdmin = async (req, res) => {
     const modules = await moduleModel.find();
-    res.render('subadmin_add', {modules} );
+    res.render('subadmin_add', { modules });
 };
 
 exports.postSubAdmin = async (req, res) => {
     try {
         const { name, email, password, permissions } = req.body;
 
-        const isExists = await adminModel.findOne({email})
-        if(isExists){     
+        const isExists = await adminModel.findOne({ email });
+        if (isExists) {
             req.flash('red', 'This email address already registered!');
-            return res.redirect("/sub-admin/list");
+            return res.redirect('/sub-admin/list');
         }
 
         // Convert permissions into required format
-        const formattedPermissions = Object.values(permissions).map((perm) => ({
-            key: perm.module,
-            module: perm.moduleName,
-            isView: perm.isView === "true",
-            isAdd: perm.isAdd === "true",
-            isEdit: perm.isEdit === "true",
-            isDelete: perm.isDelete === "true",
-        }));
+        const formattedPermissions = [
+            ...Object.values(permissions).map(perm => ({
+                key: perm.module,
+                module: perm.moduleName,
+                isView: perm.isView === 'true',
+                isAdd: perm.isAdd === 'true',
+                isEdit: perm.isEdit === 'true',
+                isDelete: perm.isDelete === 'true',
+            })),
+            {
+                key: 'subadmin',
+                module: 'Sub Admin',
+                isView: false,
+                isAdd: false,
+                isEdit: false,
+                isDelete: false,
+            },
+        ];
 
         // Create a new admin/sub-admin
         const newAdmin = new adminModel({
             name,
             email,
             password,
-            role : 'A',
+            role: 'A',
             permission: formattedPermissions,
         });
 
         await newAdmin.save();
         req.flash('green', 'Sub Admin added successfully.');
-        res.redirect("/sub-admin/list");
+        res.redirect('/sub-admin/list');
     } catch (error) {
         req.flash('red', 'Something went wrong!');
-        res.redirect("/sub-admin/list");
+        res.redirect('/sub-admin/list');
     }
 };
 
@@ -323,7 +368,7 @@ exports.changeAdminStatus = async (req, res) => {
     try {
         const user = await adminModel.findById(req.params.id);
 
-        user.isActive = req.params.status
+        user.isActive = req.params.status;
 
         await user.save();
 
@@ -339,42 +384,42 @@ exports.changeAdminStatus = async (req, res) => {
 
 exports.getEditSubAdmin = async (req, res) => {
     const admin = await adminModel.findById(req.params.id);
-    res.render('subadmin_edit', {admin} );
+    res.render('subadmin_edit', { admin });
 };
 
 exports.postEditSubAdmin = async (req, res) => {
     try {
         const { name, email, password, permissions } = req.body;
-        
-        // if(isExists){     
+
+        // if(isExists){
         //     req.flash('red', 'This email address already registered!');
         //     return res.redirect("/sub-admin/list");
         // }
 
-        const admin = await adminModel.findById(req.params.id)
-        
+        const admin = await adminModel.findById(req.params.id);
+
         // Convert permissions into required format
-        const formattedPermissions = Object.values(permissions).map((perm) => ({
+        const formattedPermissions = Object.values(permissions).map(perm => ({
             key: perm.module,
             module: perm.moduleName,
-            isView: perm.isView === "true",
-            isAdd: perm.isAdd === "true",
-            isEdit: perm.isEdit === "true",
-            isDelete: perm.isDelete === "true",
+            isView: perm.isView === 'true',
+            isAdd: perm.isAdd === 'true',
+            isEdit: perm.isEdit === 'true',
+            isDelete: perm.isDelete === 'true',
         }));
 
         // Create a new admin/sub-admin
-        admin.name = name
-        admin.email = email
-        admin.password = password
-        admin.permission = formattedPermissions
+        admin.name = name;
+        admin.email = email;
+        admin.password = password;
+        admin.permission = formattedPermissions;
 
         await admin.save();
 
         req.flash('green', 'Sub Admin updated successfully.');
-        res.redirect("/sub-admin/list");
+        res.redirect('/sub-admin/list');
     } catch (error) {
         req.flash('red', 'Something went wrong!');
-        res.redirect("/sub-admin/list");
+        res.redirect('/sub-admin/list');
     }
 };

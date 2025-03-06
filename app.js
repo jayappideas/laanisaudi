@@ -114,6 +114,9 @@ app.use(function (req, res, next) {
 });
 
 //ADMIN ROUTES
+app.get('/receipt', async (req, res) => {
+    res.render('receipt', { receiptData });
+});
 app.use('/', require('./routes/admin/authRoutes'));
 app.use('/user', require('./routes/admin/userRoutes'));
 app.use('/vendor', require('./routes/admin/vendorRoutes'));
@@ -129,5 +132,24 @@ app.all('/*', (req, res) => res.status(404).render('404'));
 // 4) ERROR HANDLING
 app.use(globalErrorHandler);
 
+const receiptData = {
+    cafeName: 'Green Bites Cafe',
+    date: '10/12/2024 22:39',
+    items: [
+        { name: 'The Original Dynamite Shrimp', qty: 2.0, price: 19.8 },
+        { name: 'Dynamite Sauce 2 Oz', qty: 2.0, price: 1.0 },
+        { name: 'Pepsi', qty: 1.0, price: 8.72 },
+        { name: 'Pan Fried', qty: 1.0, price: 2.0 },
+    ],
+    pointsRedeemed: 1021,
+    redeemedAmount: 1.55,
+    discount: -1.55,
+    total: 29.97,
+    laniCardNo: '6110XXXXXXXXX245',
+    pointsEarned: 100,
+    totalBalance: 100,
+};
+
+// Route to render EJS
 
 module.exports = app;

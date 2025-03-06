@@ -35,19 +35,31 @@ router
     .get(authController.getChangePass)
     .post(authController.postChangePass);
 
-
 /* SUB ADMIN ROUTES */
 
-router.get('/list', authController.getSubAdminList);
-router.get('/change-status/:id/:status', authController.changeAdminStatus);
+router.get(
+    '/list',
+    authController.checkPermission('subadmin', 'isView'),
+    authController.getSubAdminList
+);
+router.get(
+    '/change-status/:id/:status',
+    authController.checkPermission('subadmin', 'isView'),
+    authController.changeAdminStatus
+);
 router
     .route('/add')
     .get(authController.getSubAdmin)
-    .post(authController.postSubAdmin);
+    .post(
+        authController.checkPermission('subadmin', 'isAdd'),
+        authController.postSubAdmin
+    );
 router
     .route('/edit/:id')
     .get(authController.getEditSubAdmin)
-    .post(authController.postEditSubAdmin);
-
+    .post(
+        authController.checkPermission('subadmin', 'isEdit'),
+        authController.postEditSubAdmin
+    );
 
 module.exports = router;

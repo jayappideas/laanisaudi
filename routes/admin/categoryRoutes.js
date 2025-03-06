@@ -1,5 +1,6 @@
 const router = require('express').Router();
 const multer = require('multer');
+const authController = require('../../controllers/admin/authController');
 
 const categoryController = require('../../controllers/admin/categoryController');
 
@@ -15,7 +16,11 @@ const storage = multer.diskStorage({
 // Initialize multer with storage engine
 const upload = multer({ storage: storage });
 
-router.get('/', categoryController.getCategories);
+router.get(
+    '/',
+    authController.checkPermission('category', 'isView'),
+    categoryController.getCategories
+);
 
 router
     .route('/create-category')

@@ -1,5 +1,6 @@
 const router = require('express').Router();
 const multer = require('multer');
+const authController = require('../../controllers/admin/authController');
 
 const bannerController = require('../../controllers/admin/bannerController');
 
@@ -14,7 +15,11 @@ const storage = multer.diskStorage({
 // Initialize multer with storage engine
 const upload = multer({ storage: storage });
 
-router.get('/', bannerController.getBanners);
+router.get(
+    '/',
+    authController.checkPermission('banner', 'isView'),
+    bannerController.getBanners
+);
 
 router
     .route('/create-banner')
