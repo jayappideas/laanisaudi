@@ -20,6 +20,7 @@
   },
   "phone": {
     "notRegistered": "Please provide the registered mobile number.",
+    "notRegisteredEmail": "Please provide the registered email.",
     "verify": "Please verify the mobile number."
   },
   "address": {
