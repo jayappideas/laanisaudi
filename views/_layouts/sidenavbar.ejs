@@ -50,7 +50,7 @@
                                   <span class="menu-title <%= url == '/' ? 'theme-text' : 'black-text' %>">Dashboard</span>
                                 </a>
                               </li>
-                              <li class="bold <%= url == '/sub-admin' ? 'active' : '' %>">
+                              <li class="bold <%= url.startsWith('/sub-admin') ? 'active' : '' %>">
                                 <a class="waves-effect waves-cyan" href="/sub-admin/list">
                                   <i class="material-icons <%= url == '/sub-admin' ? 'theme-text' : 'black-text' %>">face</i>
                                   <span class="menu-title <%= url == '/sub-admin' ? 'theme-text' : 'black-text' %>">Subadmin</span>

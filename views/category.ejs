@@ -85,7 +85,15 @@
                                                                     <% } %>
                                                             </td>
                                                             <td>
-                                                                <a href="/category/update-category/<%= categories[i].id %>" class="waves-effect border-round waves-light btn mr-1 mb-2"><i class="material-icons">create</i></a>
+                                                                <!-- <a href="/category/update-category/<%= categories[i].id %>" class="waves-effect border-round waves-light btn mr-1 mb-2"><i class="material-icons">create</i></a> -->
+
+                                                                  <a href="/category/update-category/<%= categories[i].id %>" class="btn-floating  waves-effect waves-light accent-2 btn-edit">
+                                                                    <i class="material-icons">edit</i>
+                                                                </a> &nbsp;&nbsp;
+
+                                                                  <a href="/category/delete-category/<%= categories[i]._id %>" class="btn-floating waves-effect waves-light accent-2 btn-delete">
+                                                                    <i class="material-icons" onclick="return confirm('Are you sure want to delete this category?');">delete</i>
+                                                                  </a>
                                                             </td>
                                                         </tr>
                                                         <% } %>
@@ -97,7 +105,7 @@
                                 </div>
                             </div>
                         </div>
-                 
+
                     </div>
                 </div>
                 <div class="content-overlay"></div>
@@ -109,7 +117,7 @@
     <%- include('_layouts/commonJs') %>
     <script src="/app-assets/vendors/data-tables/js/jquery.dataTables.min.js"></script>
     <script src="/app-assets/js/scripts/data-tables.js"></script>
-  
+
 </body>
 
 </html>

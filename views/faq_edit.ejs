@@ -37,14 +37,14 @@
                 </div>
             </div>
         </div>
-    
+
         <div class="container pl-2 pr-2">
             <div class="card">
                 <div class="row">
                     <div class="col s12">
                         <div id="basic-form" class=" card-default scrollspy">
                             <div class="card-content">
-                                <form method="POST" action="/cms/faq/edit/<%= faq._id %>" class="formValidate0" id="formValidate0"> 
+                                <form method="POST" action="/cms/faq/edit/<%= faq._id %>" class="formValidate0" id="formValidate0">
 
                                     <div class="input-field col s12">
                                         <label for="question">Question (English)</label>
@@ -72,7 +72,7 @@
 
                                     <div class="row">
                                         <div class="col s12 display-flex justify-content-end">
-                                            <button class="btn btn-edit" type="submit" name="action">Submit</button>
+                                            <button class="btn btn-edit" type="submit" name="action">Update</button>
                                             &nbsp;&nbsp;&nbsp;
                                             <a type="button" class="btn btn-delete" href="/cms/faq">Cancel</a>
                                         </div>
@@ -84,12 +84,12 @@
                 </div>
             </div>
         </div>
-    
+
     </div>
     <!-- END: Page Main-->
 
     <%- include('_layouts/commonJs') %>
-  
+
     <script>
         $(document).ready(function() {
 
@@ -130,8 +130,8 @@
                     $('html, body').animate({ scrollTop: $('#answer').offset().top }, 500);
                 }
             });
-        
- 
+
+
             function validateAQuestion() {
                 const value = $('#Aquestion').val().trim();
                 if (!value) {
@@ -169,8 +169,8 @@
                     $('html, body').animate({ scrollTop: $('#Aanswer').offset().top }, 500);
                 }
             });
-        
-         
+
+
             // Form Submission Validation
             $('#formValidate0').on('submit', function(e) {
                 let valid = true;
@@ -184,7 +184,7 @@
                     $('html, body').animate({ scrollTop: $('.error-message:contains("Please")').first().offset().top }, 500);
                 }
             });
-            
+
         });
     </script>
 

@@ -10,7 +10,65 @@ const reviewModel = require('../../models/reviewModel');
 const categoryModel = require('../../models/categoryModel');
 const wishlistModel = require('../../models/wishlistModel');
 const discountModel = require('../../models/discountModel');
+const Transaction = require('../../models/transactionModel');
 
+exports.dashboardStaff = async (req, res, next) => {
+    try {
+        const staffId = req.staff.id;
+
+        const result = await Transaction.aggregate([
+            {
+                $match: {
+                    staff: new mongoose.Types.ObjectId(staffId),
+                    status: 'accepted',
+                },
+            },
+            {
+                $group: {
+                    _id: '$staff',
+                    assignedPoints: { $sum: '$earnedPoints' },
+                    redeemedPoints: { $sum: '$spentPoints' },
+                    users: { $addToSet: '$user' }, // collect unique users
+                },
+            },
+            {
+                $project: {
+                    assignedPoints: 1,
+                    redeemedPoints: 1,
+                    userCount: { $size: '$users' },
+                },
+            },
+        ]);
+
+        const totalDiscounts = await discountModel.countDocuments({
+            vendor: req.staff.vendor,
+            adminApprovedStatus: { $nin: ['Pending', 'Rejected'] },
+            status: { $nin: ['Inactive', 'Expired'] },
+        });
+
+        if (result.length === 0) {
+            return res.status(200).json({
+                success: true,
+                message: req.t('success'),
+                assignedPoints: 0,
+                redeemedPoints: 0,
+                userCount: 0,
+                totalDiscounts,
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: req.t('success'),
+            assignedPoints: result[0].assignedPoints,
+            redeemedPoints: result[0].redeemedPoints,
+            userCount: result[0].userCount,
+            totalDiscounts,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
 
 exports.getCategoryList = async (req, res, next) => {
     try {

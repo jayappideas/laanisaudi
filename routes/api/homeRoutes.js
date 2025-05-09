@@ -2,8 +2,13 @@ const router = require('express').Router();
 const { upload } = require('../../controllers/uploadController');
 const { checkUser } = require('../../controllers/api/authController');
 const homeController = require('../../controllers/api/homeController');
+const staffController = require('../../controllers/api/staffController');
 
-
+router.get(
+    '/dashboard',
+    staffController.checkStaff,
+    homeController.dashboardStaff
+);
 router.get('/categoryList', upload.none(), homeController.getCategoryList);
 router.get('/banners', upload.none(), homeController.getBannerList);
 router.get('/searchSuggestion', checkUser, upload.none(), homeController.getSearchSuggestion);

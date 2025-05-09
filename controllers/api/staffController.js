@@ -194,7 +194,6 @@ exports.updateNotification = async (req, res, next) => {
 
         await user.save();
 
-
         res.status(201).json({
             success: true,
             message: req.t('success'),
@@ -243,8 +242,8 @@ exports.login = async (req, res, next) => {
         res.status(201).json({
             success: true,
             message: req.t('auth.login'),
-            user,
             token,
+            user,
         });
     } catch (error) {
         next(error);

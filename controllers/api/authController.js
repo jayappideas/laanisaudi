@@ -247,7 +247,8 @@ exports.forgotPassword = async (req, res, next) => {
             return next(createError.BadRequest('validation.phone'));
 
         const user = await User.findOne({ mobileNumber });
-        if (!user) return next(createError.BadRequest('phone.notRegisteredEmail'));
+        if (!user)
+            return next(createError.BadRequest('phone.notRegisteredEmail'));
 
         // generate and save OTP
         const otp = generateCode(4);
@@ -417,6 +418,8 @@ exports.changeLanguage = async (req, res, next) => {
 /* ===================================================
                 VEDNOR AUTH API
 ======================================================*/
+
+
 
 // To ensure that a valid vendor is logged in.
 exports.checkVendor = async (req, res, next) => {
@@ -679,7 +682,8 @@ exports.forgotPasswordVendor = async (req, res, next) => {
         if (!email) return next(createError.BadRequest('validation.email'));
 
         const user = await Vendor.findOne({ email });
-        if (!user) return next(createError.BadRequest('phone.notRegisteredEmail'));
+        if (!user)
+            return next(createError.BadRequest('phone.notRegisteredEmail'));
 
         // generate and save OTP
         const otp = generateCode(4);

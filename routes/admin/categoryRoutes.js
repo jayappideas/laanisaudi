@@ -39,6 +39,7 @@ router
     );
 
 router.get('/update-status/:id/:status', categoryController.updateCategoryStatus);
+router.get('/delete-category/:id', categoryController.deleteCategory);
 
 
 module.exports = router;
