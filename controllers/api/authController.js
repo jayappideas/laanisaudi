@@ -250,7 +250,7 @@ exports.forgotPassword = async (req, res, next) => {
 
         const user = await User.findOne({ mobileNumber });
         if (!user)
-            return next(createError.BadRequest('phone.notRegisteredEmail'));
+            return next(createError.BadRequest('phone.notRegistered'));
 
         // generate and save OTP
         const otp = generateCode(4);
