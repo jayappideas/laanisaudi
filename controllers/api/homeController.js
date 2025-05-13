@@ -11,6 +11,7 @@ const categoryModel = require('../../models/categoryModel');
 const wishlistModel = require('../../models/wishlistModel');
 const discountModel = require('../../models/discountModel');
 const Transaction = require('../../models/transactionModel');
+const Staff = require('../../models/staffModel');
 
 exports.dashboardStaff = async (req, res, next) => {
     try {
@@ -72,8 +73,9 @@ exports.dashboardStaff = async (req, res, next) => {
 
 exports.getCategoryList = async (req, res, next) => {
     try {
-
-        let category = await businessTypeModel.find({isDelete: false, isActive:true}).select('en ar image');
+        let category = await businessTypeModel
+            .find({ isDelete: false, isActive: true })
+            .select('en ar image');
         category = category.map(x => multilingual(x, req));
 
         res.status(200).json({
@@ -81,7 +83,6 @@ exports.getCategoryList = async (req, res, next) => {
             message: req.t('success'),
             data: category,
         });
-
     } catch (error) {
         next(error);
     }
@@ -89,25 +90,25 @@ exports.getCategoryList = async (req, res, next) => {
 
 exports.getBannerList = async (req, res, next) => {
     try {
-
-        const banners = await bannerModel.find().select('image').sort({sort: 1})
+        const banners = await bannerModel
+            .find()
+            .select('image')
+            .sort({ sort: 1 });
 
         res.status(200).json({
             success: true,
             message: req.t('success'),
-            data: banners
+            data: banners,
         });
-
     } catch (error) {
-        console.log(error)
+        console.log(error);
         next(error);
     }
 };
 
 exports.getSearchSuggestion = async (req, res, next) => {
     try {
-
-        const query = req.query.search
+        const query = req.query.search;
 
         const vendorResults = await vendorModel.find(
             { businessName: { $regex: query, $options: 'i' } },
@@ -128,34 +129,43 @@ exports.getSearchSuggestion = async (req, res, next) => {
         res.status(200).json({
             success: true,
             message: req.t('success'),
-            data: suggestions
+            data: suggestions,
         });
-
     } catch (error) {
-        console.log(error)
+        console.log(error);
         next(error);
     }
 };
 
 exports.getRestaurantList = async (req, res, next) => {
     try {
-        const { latitude, longitude, categoryId, location, searchTerm, rating, sortBy } = req.body;
+        const {
+            latitude,
+            longitude,
+            categoryId,
+            location,
+            searchTerm,
+            rating,
+            sortBy,
+        } = req.body;
 
         // Validate input
         if (!latitude || !longitude) {
-          return res.status(400).json({ error: 'Latitude and longitude are required' });
+            return res
+                .status(400)
+                .json({ error: 'Latitude and longitude are required' });
         }
 
         let sortCondition = {};
 
         if (sortBy === 'high_to_low_rating') {
-            sortCondition = { 'rating': -1 };
+            sortCondition = { rating: -1 };
         } else if (sortBy === 'low_to_high_rating') {
-            sortCondition = { 'rating': 1 };
-        } else if(sortBy === 'nearby'){
-            sortCondition = { 'distance_in_mt': 1 };
-        } else{
-            sortCondition = { 'businessName' : 1 }
+            sortCondition = { rating: 1 };
+        } else if (sortBy === 'nearby') {
+            sortCondition = { distance_in_mt: 1 };
+        } else {
+            sortCondition = { businessName: 1 };
         }
 
         const branches = await branchModel.aggregate([
@@ -163,10 +173,13 @@ exports.getRestaurantList = async (req, res, next) => {
                 $geoNear: {
                     near: {
                         type: 'Point',
-                        coordinates: [parseFloat(longitude), parseFloat(latitude)],
+                        coordinates: [
+                            parseFloat(longitude),
+                            parseFloat(latitude),
+                        ],
                     },
                     distanceField: 'distance',
-                    maxDistance: location ? location*1000 : 50000, //Default 50KM
+                    maxDistance: location ? location * 1000 : 50000, //Default 50KM
                     spherical: true,
                 },
             },
@@ -205,15 +218,32 @@ exports.getRestaurantList = async (req, res, next) => {
                     'vendorDetails.isDelete': false,
                     'vendorDetails.isActive': true,
                     'vendorDetails.adminApproved': true,
-                    ...(categoryId && { 'vendorDetails.businessType': mongoose.Types.ObjectId(categoryId) }),
+                    ...(categoryId && {
+                        'vendorDetails.businessType':
+                            mongoose.Types.ObjectId(categoryId),
+                    }),
                     ...(searchTerm && {
                         $or: [
-                            { 'vendorDetails.businessName': { $regex: searchTerm, $options: 'i' } },
-                            { 'menuItems.name': { $regex: searchTerm, $options: 'i' } },
-                        ]
+                            {
+                                'vendorDetails.businessName': {
+                                    $regex: searchTerm,
+                                    $options: 'i',
+                                },
+                            },
+                            {
+                                'menuItems.name': {
+                                    $regex: searchTerm,
+                                    $options: 'i',
+                                },
+                            },
+                        ],
                     }),
                     ...(searchTerm && { 'menuItems.isActive': true }),
-                    ...(rating && { 'vendorDetails.businessRating' : { $lte: parseInt(rating) } }),
+                    ...(rating && {
+                        'vendorDetails.businessRating': {
+                            $lte: parseInt(rating),
+                        },
+                    }),
                 },
             },
             {
@@ -221,8 +251,8 @@ exports.getRestaurantList = async (req, res, next) => {
                     _id: '$vendorDetails._id',
                     businessName: { $first: '$vendorDetails.businessName' },
                     businessLogo: { $first: '$vendorDetails.businessLogo' },
-                    rating : { $first: '$vendorDetails.businessRating' },
-                    review : { $first: '$vendorDetails.businessReview' },
+                    rating: { $first: '$vendorDetails.businessRating' },
+                    review: { $first: '$vendorDetails.businessReview' },
                     distance_in_mt: { $min: '$distance' },
                     branchId: { $first: '$_id' },
                 },
@@ -230,14 +260,13 @@ exports.getRestaurantList = async (req, res, next) => {
             {
                 $sort: sortCondition,
             },
-        ])
+        ]);
 
         res.status(200).json({
             success: true,
             message: req.t('success'),
             data: branches,
         });
-
     } catch (error) {
         next(error);
     }
@@ -245,24 +274,43 @@ exports.getRestaurantList = async (req, res, next) => {
 
 exports.restaurantDetail = async (req, res, next) => {
     try {
+        const vendorId = req.body.vendorId;
+        const branchId = req.body.branchId;
 
-        const vendorId = req.body.vendorId
-        const branchId = req.body.branchId
+        const vendor = await vendorModel
+            .findById(vendorId)
+            .select(
+                'businessName businessLogo businessMobile email businessRating businessReview'
+            )
+            .lean();
 
-        const vendor = await vendorModel.findById(vendorId).select('businessName businessLogo businessMobile email businessRating businessReview').lean();
+        const branches = await branchModel
+            .find({ vendor: vendor._id, isDelete: false })
+            .select('-vendor -createdAt -updatedAt -__v -isDelete')
+            .lean();
 
-        const branches = await branchModel.find({vendor: vendor._id, isDelete:false}).select('-vendor -createdAt -updatedAt -__v -isDelete').lean();
+        const isFavourite = await wishlistModel.findOne({
+            user: req.user.id,
+            vendor: vendorId,
+        });
 
-        const isFavourite = await wishlistModel.findOne({ user:req.user.id, vendor:vendorId })
+        const selectedBranch = branches.find(
+            branch => branch._id.toString() == branchId
+        );
 
-        const selectedBranch = branches.find((branch) => branch._id.toString() == branchId);
+        if (selectedBranch) selectedBranch.isSelected = true;
 
-        if (selectedBranch)
-            selectedBranch.isSelected = true;
+        let categories = await categoryModel
+            .find({ vendor: vendor._id, isDelete: false })
+            .select('name')
+            .lean();
 
-        let categories = await categoryModel.find({vendor: vendor._id, isDelete:false}).select('name').lean();
-
-        const offers = await discountModel.find({vendor: vendor._id, adminApprovedStatus: "Approved"}).select('title description customerType totalUserCount expiryDate minBillAmount remainingUserCount').lean();
+        const offers = await discountModel
+            .find({ vendor: vendor._id, adminApprovedStatus: 'Approved' })
+            .select(
+                'title description customerType totalUserCount expiryDate minBillAmount remainingUserCount'
+            )
+            .lean();
 
         const filteredOffers = offers.filter(offer => {
             const [day, month, year] = offer.expiryDate.split('/').map(Number);
@@ -271,11 +319,16 @@ exports.restaurantDetail = async (req, res, next) => {
         });
 
         let menu = await Promise.all(
-            categories.map(async (cat) => {
-              const items = await menuItemModel
-                .find({ vendor: vendor._id, category: cat._id, isDelete: false, isActive: true })
-                .select('name price image')
-                .lean();
+            categories.map(async cat => {
+                const items = await menuItemModel
+                    .find({
+                        vendor: vendor._id,
+                        category: cat._id,
+                        isDelete: false,
+                        isActive: true,
+                    })
+                    .select('name price image')
+                    .lean();
                 return {
                     category: cat.name,
                     items: items,
@@ -286,77 +339,76 @@ exports.restaurantDetail = async (req, res, next) => {
         vendor.offers = filteredOffers;
         vendor.branches = branches;
         vendor.menu = menu;
-        vendor.isFavourite = isFavourite ? true : false
+        vendor.isFavourite = isFavourite ? true : false;
 
         res.status(200).json({
             success: true,
             message: req.t('success'),
-            data: vendor
+            data: vendor,
         });
-
     } catch (error) {
-        console.log(error)
+        console.log(error);
         next(error);
     }
 };
 
-
 exports.postAddFavourite = async (req, res, next) => {
     try {
+        const data = await wishlistModel.findOne({
+            user: req.user.id,
+            vendor: req.params.vendorId,
+        });
 
-        const data = await wishlistModel.findOne({user:req.user.id, vendor:req.params.vendorId});
-
-        if(!data){
+        if (!data) {
             await wishlistModel.create({
                 user: req.user.id,
-                vendor: req.params.vendorId
+                vendor: req.params.vendorId,
             });
 
             res.status(201).json({
                 success: true,
-                message: req.t('fav.add')
+                message: req.t('fav.add'),
             });
-        }else{
+        } else {
             await wishlistModel.deleteOne({
                 user: req.user.id,
-                vendor: req.params.vendorId
+                vendor: req.params.vendorId,
             });
 
             res.status(200).json({
                 success: true,
-                message: req.t('fav.remove')
+                message: req.t('fav.remove'),
             });
         }
     } catch (error) {
-        console.log(error)
+        console.log(error);
         next(error);
     }
 };
 
 exports.getFavouriteList = async (req, res, next) => {
     try {
-
-        const data = await wishlistModel.find({user: req.user.id}).select('_id').populate({
-            path: 'vendor',
-            select: 'businessName businessLogo businessRating businessReview'
-        })
+        const data = await wishlistModel
+            .find({ user: req.user.id })
+            .select('_id')
+            .populate({
+                path: 'vendor',
+                select: 'businessName businessLogo businessRating businessReview',
+            });
 
         res.status(200).json({
             success: true,
             message: req.t('success'),
-            data: data
+            data: data,
         });
-
     } catch (error) {
-        console.log(error)
+        console.log(error);
         next(error);
     }
 };
 
-
 exports.postAddReview = async (req, res, next) => {
     try {
-
         await reviewModel.create({
             user: req.user.id,
             vendor: req.body.vendorId,
@@ -367,10 +419,11 @@ exports.postAddReview = async (req, res, next) => {
         // Calculate the average rating
         const avgRatingData = await reviewModel.aggregate([
             { $match: { vendor: mongoose.Types.ObjectId(req.body.vendorId) } },
-            { $group: { _id: "$vendor", avgRating: { $avg: "$rating" } } },
+            { $group: { _id: '$vendor', avgRating: { $avg: '$rating' } } },
         ]);
 
-        const avgRating = avgRatingData.length > 0 ? avgRatingData[0].avgRating : 0;
+        const avgRating =
+            avgRatingData.length > 0 ? avgRatingData[0].avgRating : 0;
 
         // Increment the review count and update the rating
         await vendorModel.findByIdAndUpdate(
@@ -378,35 +431,37 @@ exports.postAddReview = async (req, res, next) => {
             {
                 $set: { businessRating: avgRating.toFixed(1) },
                 $inc: { businessReview: 1 },
-            },
+            }
         );
 
         res.status(201).json({
             success: true,
-            message: req.t('review.add')
+            message: req.t('review.add'),
         });
     } catch (error) {
-        console.log(error)
+        console.log(error);
         next(error);
     }
 };
 
 exports.getReviews = async (req, res, next) => {
     try {
-
-        const reviews = await reviewModel.find({vendor: req.params.vendorId}).select('user rating review createdAt').populate({
-                        path: 'user',
-                        select : 'name'
-                    }).sort({createdAt: -1})
+        const reviews = await reviewModel
+            .find({ vendor: req.params.vendorId })
+            .select('user rating review createdAt')
+            .populate({
+                path: 'user',
+                select: 'name',
+            })
+            .sort({ createdAt: -1 });
 
         res.status(200).json({
             success: true,
             message: req.t('success'),
-            data: reviews
+            data: reviews,
         });
-
     } catch (error) {
-        console.log(error)
+        console.log(error);
         next(error);
     }
 };

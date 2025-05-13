@@ -352,7 +352,7 @@ exports.checkout = async (req, res, next) => {
     }
 };
 
-// For User call this every 10 sec to show the user then user can accept or reject the order
+//? For USER call this every 10 sec to show the user then user can accept or reject the order
 exports.getCurrentTransaction = async (req, res, next) => {
     try {
         const transactions = await transactionModel
@@ -384,7 +384,7 @@ exports.getCurrentTransaction = async (req, res, next) => {
     }
 };
 
-// Accept or Reject an order by User
+//? Accept or Reject an order by USER
 exports.updateOrderStatus = async (req, res, next) => {
     try {
         const { status } = req.body;

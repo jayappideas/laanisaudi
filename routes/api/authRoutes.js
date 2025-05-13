@@ -74,6 +74,11 @@ router.post(
     authController.addBusinessMenu
 );
 
+router.get(
+    '/dashboardVendor',
+    authController.checkVendor,
+    authController.dashboardVendor
+);
 router.post('/vendor/login', upload.none(), authController.loginVendor);
 router.post(
     '/vendor/forgotPassword',

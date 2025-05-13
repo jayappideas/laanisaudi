@@ -7,6 +7,8 @@ const deleteFile = require('../../utils/deleteFile');
 const User = require('../../models/userModel');
 const Vendor = require('../../models/vendorModel');
 const Staff = require('../../models/staffModel');
+const discountModel = require('../../models/discountModel');
+const Transaction = require('../../models/transactionModel');
 const otpModel = require('../../models/otpModel');
 const bcrypt = require('bcryptjs');
 const QRCode = require('qrcode');
@@ -479,6 +481,71 @@ exports.isVendor = async (req, res, next) => {
         req.vendor = vendor;
         next();
     } catch (error) {
+        next(error);
+    }
+};
+
+//? Home screen dashboard Vendor
+exports.dashboardVendor = async (req, res, next) => {
+    try {
+        const vendorId = req.vendor._id;
+
+        const totalStaff = await Staff.countDocuments({ vendor: vendorId });
+        const totalDiscount = await discountModel.countDocuments({
+            vendor: vendorId,
+            adminApprovedStatus: 'Approved',
+            status: 'Active',
+        });
+
+        const data = await Transaction.aggregate([
+            {
+                $lookup: {
+                    from: 'staff',
+                    localField: 'staff',
+                    foreignField: '_id',
+                    as: 'staffInfo',
+                },
+            },
+            {
+                $unwind: '$staffInfo',
+            },
+            {
+                $match: {
+                    'staffInfo.vendor': vendorId,
+                    status: 'accepted',
+                },
+            },
+            {
+                $group: {
+                    _id: null,
+                    totalSpentPoints: { $sum: '$spentPoints' },
+                    totalFinalAmount: { $sum: '$finalAmount' },
+                },
+            },
+            {
+                $project: {
+                    _id: 0,
+                    totalSpentPoints: 1,
+                    totalFinalAmount: 1,
+                },
+            },
+        ]);
+        console.log('data: ', data);
+
+        const stats = data[0] || {
+            totalSpentPoints: 0,
+            totalFinalAmount: 0,
+        };
+
+        res.status(200).json({
+            success: true,
+            message: req.t('success'),
+            totalStaff,
+            totalDiscount,
+            ...stats,
+        });
+    } catch (error) {
+        console.log('error: ', error);
         next(error);
     }
 };
