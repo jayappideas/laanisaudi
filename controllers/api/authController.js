@@ -490,7 +490,11 @@ exports.dashboardVendor = async (req, res, next) => {
     try {
         const vendorId = req.vendor._id;
 
-        const totalStaff = await Staff.countDocuments({ vendor: vendorId });
+        const totalStaff = await Staff.countDocuments({
+            vendor: vendorId,
+            isActive : true,
+            isDelete: false,
+        });
         const totalDiscount = await discountModel.countDocuments({
             vendor: vendorId,
             adminApprovedStatus: 'Approved',
