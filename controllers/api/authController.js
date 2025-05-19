@@ -234,8 +234,8 @@ exports.login = async (req, res, next) => {
         res.status(201).json({
             success: true,
             message: req.t('auth.login'),
-            user,
             token,
+            user,
         });
     } catch (error) {
         next(error);
@@ -735,8 +735,8 @@ exports.loginVendor = async (req, res, next) => {
         res.status(201).json({
             success: true,
             message: req.t('auth.login'),
-            user,
             token,
+            user,
         });
     } catch (error) {
         next(error);

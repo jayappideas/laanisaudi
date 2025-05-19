@@ -223,22 +223,31 @@ exports.getRestaurantList = async (req, res, next) => {
                             mongoose.Types.ObjectId(categoryId),
                     }),
                     ...(searchTerm && {
-                        $or: [
+                        $and: [
                             {
-                                'vendorDetails.businessName': {
-                                    $regex: searchTerm,
-                                    $options: 'i',
-                                },
+                                $or: [
+                                    {
+                                        'vendorDetails.businessName': {
+                                            $regex: searchTerm,
+                                            $options: 'i',
+                                        },
+                                    },
+                                    {
+                                        'menuItems.name': {
+                                            $regex: searchTerm,
+                                            $options: 'i',
+                                        },
+                                    },
+                                ],
                             },
                             {
-                                'menuItems.name': {
-                                    $regex: searchTerm,
-                                    $options: 'i',
-                                },
+                                $or: [
+                                    { menuItems: { $eq: null } }, // Allow vendors with no menu items
+                                    { 'menuItems.isActive': true }, // OR menu item must be active
+                                ],
                             },
                         ],
                     }),
-                    ...(searchTerm && { 'menuItems.isActive': true }),
                     ...(rating && {
                         'vendorDetails.businessRating': {
                             $lte: parseInt(rating),
