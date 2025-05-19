@@ -28,7 +28,6 @@ const staffSchema = new mongoose.Schema(
             unique: true,
             lowercase: true,
             trim: true,
-            validate: [validator.isEmail, 'validation.emailInvalid'],
         },
         mobileNumber: {
             type: String,
