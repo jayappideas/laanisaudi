@@ -20,25 +20,4 @@ router.delete(
     staffController.deleteStaff
 );
 
-router.post('/login', upload.none(), staffController.login);
-router.post(
-    '/updateNotification/:status',
-    staffController.checkStaff,
-    upload.none(),
-    staffController.updateNotification
-);
-
-router.get(
-    '/',
-    staffController.checkStaff,
-    upload.none(),
-    staffController.getStaffDiscountList
-);
-router.get(
-    '/:id',
-    staffController.checkStaff,
-    upload.none(),
-    staffController.getDiscountDetail
-);
-
 module.exports = router;
