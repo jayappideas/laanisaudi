@@ -47,7 +47,16 @@
                 </div>
             </div>
 
-
+            <div id="breadcrumbs-wrapper" style="background-color: white;">
+                <!-- Search for small screen-->
+                <div class="container">
+                    <div class="row">
+                        <div class="col s12 right-align-md">
+                            <a class="btn pull-right btn-add btn-breadcrumbs white-text" href="/vendor/add-vendor">Create Vendor</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div class="col s12">
                 <div class="container">
                     <div class="section section-data-tables">
@@ -70,6 +79,7 @@
                                                             <!-- <th>Created Date</th> -->
                                                             <th data-orderable="false">Status</th>
                                                             <th data-orderable="false">Action</th>
+                                                            <th data-orderable="false">Edit</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
@@ -87,9 +97,9 @@
                                                                     <a style="background-color: rgb(240, 212, 212);padding: 5px 10px 5px 10px;color: red;border-radius: 5px;">Pending</a>
                                                                 <% } %>
                                                             </td>
-                                                            <!-- <td><%= vendors[i].createdAt.toISOString().split('T')[0] %> <%= 
+                                                            <!-- <td><%= vendors[i].createdAt.toISOString().split('T')[0] %> <%=
                                                                 vendors[i].createdAt.toLocaleString('en-US', {
-                                                                    timeZone: 'UTC', 
+                                                                    timeZone: 'UTC',
                                                                     hour: '2-digit',
                                                                     minute: '2-digit',
                                                                     hour12: true
@@ -103,7 +113,10 @@
                                                                 <% } %>
                                                             </td>
                                                             <td>
-                                                                <a href="/vendor/<%= vendors[i].id %>"><i class="material-icons">visibility</i></a>
+                                                                <a href="/vendor/view/<%= vendors[i].id %>"><i class="material-icons">visibility</i></a>
+                                                            </td>
+                                                            <td>
+                                                              <a href="/vendor/edit-vendor/<%= vendors[i].id %>" class="waves-effect border-round waves-light btn mr-1 mb-2"><i class="material-icons">create</i></a>
                                                             </td>
                                                         </tr>
                                                         <% } %>

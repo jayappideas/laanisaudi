@@ -116,7 +116,7 @@ exports.createVendor = async (req, res, next) => {
     try {
         const { businessType, businessName, businessMobile } = req.body;
 
-        const userExists = await Vendor.findOne({ email: req.body.email });
+        const userExists = await vendorModel.findOne({ email: req.body.email });
         if (userExists) {
             req.flash('red', 'Vendor already exists with thie email.');
             return res.redirect('/vendor');
@@ -132,9 +132,11 @@ exports.createVendor = async (req, res, next) => {
             businessLogo: req.files.businessLogo[0].filename,
             businessLicense: req.files.businessLicense[0].filename,
             businessType: businessType,
+            adminApproved: true,
         });
 
-        // Define the file path
+        // create Branch if client want;
+
         const uploadsDir = path.join('./public/uploads');
         const fileName = `${user._id}_qr.png`;
         const filePath = path.join(uploadsDir, fileName);
@@ -160,9 +162,11 @@ exports.createVendor = async (req, res, next) => {
 
 exports.getEditVendor = async (req, res) => {
     try {
+        const vendor = await vendorModel.findById(req.params.id);
+
         const categories = await businessTypeModel.find({ isDelete: false });
 
-        res.render('vendor_edit', { categories });
+        res.render('vendor_edit', { categories, vendor });
     } catch (error) {
         req.flash('red', error.message);
         res.redirect('/vendor');
@@ -171,20 +175,22 @@ exports.getEditVendor = async (req, res) => {
 
 exports.editVendor = async (req, res, next) => {
     try {
-        const user = await Vendor.findById(req.params.id);
+        const user = await vendorModel.findById(req.params.id);
 
         user.email = req.body.email;
-        user.password = req.body.password;
         user.language = req.body.language;
         user.businessName = req.body.businessName;
         user.businessMobile = req.body.businessMobile;
         user.businessType = req.body.businessType;
 
+        if (req.body.password) {
+            user.password = req.body.password;
+        }
         if (req.files.businessLogo && req.files.businessLogo[0]) {
-            vendor.businessLogo = req.files.businessLogo[0].filename;
+            user.businessLogo = req.files.businessLogo[0].filename;
         }
         if (req.files.businessLicense && req.files.businessLicense[0]) {
-            vendor.businessLicense = req.files.businessLicense[0].filename;
+            user.businessLicense = req.files.businessLicense[0].filename;
         }
 
         await user.save();
@@ -192,7 +198,6 @@ exports.editVendor = async (req, res, next) => {
         req.flash('green', 'Vendor updated successfully.');
         res.redirect('/vendor');
     } catch (error) {
-        console.log(error);
         next(error);
     }
 };

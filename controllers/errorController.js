@@ -2,7 +2,7 @@ const createError = require('http-errors');
 const multer = require('multer');
 
 module.exports = (error, req, res, next) => {
-    // console.log(error);
+    console.log(error);
 
     if (error instanceof multer.MulterError) {
         req.flash('red', error.message);
