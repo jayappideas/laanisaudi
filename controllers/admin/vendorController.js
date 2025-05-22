@@ -92,12 +92,12 @@ exports.approvedVendor = async (req, res) => {
         await user.save();
 
         req.flash('green', 'Vendor application approved successfully.');
-        res.redirect('/vendor/' + req.params.id);
+        res.redirect('/vendor/view/' + req.params.id);
     } catch (error) {
         if (error.name === 'CastError' || error.name === 'TypeError')
             req.flash('red', 'vendor not found!');
         else req.flash('red', error.message);
-        res.redirect('/vendor/' + req.params.id);
+        res.redirect('/vendor');
     }
 };
 

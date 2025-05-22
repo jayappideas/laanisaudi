@@ -6,7 +6,7 @@
   <%- include('_layouts/head') %>
   <title>Vendor View | <%= title %></title>
   <link rel="stylesheet" type="text/css" href="/app-assets/css/pages/page-users.css">
-  
+
   <link rel="stylesheet" type="text/css" href="/app-assets/vendors/data-tables/css/jquery.dataTables.min.css">
   <link rel="stylesheet" type="text/css" href="/app-assets/vendors/data-tables/extensions/responsive/css/responsive.dataTables.min.css">
   <link rel="stylesheet" type="text/css" href="/app-assets/vendors/data-tables/css/select.dataTables.min.css">
@@ -39,6 +39,8 @@
           </div>
         </div>
       </div>
+      <%- include('messages', { messages: messages }) %>
+
       <div class="col s12">
         <div class="container">
           <!-- users view start -->
@@ -50,7 +52,7 @@
                   <div class="display-flex media">
                     <img src="<%= process.env.IMAGE_URL %><%= vendor.qrCode %>" alt="users view avatar" height="64" width="64">
                     <div class="media-body" style="margin-left: 10px;">
-                      
+
                       <span>Email:</span>
                       <span class="users-view-id"><a href="mailto:<%= vendor.email %>"><%= vendor.email %></a></span>
                     </div>
@@ -89,9 +91,9 @@
                         </tr>
                         <tr>
                           <th>Registered Date</th>
-                          <td><%= vendor.createdAt.toISOString().split('T')[0] %> <%= 
+                          <td><%= vendor.createdAt.toISOString().split('T')[0] %> <%=
                             vendor.createdAt.toLocaleString('en-US', {
-                                timeZone: 'UTC', 
+                                timeZone: 'UTC',
                                 hour: '2-digit',
                                 minute: '2-digit',
                                 hour12: true
@@ -190,7 +192,7 @@
                                                     <td><%= staff[i].email %></td>
                                                     <td><%= staff[i].mobileNumber %></td>
                                                     <td><%= staff[i].occupation %></td>
-                                                  </tr>                                                                                      
+                                                  </tr>
                                                   <% } %>
                                               </tbody>
                                           </table>
