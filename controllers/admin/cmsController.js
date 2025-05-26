@@ -1,4 +1,5 @@
 const Page = require('../../models/pageModel.js');
+const Contact = require('../../models/contactModel.js');
 const faqModel = require('../../models/faqModel.js');
 
 
@@ -19,7 +20,7 @@ exports.postPrivacy = async (req, res) => {
 
         page.en.title = req.body.EnTitle;
         page.en.content = req.body.EnContent;
-        
+
         page.ar.title = req.body.ArTitle;
         page.ar.content = req.body.ArContent;
 
@@ -50,7 +51,7 @@ exports.postTerm = async (req, res) => {
 
         page.en.title = req.body.EnTitle;
         page.en.content = req.body.EnContent;
-        
+
         page.ar.title = req.body.ArTitle;
         page.ar.content = req.body.ArContent;
 
@@ -76,9 +77,9 @@ exports.getFaq = async (req, res) => {
 };
 
 exports.getFaqAdd = async (req, res) => {
-  
+
     res.render('faq_add');
-  
+
 };
 
 exports.postFaqAdd = async (req, res) => {
@@ -131,6 +132,35 @@ exports.getFaqDelete = async (req, res) => {
         res.redirect('/cms/faq');
     } catch (error) {
         console.log(error)
+        req.flash('red', error.message);
+        res.redirect(req.originalUrl);
+    }
+};
+
+exports.getContact = async (req, res) => {
+    try {
+        let contact = await Contact.findOne();
+        if (!contact) contact = await Contact.create({});
+
+        res.render('contact', { contact });
+    } catch (error) {
+        req.flash('red', error.message);
+        res.redirect('/');
+    }
+};
+
+exports.postContact = async (req, res) => {
+    try {
+        const contact = await Contact.findOne();
+
+
+        contact.email = req.body.email;
+
+        await contact.save();
+
+        req.flash('green', 'Contact us updated successfully.');
+        res.redirect('/cms/contact');
+    } catch (error) {
         req.flash('red', error.message);
         res.redirect(req.originalUrl);
     }

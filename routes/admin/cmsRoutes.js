@@ -37,4 +37,11 @@ router
     .post(cmsController.postFaqUpdate);
 
 router.route('/faq/delete/:id').get(cmsController.getFaqDelete);
+
+router
+    .route('/contact')
+    .get(cmsController.getContact)
+    .post(
+        cmsController.postContact
+    );
 module.exports = router;
