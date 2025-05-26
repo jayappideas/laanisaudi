@@ -5,6 +5,7 @@
 <head>
   <%- include('_layouts/head') %>
   <title> Vendor Edit | <%= title %></title>
+  <link rel="stylesheet" href="/app-assets/vendors/select2/select2-materialize.css" type="text/css">
 
   <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/Dropify/0.2.2/css/dropify.min.css">
 </head>
@@ -61,7 +62,7 @@
                     <label for="businessType" style="margin-top: -25px;font-size: 11px;">Business Type</label>
                     <select id="businessType" name="businessType" class="error validate">
                       <% categories.forEach(cat => { %>
-                      <option value="<%= cat.id %>" <%= vendor.businessType === cat.id ? 'selected' : '' %>><%= cat.en.name %></option>
+                      <option value="<%= cat._id %>" <%= vendor.businessType?.toString() === cat._id?.toString() ? 'selected' : '' %>><%= cat.en.name %></option>
                       <% }) %>
                     </select>
                     <div class="error-message" id="businessTypeError"></div>
@@ -86,9 +87,22 @@
                   </div>
 
                   <div class="input-field col s12 m6">
-                    <label for="businessMobile">Business Mobile</label>
-                    <input class="validate" id="businessMobile" name="businessMobile" type="text" value="<%= vendor.businessMobile %>">
-                    <div class="error-message" id="businessMobileError"></div>
+                    <div style="display: flex; align-items: center;">
+
+                      <select id="countryCode" name="countryCode" class="select2 browser-default">
+
+                        <option value="">Select Country</option>
+                        <% countryCodes.forEach(function(country) { %>
+                        <option value="<%= country.calling_code %>" <%= vendor.businessMobile?.startsWith('+' + country.calling_code) ? 'selected' : '' %>>
+                          <%= country.country %> +(<%= country.calling_code %>)
+                        </option>
+                        <% }); %>
+                      </select>
+
+                      <input class="validate" id="businessMobile" name="businessMobile" type="text" value="<%= vendor.businessMobile?.replace(/^\+\d+\s*/, '') %>" placeholder="Enter mobile number" pattern="^\d+$">
+                    </div>
+
+                    <div id="businessMobileError" class="error-message"></div>
                   </div>
 
                   <div class="row">
@@ -219,8 +233,12 @@
       $('#businessMobile').on('input', () => validateText('businessMobile', 'Business mobile is required.'));
     });
   </script>
-
-
+  <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+  <script>
+    $(document).ready(function() {
+      $('.select2').select2();
+    });
+  </script>
 </body>
 
 </html>

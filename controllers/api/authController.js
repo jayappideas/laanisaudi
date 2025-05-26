@@ -793,7 +793,7 @@ exports.resetPasswordVendor = async (req, res, next) => {
 exports.changePasswordVendor = async (req, res, next) => {
     try {
         const { oldPassword, newPassword } = req.body;
-        const user = await Vendor.findById(req.user.id).select('+password');
+        const user = await Vendor.findById(req.vendor.id).select('+password');
 
         const isMatch = await user.correctPassword(oldPassword, user.password);
         if (!isMatch)
