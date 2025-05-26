@@ -41,15 +41,19 @@ exports.privacyPolicy = async (req, res, next) => {
 exports.faq = async (req, res, next) => {
     try {
         let contact = await contactModel
-            .find()
+            .findOne()
             .select('-__v -createdAt -updatedAt');
         let page = await faqModel.find().select('-__v -createdAt -updatedAt');
         page = page.map(x => multilingual(x, req));
 
+        const data = {
+            email : contact.email,
+            faqs : page,
+        };
         res.json({
             success: true,
             message: req.t('success'),
-            data: { email: contact[0].email, ...page },
+            data,
         });
     } catch (error) {
         next(error);
