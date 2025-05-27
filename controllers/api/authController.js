@@ -249,8 +249,7 @@ exports.forgotPassword = async (req, res, next) => {
             return next(createError.BadRequest('validation.phone'));
 
         const user = await User.findOne({ mobileNumber });
-        if (!user)
-            return next(createError.BadRequest('phone.notRegistered'));
+        if (!user) return next(createError.BadRequest('phone.notRegistered'));
 
         // generate and save OTP
         const otp = generateCode(4);
@@ -359,9 +358,16 @@ exports.deleteAccount = async (req, res, next) => {
     try {
         const user = await User.findById(req.user.id);
 
+        const modifiedEmail = `${user.email}_deleted_${Date.now()}`;
+        const modifiedMobileNumber = `${
+            user.mobileNumber
+        }_deleted_${Date.now()}`;
+
         user.isDelete = true;
         user.token = '';
         user.fcmToken = '';
+        user.email = modifiedEmail;
+        user.mobileNumber = modifiedMobileNumber;
 
         //Points Removed
 
@@ -420,8 +426,6 @@ exports.changeLanguage = async (req, res, next) => {
 /* ===================================================
                 VEDNOR AUTH API
 ======================================================*/
-
-
 
 // To ensure that a valid vendor is logged in.
 exports.checkVendor = async (req, res, next) => {
@@ -492,7 +496,7 @@ exports.dashboardVendor = async (req, res, next) => {
 
         const totalStaff = await Staff.countDocuments({
             vendor: vendorId,
-            isActive : true,
+            isActive: true,
             isDelete: false,
         });
         const totalDiscount = await discountModel.countDocuments({
@@ -983,9 +987,16 @@ exports.deleteAccountVendor = async (req, res, next) => {
     try {
         const user = await Vendor.findById(req.vendor.id);
 
+        const modifiedEmail = `${user.email}_deleted_${Date.now()}`;
+        const modifiedMobileNumber = `${
+            user.mobileNumber
+        }_deleted_${Date.now()}`;
+
         user.isDelete = true;
         user.token = '';
         user.fcmToken = '';
+        user.email = modifiedEmail;
+        user.mobileNumber = modifiedMobileNumber;
 
         //Points Removed
 
