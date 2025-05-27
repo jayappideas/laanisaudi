@@ -23,7 +23,7 @@ router.get(
     staffController.getDiscountDetail
 );
 router.delete(
-    '/delete',
+    '/delete-staff',
     staffController.checkStaff,
     staffController.deleteStaff
 );
