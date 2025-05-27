@@ -22,5 +22,9 @@ router.get(
     upload.none(),
     staffController.getDiscountDetail
 );
-
+router.delete(
+    '/delete',
+    staffController.checkStaff,
+    staffController.deleteStaff
+);
 module.exports = router;
