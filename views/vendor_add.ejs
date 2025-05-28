@@ -5,10 +5,30 @@
 <head>
   <%- include('_layouts/head') %>
   <title> Vendor Add | <%= title %></title>
+  <link rel="stylesheet" href="/app-assets/vendors/select2/select2-materialize.css" type="text/css">
 
   <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/Dropify/0.2.2/css/dropify.min.css">
 </head>
 <!-- END: Head-->
+<style>
+  .input-field .select2 {
+    margin-bottom: 5px;
+    min-width: 200px;
+    max-width: 200px;
+  }
+
+  input#businessMobile {
+    margin-top: 4px;
+    flex-grow: 1;
+    min-width: 0;
+  }
+
+  .input-field>div {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+  }
+</style>
 
 <body class="vertical-layout page-header-light vertical-menu-collapsible vertical-dark-menu preload-transitions 2-columns" data-open="click" data-menu="vertical-dark-menu" data-col="2-columns">
 
@@ -87,21 +107,38 @@
                   </div>
 
                   <div class="input-field col s12 m6">
+                    <div style="display: flex; align-items: center;">
+                      <select id="countryCode" name="countryCode" class="select2 browser-default" required>
+
+                        <option disabled>Select Country</option>
+                        <% countryCodes.forEach(function(country) { %>
+                        <option value="<%= country.calling_code %>">
+                          <%= country.country %> +(<%= country.calling_code %>)
+                        </option>
+                        <% }); %>
+                      </select>
+                      <input class="validate" id="businessMobile" name="businessMobile" type="text" placeholder="Enter mobile number" pattern="^\d+$">
+                    </div>
+
+                    <div id="businessMobileError" class="error-message"></div>
+                  </div>
+
+                  <!-- <div class="input-field col s12 m6">
                     <label for="businessMobile">Business Mobile</label>
                     <input class="validate" id="businessMobile" name="businessMobile" type="text">
                     <div class="error-message" id="businessMobileError"></div>
-                  </div>
+                  </div> -->
 
                   <div class="row">
                     <div class="input-field col s12 m6">
                       <p>Upload a business logo</p>
-                      <input type="file" id="businessLogo" name="businessLogo" accept=".jpeg, .jpg, .png" class="dropify-event" />
+                      <input type="file" required id="businessLogo" name="businessLogo" accept=".jpeg, .jpg, .png" class="dropify-event" />
                       <span class="error-message" id="businessLogoError"></span>
                     </div>
 
                     <div class="input-field col s12 m6">
                       <p>Upload a business license</p>
-                      <input type="file" id="businessLicense" name="businessLicense" accept=".jpeg, .jpg, .png" class="dropify-event" />
+                      <input type="file" required id="businessLicense" name="businessLicense" accept=".jpeg, .jpg, .png" class="dropify-event" />
                       <span class="error-message" id="businessLicenseError"></span>
                     </div>
                   </div>
@@ -196,6 +233,7 @@
       $('#formValidate0').on('submit', function(e) {
         let valid = true;
 
+        valid &= validateSelect('countryCode', 'Please select a country code.');
         valid &= validateSelect('language', 'Please select a language.');
         valid &= validateSelect('businessType', 'Please select a business type.');
         valid &= validateEmail('email');
@@ -213,6 +251,7 @@
 
       // Real-time validation on change/input
       $('#language').on('change', () => validateSelect('language', 'Please select a language.'));
+      $('#countryCode').on('change', () => validateSelect('countryCode', 'Please select a country code.'));
       $('#businessType').on('change', () => validateSelect('businessType', 'Please select a business type.'));
       $('#email').on('input', () => validateEmail('email'));
       $('#password').on('input', () => validateText('password', 'Password is required.'));
@@ -220,8 +259,13 @@
       $('#businessMobile').on('input', () => validateText('businessMobile', 'Business mobile is required.'));
     });
   </script>
+  <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
-
+  <script>
+    $(document).ready(function() {
+      $('.select2').select2();
+    });
+  </script>
 </body>
 
 </html>

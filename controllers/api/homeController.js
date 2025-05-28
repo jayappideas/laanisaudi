@@ -12,6 +12,7 @@ const wishlistModel = require('../../models/wishlistModel');
 const discountModel = require('../../models/discountModel');
 const Transaction = require('../../models/transactionModel');
 const Staff = require('../../models/staffModel');
+const Branch = require('../../models/branchModel');
 
 exports.dashboardStaff = async (req, res, next) => {
     try {
@@ -397,7 +398,7 @@ exports.postAddFavourite = async (req, res, next) => {
 
 exports.getFavouriteList = async (req, res, next) => {
     try {
-        const data = await wishlistModel
+        const wishlist = await wishlistModel
             .find({ user: req.user.id })
             .select('_id')
             .populate({
@@ -405,10 +406,26 @@ exports.getFavouriteList = async (req, res, next) => {
                 select: 'businessName businessLogo businessRating businessReview',
             });
 
+            const enrichedData = await Promise.all(
+                wishlist.map(async item => {
+                    const itemObj = item.toObject();
+                    const branch = await Branch.findOne({
+                        vendor: itemObj.vendor._id,
+                        isDelete: false,
+                    }).select('_id');
+
+                    if (itemObj.vendor) {
+                        itemObj.vendor.branchId = branch ? branch._id : null;
+                    }
+
+                    return itemObj;
+                })
+            );
+
         res.status(200).json({
             success: true,
             message: req.t('success'),
-            data: data,
+            data: enrichedData,
         });
     } catch (error) {
         console.log(error);

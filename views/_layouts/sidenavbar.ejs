@@ -107,6 +107,11 @@
                                 </a>
                                 <ul class="dropdown-content dropdown-horizontal-list" id="cmsDropdown">
                                   <li>
+                                    <a href="/cms/contact" class="<%= url.startsWith('/cms/contact') ? 'active' : '' %>">
+                                      <span>Contact Us</span>
+                                    </a>
+                                  </li>
+                                  <li>
                                     <a href="/cms/faq" class="<%= url.startsWith('/cms/faq') ? 'active' : '' %>" >
                                         <span>FAQ's</span>
                                     </a>
@@ -123,6 +128,38 @@
                                   </li>
                                 </ul>
                               </li>
+
+                              <!-- <li class="bold <%= url.startsWith('/cms') ? 'active' : '' %>">
+                                <a class="dropdown-menu waves-effect waves-cyan" data-target="cmsDropdown">
+                                  <i class="material-icons <%= url.startsWith('/cms') ? 'theme-text' : 'black-text' %> ">settings</i>
+                                  <span>
+                                    <span class="dropdown-title <%= url.startsWith('/cms') ? 'theme-text' : 'black-text' %>">Color Setup</span>
+                                    <i class="material-icons right <%= url.startsWith('/cms') ? 'theme-text' : 'black-text' %>" style="font-size:18px !important">keyboard_arrow_down</i>
+                                  </span>
+                                </a>
+                                <ul class="dropdown-content dropdown-horizontal-list" id="cmsDropdown">
+                                  <li>
+                                    <a href="/cms/contact" class="<%= url.startsWith('/cms/contact') ? 'active' : '' %>">
+                                      <span>Contact Us</span>
+                                    </a>
+                                  </li>
+                                  <li>
+                                    <a href="/cms/faq" class="<%= url.startsWith('/cms/faq') ? 'active' : '' %>">
+                                      <span>FAQ's</span>
+                                    </a>
+                                  </li>
+                                  <li>
+                                    <a href="/cms/privacy" class="<%= url.startsWith('/cms/privacy') ? 'active' : '' %>">
+                                      <span>Privacy Policy</span>
+                                    </a>
+                                  </li>
+                                  <li>
+                                    <a href="/cms/term" class="<%= url.startsWith('/cms/term') ? 'active' : '' %>">
+                                      <span>Terms and conditions</span>
+                                    </a>
+                                  </li>
+                                </ul>
+                              </li> -->
                           </ul>
                       </div>
                       <!-- </center> -->
@@ -227,6 +264,11 @@
         </span>
         </a>
         <ul class="dropdown-content dropdown-horizontal-list" id="cmsDropdown1">
+          <li>
+            <a href="/cms/contact" class="<%= url.startsWith('/cms/contact') ? 'active' : '' %>">
+              <span>Contact Us</span>
+            </a>
+          </li>
           <li>
             <a href="/cms/faq" class="<%= url.startsWith('/cms/faq') ? 'active' : '' %>" >
                 <span>FAQ's</span>

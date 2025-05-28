@@ -46,6 +46,10 @@ const transactionSchema = new mongoose.Schema(
             type: Number,
             required: true,
         },
+        adminCommission: {
+            type: Number,
+            default: 0,
+        },
         status: {
             type: String,
             enum: ['pending', 'accepted', 'rejected', 'expired'],
@@ -54,5 +58,13 @@ const transactionSchema = new mongoose.Schema(
     },
     { timestamps: true }
 );
+
+// Pre-save middleware to calculate adminCommission automatically
+// transactionSchema.pre('save', function (next) {
+//     if (this.finalAmount > 0 && this.status === 'accepted') {
+//       this.adminCommission = parseFloat((this.finalAmount * 0.10).toFixed(2));
+//     }
+//     next();
+//   });
 
 module.exports = mongoose.model('Transaction', transactionSchema);

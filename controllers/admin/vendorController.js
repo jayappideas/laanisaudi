@@ -6,6 +6,7 @@ const QRCode = require('qrcode');
 const bcrypt = require('bcryptjs');
 const fs = require('fs');
 const businessTypeModel = require('../../models/businessTypeModel');
+const countryCodes = require('../../countryCodes.json');
 
 exports.getAllVendors = async (req, res) => {
     try {
@@ -105,7 +106,7 @@ exports.getAddVendor = async (req, res) => {
     try {
         const categories = await businessTypeModel.find({ isDelete: false });
 
-        res.render('vendor_add', { categories });
+        res.render('vendor_add', { categories, countryCodes });
     } catch (error) {
         req.flash('red', error.message);
         res.redirect('/vendor');
@@ -114,7 +115,8 @@ exports.getAddVendor = async (req, res) => {
 
 exports.createVendor = async (req, res, next) => {
     try {
-        const { businessType, businessName, businessMobile } = req.body;
+        const { businessType, businessName, businessMobile, countryCode } =
+            req.body;
 
         const userExists = await vendorModel.findOne({ email: req.body.email });
         if (userExists) {
@@ -128,7 +130,8 @@ exports.createVendor = async (req, res, next) => {
             password: req.body.password,
             language: req.body.language,
             businessName: businessName,
-            businessMobile: businessMobile,
+            businessMobile:
+                '+' + req.body.countryCode + ' ' + req.body.businessMobile,
             businessLogo: req.files.businessLogo[0].filename,
             businessLicense: req.files.businessLicense[0].filename,
             businessType: businessType,
@@ -163,10 +166,11 @@ exports.createVendor = async (req, res, next) => {
 exports.getEditVendor = async (req, res) => {
     try {
         const vendor = await vendorModel.findById(req.params.id);
+        console.log('vendor: ', vendor);
 
         const categories = await businessTypeModel.find({ isDelete: false });
 
-        res.render('vendor_edit', { categories, vendor });
+        res.render('vendor_edit', { categories, vendor, countryCodes });
     } catch (error) {
         req.flash('red', error.message);
         res.redirect('/vendor');
@@ -180,7 +184,8 @@ exports.editVendor = async (req, res, next) => {
         user.email = req.body.email;
         user.language = req.body.language;
         user.businessName = req.body.businessName;
-        user.businessMobile = req.body.businessMobile;
+        user.businessMobile =
+            '+' + req.body.countryCode + ' ' + req.body.businessMobile;
         user.businessType = req.body.businessType;
 
         if (req.body.password) {

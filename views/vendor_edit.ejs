@@ -8,8 +8,28 @@
   <link rel="stylesheet" href="/app-assets/vendors/select2/select2-materialize.css" type="text/css">
 
   <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/Dropify/0.2.2/css/dropify.min.css">
+
 </head>
 <!-- END: Head-->
+<style>
+  .input-field .select2 {
+    margin-bottom: 5px;
+    min-width: 200px;
+    max-width: 200px;
+  }
+
+  input#businessMobile {
+    margin-top: 4px;
+    flex-grow: 1;
+    min-width: 0;
+  }
+
+  .input-field>div {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+  }
+</style>
 
 <body class="vertical-layout page-header-light vertical-menu-collapsible vertical-dark-menu preload-transitions 2-columns" data-open="click" data-menu="vertical-dark-menu" data-col="2-columns">
 
@@ -98,7 +118,6 @@
                         </option>
                         <% }); %>
                       </select>
-
                       <input class="validate" id="businessMobile" name="businessMobile" type="text" value="<%= vendor.businessMobile?.replace(/^\+\d+\s*/, '') %>" placeholder="Enter mobile number" pattern="^\d+$">
                     </div>
 

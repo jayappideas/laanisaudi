@@ -119,7 +119,8 @@ exports.resendOtp = async (req, res, next) => {
         const otp = generateCode(4);
         await otpModel.updateOne(
             { mobileNumber: mobileNumber },
-            { $set: { otp: otp } }
+            { $set: { otp: otp } },
+            { upsert: true }
         );
 
         // send OTP
@@ -255,7 +256,8 @@ exports.forgotPassword = async (req, res, next) => {
         const otp = generateCode(4);
         await otpModel.updateOne(
             { mobileNumber: mobileNumber },
-            { $set: { otp: otp } }
+            { $set: { otp: otp } },
+            { upsert: true }
         );
 
         // send OTP
@@ -624,7 +626,8 @@ exports.resendOtpVendor = async (req, res, next) => {
         const otp = generateCode(4);
         await otpModel.updateOne(
             { mobileNumber: email },
-            { $set: { otp: otp } }
+            { $set: { otp: otp } },
+            { upsert: true }
         );
 
         // send OTP
@@ -764,7 +767,8 @@ exports.forgotPasswordVendor = async (req, res, next) => {
         const otp = generateCode(4);
         await otpModel.updateOne(
             { mobileNumber: email },
-            { $set: { otp: otp } }
+            { $set: { otp: otp } },
+            { upsert: true }
         );
 
         // send OTP
@@ -1007,7 +1011,6 @@ exports.deleteAccountVendor = async (req, res, next) => {
             message: req.t('auth.deleted_success'),
         });
     } catch (error) {
-        console.log(error);
         next(error);
     }
 };
