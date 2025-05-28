@@ -14,7 +14,7 @@ const vendorSchema = new mongoose.Schema(
       required: [true, 'validation.email'],
       unique: true,
       lowercase: true,
-      validate: [validator.isEmail, 'validation.emailInvalid'],
+      // validate: [validator.isEmail, 'validation.emailInvalid'],
     },
     password: {
       type: String,
