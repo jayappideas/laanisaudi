@@ -25,6 +25,6 @@ router.get(
 router.delete(
     '/delete-staff',
     staffController.checkStaff,
-    staffController.deleteStaff
+    staffController.deleteStaffByStaff
 );
 module.exports = router;

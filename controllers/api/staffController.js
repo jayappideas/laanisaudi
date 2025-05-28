@@ -166,6 +166,33 @@ exports.updateStaff = async (req, res, next) => {
     }
 };
 
+exports.deleteStaffByStaff = async (req, res, next) => {
+    try {
+        const user = await Staff.findById(req.staff.id);
+
+        const modifiedEmail = `${user.email}_deleted_${Date.now()}`;
+        const modifiedMobileNumber = `${
+            user.mobileNumber
+        }_deleted_${Date.now()}`;
+
+        user.isDelete = true;
+        user.token = '';
+        user.fcmToken = '';
+        user.email = modifiedEmail;
+        user.mobileNumber = modifiedMobileNumber;
+
+        await user.save();
+
+        res.status(201).json({
+            success: true,
+            message: req.t('staff.delete'),
+        });
+    } catch (error) {
+        console.log(error);
+        next(error);
+    }
+};
+
 exports.deleteStaff = async (req, res, next) => {
     try {
         const user = await Staff.findById(req.params.id);
@@ -298,7 +325,7 @@ exports.getDiscountDetail = async (req, res, next) => {
 
 exports.deleteStaff = async (req, res, next) => {
     try {
-        const user = await Staff.findById(req.staff.id);
+        const user = await Staff.findById(req.params.id);
 
         const modifiedEmail = `${user.email}_deleted_${Date.now()}`;
         const modifiedMobileNumber = `${
