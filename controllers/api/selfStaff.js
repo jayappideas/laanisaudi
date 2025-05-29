@@ -108,7 +108,7 @@ exports.getDiscountDetail = async (req, res, next) => {
 
 exports.getStaffDetail = async (req, res, next) => {
     try {
-        let staff = await Staff.findById(req.params.id)
+        let staff = await Staff.findById(req.staff.id)
             .select(
                 '-language -vendor -isDelete -isActive -createdAt -updatedAt -__v -fcmToken -token'
             )
@@ -131,7 +131,7 @@ exports.updateStaff = async (req, res, next) => {
     try {
         const userExists = await Staff.findOne({
             mobileNumber: req.body.mobileNumber,
-            _id: { $ne: req.params.id },
+            _id: { $ne: req.staff.id },
         });
         if (userExists)
             return next(
@@ -140,14 +140,14 @@ exports.updateStaff = async (req, res, next) => {
 
         const userEmailExists = await Staff.findOne({
             email: req.body.email,
-            _id: { $ne: req.params.id },
+            _id: { $ne: req.staff.id },
         });
         if (userEmailExists)
             return next(
                 createError.BadRequest('validation.alreadyRegisteredEmail')
             );
 
-        const user = await Staff.findById(req.params.id);
+        const user = await Staff.findById(req.staff.id);
 
         user.branch = req.body.branch;
         user.name = req.body.name;

@@ -29,9 +29,14 @@ router.delete(
     staffController.checkStaff,
     staffController.deleteStaffByStaff
 );
-router.get('/:id', staffController.checkStaff, upload.none(), selfStaff.getStaffDetail);
+router.get(
+    '/staffDetails',
+    staffController.checkStaff,
+    upload.none(),
+    selfStaff.getStaffDetail
+);
 router.put(
-    '/update/:id',
+    '/update/staffDetails',
     staffController.checkStaff,
     upload.none(),
     selfStaff.updateStaff
