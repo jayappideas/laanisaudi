@@ -2,27 +2,6 @@ const createError = require('http-errors');
 const Staff = require('../../models/staffModel');
 const discountModel = require('../../models/discountModel');
 
-exports.getStaffDetail = async (req, res, next) => {
-    try {
-        let staff = await Staff.findById(req.params.id)
-            .select(
-                '-language -vendor -isDelete -isActive -createdAt -updatedAt -__v -fcmToken -token'
-            )
-            .populate({
-                path: 'branch',
-                select: 'buildingName',
-            });
-
-        res.status(200).json({
-            success: true,
-            message: req.t('success'),
-            data: staff,
-        });
-    } catch (error) {
-        next(error);
-    }
-};
-
 exports.updateNotification = async (req, res, next) => {
     try {
         const user = await Staff.findById(req.staff.id);
@@ -122,6 +101,71 @@ exports.getDiscountDetail = async (req, res, next) => {
             data: discount,
         });
     } catch (error) {
+        next(error);
+    }
+};
+
+
+exports.getStaffDetail = async (req, res, next) => {
+    try {
+        let staff = await Staff.findById(req.params.id)
+            .select(
+                '-language -vendor -isDelete -isActive -createdAt -updatedAt -__v -fcmToken -token'
+            )
+            .populate({
+                path: 'branch',
+                select: 'buildingName',
+            });
+
+        res.status(200).json({
+            success: true,
+            message: req.t('success'),
+            data: staff,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.updateStaff = async (req, res, next) => {
+    try {
+        const userExists = await Staff.findOne({
+            mobileNumber: req.body.mobileNumber,
+            _id: { $ne: req.params.id },
+        });
+        if (userExists)
+            return next(
+                createError.BadRequest('validation.alreadyRegisteredPhone')
+            );
+
+        const userEmailExists = await Staff.findOne({
+            email: req.body.email,
+            _id: { $ne: req.params.id },
+        });
+        if (userEmailExists)
+            return next(
+                createError.BadRequest('validation.alreadyRegisteredEmail')
+            );
+
+        const user = await Staff.findById(req.params.id);
+
+        user.branch = req.body.branch;
+        user.name = req.body.name;
+        user.email = req.body.email;
+        user.mobileNumber = req.body.mobileNumber;
+        user.occupation = req.body.occupation;
+
+        if (req.body.password != user.password) user.token = '';
+
+        user.password = req.body.password;
+        await user.save();
+
+        res.status(201).json({
+            success: true,
+            message: req.t('staff.update'),
+        });
+    } catch (error) {
+        console.log(error);
         next(error);
     }
 };
