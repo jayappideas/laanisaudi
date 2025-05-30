@@ -129,36 +129,33 @@ exports.getStaffDetail = async (req, res, next) => {
 
 exports.updateStaff = async (req, res, next) => {
     try {
-        const userExists = await Staff.findOne({
-            mobileNumber: req.body.mobileNumber,
-            _id: { $ne: req.staff.id },
-        });
-        if (userExists)
-            return next(
-                createError.BadRequest('validation.alreadyRegisteredPhone')
-            );
+        // const userExists = await Staff.findOne({
+        //     mobileNumber: req.body.mobileNumber,
+        //     _id: { $ne: req.staff.id },
+        // });
+        // if (userExists)
+        //     return next(
+        //         createError.BadRequest('validation.alreadyRegisteredPhone')
+        //     );
 
-        const userEmailExists = await Staff.findOne({
-            email: req.body.email,
-            _id: { $ne: req.staff.id },
-        });
-        if (userEmailExists)
-            return next(
-                createError.BadRequest('validation.alreadyRegisteredEmail')
-            );
+        // const userEmailExists = await Staff.findOne({
+        //     email: req.body.email,
+        //     _id: { $ne: req.staff.id },
+        // });
+        // if (userEmailExists)
+        //     return next(
+        //         createError.BadRequest('validation.alreadyRegisteredEmail')
+        //     );
 
         const user = await Staff.findById(req.staff.id);
 
-        user.branch = req.body.branch;
+        // user.branch = req.body.branch;
         user.name = req.body.name;
         user.email = user.email;
-        user.password = user.password;
+        // user.password = user.password;
         user.mobileNumber = req.body.mobileNumber;
         user.occupation = req.body.occupation;
 
-        if (req.body.password != user.password) user.token = '';
-
-        user.password = req.body.password;
         await user.save();
 
         res.status(201).json({
