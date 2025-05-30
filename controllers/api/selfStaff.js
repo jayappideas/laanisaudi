@@ -151,7 +151,8 @@ exports.updateStaff = async (req, res, next) => {
 
         user.branch = req.body.branch;
         user.name = req.body.name;
-        user.email = req.body.email;
+        user.email = user.email;
+        user.password = user.password;
         user.mobileNumber = req.body.mobileNumber;
         user.occupation = req.body.occupation;
 
