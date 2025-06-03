@@ -28,8 +28,9 @@ exports.scanQr = async (req, res, next) => {
 
 exports.getMenuList = async (req, res, next) => {
     try {
-        const vendorId = req.staff.vendor;
+        const vendorId = req.body.vendor;
 
+        // Also get vendor, user, discount details if needed
         let categories = await categoryModel
             .find({ vendor: vendorId, isDelete: false })
             .select('name')

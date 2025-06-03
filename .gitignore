@@ -5,4 +5,6 @@ todo.txt
 .prettierrc
 documents
 # public/uploads/
-utils/laani-saudi-firebase-adminsdk-fbsvc-dfa6252a6f.json
+utils/laani-saudi-firebase-adminsdk-fbsvc-dfa6252a6f-vendor.json
+utils/laani-saudi-firebase-adminsdk-fbsvc-a4349b10d1-user.json
+utils/laani-saudi-firebase-adminsdk-fbsvc-c5e8c62bd3-staff.json
