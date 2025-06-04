@@ -16,6 +16,14 @@
         table tr td,th{
             text-align: center;
         }
+        [type='checkbox']+span:not(.lever):before {
+        border-color: black;
+        }
+
+        [type='checkbox']:checked+span:not(.lever):before {
+        border-right-color: black;
+        border-bottom-color: black;
+        }
     </style>
 
 </head>
@@ -36,14 +44,17 @@
                         <div class="col s12 m6 l6">
                             <h6 class="breadcrumbs-title"><span>Manage Users</span></h6>
                         </div>
-                        <div class="col s12 m6 l6 right-align-md" style="margin-top: -10px;">
+                        <div class="col s12 m6 l6 right-align-md">
+                          <a class="btn gradient-45deg-purple-deep-orange pull-right btn-breadcrumbs modal-trigger" href="#modal">Send Notification</a>
+                        </div>
+                        <!-- <div class="col s12 m6 l6 right-align-md" style="margin-top: -10px;">
                             <ol class="breadcrumbs mb-0">
                                 <li class="breadcrumb-item"><a href="/">Dashboard</a>
                                 </li>
                                 <li class="breadcrumb-item active">User List
                                 </li>
                             </ol>
-                        </div>
+                        </div> -->
                     </div>
                 </div>
             </div>
@@ -63,9 +74,15 @@
                                                     <thead>
                                                         <tr>
                                                             <th>Sr</th>
-                                                            <th>QR Code</th>
+                                                            <th>
+                                                              <label>
+                                                                <input type="checkbox" id="selectAll" />
+                                                                <span>All</span>
+                                                              </label>
+                                                            </th>
+                                                            <th>QRCode</th>
                                                             <th>Name</th>
-                                                            <th>Mobile Number</th>
+                                                            <th>Mobile No.</th>
                                                             <th>Birth Date</th>
                                                             <th>Gender</th>
                                                             <th>Created Date</th>
@@ -77,14 +94,20 @@
                                                         <% for( let i=0; i < users.length; i++ ) { %>
                                                         <tr>
                                                             <td><%= i+1 %></td>
+                                                            <td>
+                                                              <label>
+                                                                <input type="checkbox" name="selectedUsers[]" value="<%= users[i].id %>" />
+                                                                <span></span>
+                                                              </label>
+                                                            </td>
                                                             <td><img src="<%= process.env.IMAGE_URL%><%= users[i].qrCode %>" style="width: 30%;"/></td>
                                                             <td><%= users[i].name %></td>
                                                             <td><%= users[i].mobileNumber %></td>
                                                             <td><%= users[i].birthDate ? new Date(users[i].birthDate).toISOString().split('T')[0] : '-' %></td>
                                                             <td><%= users[i].gender %></td>
-                                                            <td><%= users[i].createdAt.toISOString().split('T')[0] %> <%= 
+                                                            <td><%= users[i].createdAt.toISOString().split('T')[0] %> <%=
                                                                 users[i].createdAt.toLocaleString('en-US', {
-                                                                    timeZone: 'UTC', 
+                                                                    timeZone: 'UTC',
                                                                     hour: '2-digit',
                                                                     minute: '2-digit',
                                                                     hour12: true
@@ -122,6 +145,39 @@
     <script src="/app-assets/vendors/data-tables/js/jquery.dataTables.min.js"></script>
     <script src="/app-assets/js/scripts/data-tables.js"></script>
 
+    <script>
+         document.addEventListener('DOMContentLoaded', function() {
+         const selectAllCheckbox = document.getElementById('selectAll');
+         const userCheckboxes = document.querySelectorAll('[name="selectedUsers[]"]');
+         const selectedUserIdsInput = document.getElementById('selectedUserIds');
+
+         selectAllCheckbox.addEventListener('change', function() {
+         userCheckboxes.forEach(function(checkbox) {
+         checkbox.checked = selectAllCheckbox.checked;
+         });
+
+         updateSelectedUserIds();
+         });
+
+         userCheckboxes.forEach(function(checkbox) {
+         checkbox.addEventListener('change', function() {
+         updateSelectedUserIds();
+         });
+         });
+
+         function updateSelectedUserIds() {
+         const selectedUserIds = Array.from(userCheckboxes)
+         .filter(function(checkbox) {
+         return checkbox.checked;
+         })
+         .map(function(checkbox) {
+         return checkbox.value;
+         });
+
+         selectedUserIdsInput.value = selectedUserIds.join(',');
+         }
+         });
+    </script>
 </body>
 
 </html>

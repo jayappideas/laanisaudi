@@ -129,7 +129,7 @@
     "invalid": "Please enter a valid Discount.",
     "expired": "Discount has expired.",
     "limit": "You have reached the maximum usage limit for this Discount.",
-    "applied": "Discount '{{code}}' applied successfully.",
+    "applied": "Discount applied successfully.",
     "min_bill_not_met": "Discount cannot be applied. Minimum bill amount not met."
   },
   "redeem": {

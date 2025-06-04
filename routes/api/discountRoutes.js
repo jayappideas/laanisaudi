@@ -3,7 +3,7 @@ const { upload } = require('../../controllers/uploadController');
 const { checkVendor } = require('../../controllers/api/authController');
 const discountController = require('../../controllers/api/discountController');
 
-
+// ! API FOR VENDOR ONLY
 router.post('/add',  checkVendor, upload.none(), discountController.addDiscount);
 router.get('/',  checkVendor, upload.none(), discountController.getDiscountList);
 router.get('/:id',  checkVendor, upload.none(), discountController.getDiscountDetail);

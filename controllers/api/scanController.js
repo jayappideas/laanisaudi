@@ -195,8 +195,11 @@ exports.checkDiscount = async (req, res, next) => {
         )
             return next(createError.BadRequest('discount.expired'));
 
+        // !Need to increase totalUserCount or redeemUserCount and save in db
         // !coupon usage pening (only once)
         // ! Pending maxUsage implementation
+        // !Customer how much points earned from this discount or order need to send in response
+        // !user name total balance points as per figma
         // Check maxUsage
         // const usage = await UserPromoAssociation.countDocuments({
         //     subscriber: req.subscriber.id,
@@ -343,6 +346,7 @@ exports.checkout = async (req, res, next) => {
             { items: [] }
         );
 
+        // ! send notification to user
         res.status(201).json({
             success: true,
             message: req.t('order'),
@@ -372,7 +376,7 @@ exports.getCurrentTransaction = async (req, res, next) => {
 
         const amount = transactions.billAmount - transactions.discountAmount;
 
-        // Calculate 0.5% of the bill amount
+        //! Calculate 0.5% of the bill amount need to change the method of calculation
         const points = amount * 0.005;
 
         res.status(200).json({
