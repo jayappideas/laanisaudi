@@ -5,6 +5,7 @@ const menuItemModel = require('../../models/menuItemModel');
 const cartModel = require('../../models/cartModel');
 const discountModel = require('../../models/discountModel');
 const transactionModel = require('../../models/transactionModel');
+const userPoint = require('../../models/userPoint');
 
 exports.scanQr = async (req, res, next) => {
     try {
@@ -318,10 +319,13 @@ exports.checkout = async (req, res, next) => {
         if (req.body.redeemBalancePoint) {
             const redemptionResult = await handlePointsRedemption(
                 req.body.userId,
-                finalAmount
+                finalAmount,
+                req.staff.vendor
             );
-            finalAmount = redemptionResult.finalAmount;
-            spentPoints = redemptionResult.spentPoints;
+            if (redemptionResult) {
+                finalAmount = redemptionResult.finalAmount;
+                spentPoints = redemptionResult.spentPoints;
+            }
         }
 
         const expiredOrders = await transactionModel.updateMany(
@@ -413,8 +417,8 @@ exports.updateOrderStatus = async (req, res, next) => {
 
         const amount = order.billAmount - order.discountAmount;
 
-        // Calculate 0.5% of the bill amount
-        const points = amount * 0.005;
+        //! Calculate 0.5% of the bill amount or as per client PENDING
+        const points = 50;
 
         if (status === 'accepted') {
             order.status = 'accepted';
@@ -439,12 +443,15 @@ exports.updateOrderStatus = async (req, res, next) => {
     }
 };
 
-const handlePointsRedemption = async (userId, subtotal) => {
-    const user = await userModel.findById(userId).select('totalPoints');
+const handlePointsRedemption = async (userId, subtotal, vendor) => {
+    const user = await userPoint
+        .findOne({ user: userId, vendor: vendor.toString() })
+        .select('totalPoints');
 
     let finalAmount = subtotal;
     let spentPoints = 0; // to track how many points are used by the user to pay bill amount
 
+    if (!user) return null;
     if (user.totalPoints >= subtotal) {
         // User has enough points to cover the entire subtotal
         finalAmount = 0; // The final amount becomes 0 because points cover the entire subtotal

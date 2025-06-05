@@ -11,4 +11,6 @@ router.get(
 router.get('/:type/:id', userController.viewUser);
 router.get('/change-status/:id/:status', userController.changeUserStatus);
 
+router.post('/notify', userController.sendNotification);
+
 module.exports = router;
