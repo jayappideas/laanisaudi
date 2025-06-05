@@ -48,6 +48,12 @@ router.delete(
     authController.deleteAccount
 );
 // router.put('/updateLocation', checkUser, upload.none(), authController.updateLocation);
+router.get(
+    '/user/notification-list',
+    upload.none(),
+    authController.checkUser,
+    authController.notificationListUser
+);
 
 /* ===================================================
                 VENDOR AUTH API

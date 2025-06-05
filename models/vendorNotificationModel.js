@@ -21,12 +21,12 @@ const notificationSchema = new mongoose.Schema({
     //     required: true,
     // },
 
-    readBy: [
-        {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'Vendor',
-        },
-    ],
+    // readBy: [
+    //     {
+    //         type: mongoose.Schema.Types.ObjectId,
+    //         ref: 'Vendor',
+    //     },
+    // ],
     createdAt: { type: Date, default: Date.now },
     expireAt: {
         type: Date,

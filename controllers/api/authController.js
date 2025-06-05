@@ -6,6 +6,9 @@ const { isValidPhone } = require('../../utils/validation');
 const deleteFile = require('../../utils/deleteFile');
 const User = require('../../models/userModel');
 const Vendor = require('../../models/vendorModel');
+const userNotificationModel = require('../../models/userNotificationModel');
+const staffNotificationModel = require('../../models/staffNotificationModel');
+const vendorNotificationModel = require('../../models/vendorNotificationModel');
 const Staff = require('../../models/staffModel');
 const discountModel = require('../../models/discountModel');
 const Transaction = require('../../models/transactionModel');
@@ -540,7 +543,6 @@ exports.dashboardVendor = async (req, res, next) => {
                 },
             },
         ]);
-        console.log('data: ', data);
 
         const stats = data[0] || {
             totalSpentPoints: 0,
@@ -1009,6 +1011,68 @@ exports.deleteAccountVendor = async (req, res, next) => {
         res.status(201).json({
             success: true,
             message: req.t('auth.deleted_success'),
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.notificationListUser = async (req, res, next) => {
+    try {
+        const notifications = await userNotificationModel
+            .find({
+                sentTo: req.user._id,
+            })
+            .sort({ createdAt: -1 })
+            .select('-expireAt -__v -sentTo')
+            .lean();
+        if (!notifications)
+            return next(createError.BadRequest('Notification not found.'));
+
+        res.json({
+            success: true,
+            message: 'Notifications retrieved successfully.',
+            notifications,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.notificationListVendor = async (req, res, next) => {
+    try {
+        const notifications = await vendorNotificationModel.find({
+            sentTo: req.user._id,
+        })
+            .sort({ createdAt: -1 })
+            .select('-expireAt -__v -sentTo')
+            .lean();
+        if (!notifications)
+            return next(createError.BadRequest('Notification not found.'));
+
+        res.json({
+            success: true,
+            message: 'Notifications retrieved successfully.',
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.notificationListStaff = async (req, res, next) => {
+    try {
+        const notifications = await staffNotificationModel.find({
+            sentTo: req.user._id,
+        })
+            .sort({ createdAt: -1 })
+            .select('-expireAt -__v -sentTo')
+            .lean();
+        if (!notifications)
+            return next(createError.BadRequest('Notification not found.'));
+
+        res.json({
+            success: true,
+            message: 'Notifications retrieved successfully.',
         });
     } catch (error) {
         next(error);

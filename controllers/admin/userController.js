@@ -1,5 +1,8 @@
 const User = require('../../models/userModel');
 const userNotificationModel = require('../../models/userNotificationModel');
+const {
+    sendNotificationsToTokens,
+} = require('../../utils/sendNotificationUser');
 
 exports.getAllUsers = async (req, res) => {
     try {
@@ -77,7 +80,7 @@ exports.sendNotification = async (req, res) => {
 
         const users = await User.find({
             _id: { $in: userIds },
-            notification: 1,
+            isNotification: 1,
         })
             .select('fcmToken')
             .lean();
@@ -85,7 +88,7 @@ exports.sendNotification = async (req, res) => {
         const fcmTokens = users.map(user => user.fcmToken);
         const usersWithNotification = users.map(user => user._id);
 
-        await sendNotificationsToTokens(title, body, fcmTokens, imageUrl);
+        await sendNotificationsToTokens(title, body, fcmTokens);
 
         await userNotificationModel.create({
             sentTo: usersWithNotification,
