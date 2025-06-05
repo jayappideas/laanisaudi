@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const { upload } = require('../../controllers/uploadController');
 const authController = require('../../controllers/api/authController');
+const staffController = require('../../controllers/api/staffController');
 
 /* ===================================================
                 USER AUTH API
@@ -144,6 +145,18 @@ router.delete(
     authController.checkVendor,
     upload.none(),
     authController.deleteAccountVendor
+);
+router.get(
+    '/vendor/notification-list',
+    upload.none(),
+    authController.checkVendor,
+    authController.notificationListVendor
+);
+router.get(
+    '/staff/notification-list',
+    upload.none(),
+    staffController.checkStaff,
+    authController.notificationListStaff
 );
 
 module.exports = router;

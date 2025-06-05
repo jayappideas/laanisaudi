@@ -34,5 +34,6 @@ router
         ]),
         vendorController.editVendor
     );
+router.post('/notify', vendorController.sendNotification);
 
 module.exports = router;

@@ -7,6 +7,7 @@ const bcrypt = require('bcryptjs');
 const fs = require('fs');
 const businessTypeModel = require('../../models/businessTypeModel');
 const countryCodes = require('../../countryCodes.json');
+const vendorNotificationModel = require('../../models/vendorNotificationModel');
 
 exports.getAllVendors = async (req, res) => {
     try {
@@ -204,5 +205,39 @@ exports.editVendor = async (req, res, next) => {
         res.redirect('/vendor');
     } catch (error) {
         next(error);
+    }
+};
+
+exports.sendNotification = async (req, res) => {
+    try {
+        const { title, body, selectedUserIds } = req.body;
+
+        const userIds = selectedUserIds.split(',');
+
+        const users = await vendorModel
+            .find({
+                _id: { $in: userIds },
+                isNotification: 1,
+            })
+            .select('fcmToken')
+            .lean();
+
+        const fcmTokens = users.map(user => user.fcmToken);
+        const usersWithNotification = users.map(user => user._id);
+
+        await sendNotificationsToTokens(title, body, fcmTokens);
+
+        await vendorNotificationModel.create({
+            sentTo: usersWithNotification,
+            title,
+            body,
+        });
+
+        req.flash('green', 'Notification sent successfully.');
+        res.redirect('/user');
+    } catch (error) {
+        console.log('error: ', error);
+        req.flash('red', error.message);
+        res.redirect('/user');
     }
 };
