@@ -10,7 +10,10 @@ const User = require('../../models/userModel');
 const Vendor = require('../../models/vendorModel');
 const moduleModel = require('../../models/moduleModel');
 const adminModel = require('../../models/adminModel');
-
+const staffNotificationModel = require('../../models/staffNotificationModel');
+const {
+    sendNotificationsToTokens,
+} = require('../../utils/sendNotificationStaff');
 exports.checkAdmin = async (req, res, next) => {
     try {
         const token = req.cookies['jwtAdmin'];
@@ -421,5 +424,38 @@ exports.postEditSubAdmin = async (req, res) => {
     } catch (error) {
         req.flash('red', 'Something went wrong!');
         res.redirect('/sub-admin/list');
+    }
+};
+
+exports.sendNotificationstaff = async (req, res) => {
+    try {
+        const { title, body, selectedUserIds } = req.body;
+
+        const userIds = selectedUserIds.split(',');
+
+        const users = await staffModel
+            .find({
+                _id: { $in: userIds },
+                isNotification: 1,
+            })
+            .select('fcmToken')
+            .lean();
+
+        const fcmTokens = users.map(user => user.fcmToken);
+        const usersWithNotification = users.map(user => user._id);
+
+        await sendNotificationsToTokens(title, body, fcmTokens, 'staffApp');
+
+        await staffNotificationModel.create({
+            sentTo: usersWithNotification,
+            title,
+            body,
+        });
+
+        req.flash('green', 'Notification sent successfully.');
+        res.redirect('/vendor');
+    } catch (error) {
+        req.flash('red', error.message);
+        res.redirect('/vendor');
     }
 };

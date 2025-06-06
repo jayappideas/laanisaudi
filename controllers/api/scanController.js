@@ -6,6 +6,9 @@ const cartModel = require('../../models/cartModel');
 const discountModel = require('../../models/discountModel');
 const transactionModel = require('../../models/transactionModel');
 const userPoint = require('../../models/userPoint');
+const {
+    sendNotificationsToTokens,
+} = require('../../utils/sendNotificationStaff');
 
 exports.scanQr = async (req, res, next) => {
     try {
@@ -271,6 +274,7 @@ exports.checkout = async (req, res, next) => {
             return total + item.menuItem.price * item.quantity;
         }, 0);
 
+        // https://www.geeksforgeeks.org/next-js-interview-questions-answers/
         const orderItems = cart.items.map(item => ({
             menuItem: item.menuItem,
             quantity: item.quantity,
@@ -350,7 +354,20 @@ exports.checkout = async (req, res, next) => {
             { items: [] }
         );
 
-        // ! send notification to user
+        let fcmTokens = await userModel
+            .findById(req.body.userId)
+            .select('fcmToken');
+        let title = 'Transaction Details';
+        let body = JSON.stringify({
+            order: order.id,
+        });
+        await sendNotificationsToTokens(
+            title,
+            body,
+            [fcmTokens.fcmToken],
+            'userApp'
+        );
+
         res.status(201).json({
             success: true,
             message: req.t('order'),
@@ -380,8 +397,8 @@ exports.getCurrentTransaction = async (req, res, next) => {
 
         const amount = transactions.billAmount - transactions.discountAmount;
 
-        //! Calculate 0.5% of the bill amount need to change the method of calculation
-        const points = amount * 0.005;
+        //! Calculate 0.5% of the bill amount need to change the method of calculation as per client
+        const points = 50;
 
         res.status(200).json({
             success: true,
@@ -437,6 +454,36 @@ exports.updateOrderStatus = async (req, res, next) => {
             success: true,
             message: `Order has been ${status}`,
             order,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+//? For Staff call this every 10 sec to show the user action
+exports.getCurrentTransactionStaff = async (req, res, next) => {
+    try {
+        const transactions = await transactionModel
+            .findOne({
+                staff: req.staff.id,
+                _id: req.body.transactionsid,
+                // status: { $in: ['accepted', 'rejected'] },
+            })
+            .populate('items.menuItem', 'name price')
+            .sort({
+                createdAt: -1,
+            })
+            .select('-__v -updatedAt');
+        if (!transactions)
+            return next(
+                createError.BadRequest(
+                    'transactions is empty, can not checkout.'
+                )
+            );
+
+        res.status(200).json({
+            success: true,
+            transactions,
         });
     } catch (error) {
         next(error);

@@ -11,7 +11,23 @@
   <link rel="stylesheet" type="text/css" href="/app-assets/vendors/data-tables/extensions/responsive/css/responsive.dataTables.min.css">
   <link rel="stylesheet" type="text/css" href="/app-assets/vendors/data-tables/css/select.dataTables.min.css">
   <link rel="stylesheet" type="text/css" href="/app-assets/css/pages/data-tables.css">
+  <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/Dropify/0.2.2/css/dropify.min.css">
 
+  <style>
+    table tr td,
+    th {
+      text-align: center;
+    }
+
+    [type='checkbox']+span:not(.lever):before {
+      border-color: black;
+    }
+
+    [type='checkbox']:checked+span:not(.lever):before {
+      border-right-color: black;
+      border-bottom-color: black;
+    }
+  </style>
 </head>
 <!-- END: Head-->
 
@@ -30,11 +46,7 @@
               <h5 class="breadcrumbs-title"><span>Vendor View</span></h5>
             </div>
             <div class="col s12 m6 l6 right-align-md">
-              <ol class="breadcrumbs mb-0">
-                <li class="breadcrumb-item"><a href="/">Home</a></li>
-                <li class="breadcrumb-item"><a href="/vendor">Vendor</a></li>
-                <li class="breadcrumb-item active">Vendor Details</li>
-              </ol>
+              <a class="btn gradient-45deg-purple-deep-orange pull-right btn-breadcrumbs modal-trigger" href="#modal">Send Notification</a>
             </div>
           </div>
         </div>
@@ -174,6 +186,12 @@
                                               <thead>
                                                   <tr>
                                                     <th>Sr</th>
+                                                    <th style="width: 60px; text-align: center;">
+                                                      <label style="margin: 0; display: flex; align-items: center; justify-content: center;">
+                                                        <input type="checkbox" id="selectAll" />
+                                                        <span style="margin-left: 4px;">All</span>
+                                                      </label>
+                                                    </th>
                                                     <th>QR Code</th>
                                                     <th>Branch</th>
                                                     <th>Name</th>
@@ -186,6 +204,12 @@
                                                   <% for(let i=0; i < staff.length; i++ ) { %>
                                                   <tr>
                                                     <td><%= i+1 %></td>
+                                                    <td>
+                                                      <label>
+                                                        <input type="checkbox" name="selectedUsers[]" value="<%= staff[i].id %>" />
+                                                        <span></span>
+                                                      </label>
+                                                    </td>
                                                     <td width="100px"><img src="<%= process.env.IMAGE_URL%><%= staff[i].qrCode %>" style="width: 60%;"/></td>
                                                     <td><%= staff[i].branch.buildingName %></td>
                                                     <td><%= staff[i].name %></td>
@@ -201,6 +225,31 @@
                               </div>
                           </div>
                       </div>
+                    </div>
+                  </div>
+
+                  <div id="modal" class="modal">
+                    <div class="modal-content">
+                      <h5>Send Notification</h5>
+                      <form id="form" class="image-form" method="POST" action="/user/notify" enctype="multipart/form-data">
+                        <div class="input-field col s12">
+                          <input placeholder="Title" id="title" name="title" type="text">
+                          <label for="title">Title</label>
+                          <small>
+                            <div id="error1" class="error"></div>
+                          </small>
+                        </div>
+                        <div class="input-field col s12 mt-0 mb-0">
+                          <input placeholder="Body" id="body" name="body" type="text">
+                          <label for="body">Body</label>
+                          <small>
+                            <div id="error2" class="error"></div>
+                          </small>
+                        </div>
+
+                        <input type="hidden" name="selectedUserIds" id="selectedUserIds" />
+                        <button type="submit" class="btn purple mr-40" id="submitBtn">Send</button>
+                      </form>
                     </div>
                   </div>
                 </div>
@@ -221,7 +270,95 @@
   <%- include('_layouts/commonJs')  %>
   <script src="/app-assets/vendors/data-tables/js/jquery.dataTables.min.js"></script>
   <script src="/app-assets/js/scripts/data-tables.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Dropify/0.2.2/js/dropify.min.js"></script>
+  <script src="/app-assets/js/scripts/form-file-uploads.min.js"></script>
 
+  <script>
+    // Modal
+    $(document).ready(function() {
+      $('.modal').modal();
+    });
+
+    // Validation
+    // const form = document.getElementById('form');
+    // form.addEventListener('submit', (e) => {
+    //   e.preventDefault();
+    // });
+
+    // Validate Image upload
+    const forms = document.querySelectorAll(".image-form");
+    forms.forEach((elem) => {
+      elem.addEventListener('submit', (e) => {
+        e.preventDefault();
+        validate(e.target);
+      })
+    });
+
+    // Validation
+    function validate(formElement) {
+      let returnVal = true;
+
+      const titleValue = formElement.querySelector('#title').value.trim();
+      const bodyValue = formElement.querySelector('#body').value.trim();
+      const selectedUserIds = formElement.querySelector('#selectedUserIds').value.trim();
+      console.log("Selected Users:", selectedUserIds);
+
+      if (titleValue === '') {
+        document.getElementById('error1').innerText = 'Please enter notification title.';
+        returnVal = false;
+      } else {
+        document.getElementById('error1').innerText = '';
+      }
+
+      if (selectedUserIds === '') {
+        document.getElementById('error2').innerText = 'Please select some users.';
+        returnVal = false;
+      } else if (bodyValue === '') {
+        document.getElementById('error2').innerText = 'Please enter notification body.';
+        returnVal = false;
+      } else {
+        document.getElementById('error2').innerText = '';
+      }
+
+      if (returnVal) {
+        formElement.querySelector('#submitBtn').disabled = true;
+        formElement.submit();
+      }
+    }
+
+
+    document.addEventListener('DOMContentLoaded', function() {
+      const selectAllCheckbox = document.getElementById('selectAll');
+      const userCheckboxes = document.querySelectorAll('[name="selectedUsers[]"]');
+      const selectedUserIdsInput = document.getElementById('selectedUserIds');
+
+      selectAllCheckbox.addEventListener('change', function() {
+        userCheckboxes.forEach(function(checkbox) {
+          checkbox.checked = selectAllCheckbox.checked;
+        });
+
+        updateSelectedUserIds();
+      });
+
+      userCheckboxes.forEach(function(checkbox) {
+        checkbox.addEventListener('change', function() {
+          updateSelectedUserIds();
+        });
+      });
+
+      function updateSelectedUserIds() {
+        const selectedUserIds = Array.from(userCheckboxes)
+          .filter(function(checkbox) {
+            return checkbox.checked;
+          })
+          .map(function(checkbox) {
+            return checkbox.value;
+          });
+
+        selectedUserIdsInput.value = selectedUserIds.join(',');
+      }
+    });
+  </script>
 </body>
 
 </html>

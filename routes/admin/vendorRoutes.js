@@ -3,6 +3,7 @@ const authController = require('../../controllers/admin/authController');
 const { upload } = require('../../controllers/uploadController');
 
 const vendorController = require('../../controllers/admin/vendorController');
+const fileUpload = require('express-fileupload');
 
 router.get(
     '/',
@@ -34,6 +35,7 @@ router
         ]),
         vendorController.editVendor
     );
-router.post('/notify', vendorController.sendNotification);
+router.post('/notify', fileUpload(), vendorController.sendNotification);
+
 
 module.exports = router;

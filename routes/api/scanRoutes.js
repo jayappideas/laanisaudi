@@ -38,5 +38,10 @@ router.post(
     checkUser,
     scanController.updateOrderStatus
 );
-
+router.post(
+    '/current-transaction-staff',
+    upload.none(),
+    checkStaff,
+    scanController.getCurrentTransactionStaff
+);
 module.exports = router;

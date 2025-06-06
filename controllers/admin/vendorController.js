@@ -8,6 +8,11 @@ const fs = require('fs');
 const businessTypeModel = require('../../models/businessTypeModel');
 const countryCodes = require('../../countryCodes.json');
 const vendorNotificationModel = require('../../models/vendorNotificationModel');
+const {
+    sendNotificationsToTokens,
+} = require('../../utils/sendNotificationStaff');
+
+
 
 exports.getAllVendors = async (req, res) => {
     try {
@@ -225,7 +230,7 @@ exports.sendNotification = async (req, res) => {
         const fcmTokens = users.map(user => user.fcmToken);
         const usersWithNotification = users.map(user => user._id);
 
-        await sendNotificationsToTokens(title, body, fcmTokens);
+        await sendNotificationsToTokens(title, body, fcmTokens, 'vendorApp');
 
         await vendorNotificationModel.create({
             sentTo: usersWithNotification,
@@ -234,10 +239,10 @@ exports.sendNotification = async (req, res) => {
         });
 
         req.flash('green', 'Notification sent successfully.');
-        res.redirect('/user');
+        res.redirect('/vendor');
     } catch (error) {
         console.log('error: ', error);
         req.flash('red', error.message);
-        res.redirect('/user');
+        res.redirect('/vendor');
     }
 };

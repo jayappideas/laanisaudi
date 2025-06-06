@@ -1,4 +1,5 @@
 const router = require('express').Router();
+const fileUpload = require('express-fileupload');
 const authController = require('../../controllers/admin/authController');
 const uploadController = require('../../controllers/uploadController');
 
@@ -61,5 +62,9 @@ router
         authController.checkPermission('subadmin', 'isEdit'),
         authController.postEditSubAdmin
     );
-
+    router.post(
+        '/staff/notify',
+        fileUpload(),
+        authController.sendNotificationstaff
+    );
 module.exports = router;
