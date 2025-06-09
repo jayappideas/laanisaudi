@@ -6,9 +6,9 @@ const cartModel = require('../../models/cartModel');
 const discountModel = require('../../models/discountModel');
 const transactionModel = require('../../models/transactionModel');
 const userPoint = require('../../models/userPoint');
-const {
-    sendNotificationsToTokens,
-} = require('../../utils/sendNotificationStaff');
+// const {
+//     sendNotificationsToTokens,
+// } = require('../../utils/sendNotificationStaff');
 
 exports.scanQr = async (req, res, next) => {
     try {
@@ -368,12 +368,12 @@ exports.checkout = async (req, res, next) => {
         let body = JSON.stringify({
             order: order.id,
         });
-        await sendNotificationsToTokens(
-            title,
-            body,
-            [fcmTokens.fcmToken],
-            'userApp'
-        );
+        // await sendNotificationsToTokens(
+        //     title,
+        //     body,
+        //     [fcmTokens.fcmToken],
+        //     'userApp'
+        // );
 
         res.status(201).json({
             success: true,
