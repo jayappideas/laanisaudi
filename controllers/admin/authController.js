@@ -11,9 +11,9 @@ const Vendor = require('../../models/vendorModel');
 const moduleModel = require('../../models/moduleModel');
 const adminModel = require('../../models/adminModel');
 const staffNotificationModel = require('../../models/staffNotificationModel');
-const {
-    sendNotificationsToTokens,
-} = require('../../utils/sendNotificationStaff');
+// const {
+//     sendNotificationsToTokens,
+// } = require('../../utils/sendNotificationStaff');
 exports.checkAdmin = async (req, res, next) => {
     try {
         const token = req.cookies['jwtAdmin'];
@@ -444,7 +444,7 @@ exports.sendNotificationstaff = async (req, res) => {
         const fcmTokens = users.map(user => user.fcmToken);
         const usersWithNotification = users.map(user => user._id);
 
-        await sendNotificationsToTokens(title, body, fcmTokens, 'staffApp');
+        // await sendNotificationsToTokens(title, body, fcmTokens, 'staffApp');
 
         await staffNotificationModel.create({
             sentTo: usersWithNotification,
