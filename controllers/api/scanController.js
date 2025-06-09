@@ -34,6 +34,13 @@ exports.getMenuList = async (req, res, next) => {
     try {
         const vendorId = req.body.vendor;
 
+        if (vendorId !== req.staff.vendor.toString()) {
+            return res.status(404).json({
+                success: false,
+                message: 'Menu item not found. Incorrect vendor details.',
+            });
+        }
+
         // Also get vendor, user, discount details if needed
         let categories = await categoryModel
             .find({ vendor: vendorId, isDelete: false })
