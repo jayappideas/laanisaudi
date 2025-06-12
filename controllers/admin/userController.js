@@ -1,8 +1,8 @@
 const User = require('../../models/userModel');
 const userNotificationModel = require('../../models/userNotificationModel');
-// const {
-//     sendNotificationsToTokens,
-// } = require('../../utils/sendNotificationStaff');
+const {
+    sendNotificationsToTokens,
+} = require('../../utils/sendNotificationStaff');
 
 exports.getAllUsers = async (req, res) => {
     try {
@@ -15,7 +15,7 @@ exports.getAllUsers = async (req, res) => {
         res.render('user', { users });
     } catch (error) {
         req.flash('red', error.message);
-        res.redirect('/');
+        res.redirect('/admin');
     }
 };
 
@@ -24,14 +24,14 @@ exports.viewUser = async (req, res) => {
         const user = await User.findById(req.params.id);
         if (!user) {
             req.flash('red', 'User not found!');
-            return res.redirect('/user');
+            return res.redirect('/admin/user');
         }
 
         res.render('user_view', { user });
     } catch (error) {
         if (error.name === 'CastError') req.flash('red', 'User not found!');
         else req.flash('red', error.message);
-        res.redirect('/user');
+        res.redirect('/admin/user');
     }
 };
 
@@ -41,7 +41,7 @@ exports.changeUserStatus = async (req, res) => {
 
         if (!user) {
             req.flash('red', 'User not found.');
-            return res.redirect('/user');
+            return res.redirect('/admin/user');
         }
 
         user.isActive = req.params.status;
@@ -49,12 +49,12 @@ exports.changeUserStatus = async (req, res) => {
         await user.save();
 
         req.flash('green', 'Status changed successfully.');
-        res.redirect('/user');
+        res.redirect('/admin/user');
     } catch (error) {
         if (error.name === 'CastError' || error.name === 'TypeError')
             req.flash('red', 'User not found!');
         else req.flash('red', error.message);
-        res.redirect('/user');
+        res.redirect('/admin/user');
     }
 };
 
@@ -63,12 +63,12 @@ exports.getDeleteUser = async (req, res) => {
         await User.findByIdAndDelete(req.params.id);
 
         req.flash('green', 'User deleted successfully.');
-        res.redirect('/user');
+        res.redirect('/admin/user');
     } catch (error) {
         if (error.name === 'CastError' || error.name === 'TypeError')
             req.flash('red', 'User not found!');
         else req.flash('red', error.message);
-        res.redirect('/user');
+        res.redirect('/admin/user');
     }
 };
 
@@ -88,7 +88,7 @@ exports.sendNotification = async (req, res) => {
         const fcmTokens = users.map(user => user.fcmToken);
         const usersWithNotification = users.map(user => user._id);
 
-        // await sendNotificationsToTokens(title, body, fcmTokens, 'userApp');
+        await sendNotificationsToTokens(title, body, fcmTokens, 'userApp');
 
         await userNotificationModel.create({
             sentTo: usersWithNotification,
@@ -97,9 +97,9 @@ exports.sendNotification = async (req, res) => {
         });
 
         req.flash('green', 'Notification sent successfully.');
-        res.redirect('/user');
+        res.redirect('/admin/user');
     } catch (error) {
         req.flash('red', error.message);
-        res.redirect('/user');
+        res.redirect('/admin/user');
     }
 };

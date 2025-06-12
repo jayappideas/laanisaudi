@@ -11,7 +11,7 @@ exports.getCategories = async (req, res) => {
 
     } catch (error) {
         req.flash('red', error.message);
-        res.redirect('/');
+        res.redirect('/admin');
     }
 };
 
@@ -20,7 +20,7 @@ exports.getAddCategory = async (req, res) => {
         res.render('category_add');
     } catch (error) {
         req.flash('red', error.message);
-        res.redirect('/category');
+        res.redirect('/admin/category');
     }
 };
 
@@ -36,11 +36,11 @@ exports.postAddCategory = async (req, res) => {
         });
 
         req.flash('green', 'Category created successfully.');
-        res.redirect('/category');
+        res.redirect('/admin/category');
     }
     catch (error) {
         req.flash('red', error.message);
-        res.redirect('/category');
+        res.redirect('/admin/category');
     }
 };
 
@@ -53,7 +53,7 @@ exports.getEditCategory = async (req, res) => {
     } catch (error) {
         if (error.name === 'CastError') req.flash('red', 'banner not found!');
         else req.flash('red', error.message);
-        res.redirect('/category');
+        res.redirect('/admin/category');
     }
 };
 
@@ -78,10 +78,10 @@ exports.postEditCategory = async (req, res) => {
         await category.save();
 
         req.flash('green', 'Category updated successfully.');
-        res.redirect('/category');
+        res.redirect('/admin/category');
     } catch (error) {
         req.flash('red', error.message);
-        res.redirect('/category');
+        res.redirect('/admin/category');
     }
 };
 
@@ -94,12 +94,12 @@ exports.updateCategoryStatus = async (req, res) => {
         await category.save();
 
         req.flash('green', 'Category status updated successfully.');
-        res.redirect('/category');
+        res.redirect('/admin/category');
     } catch (error) {
         if (error.name === 'CastError' || error.name === 'TypeError')
             req.flash('red', 'Category not found!');
         else req.flash('red', error.message);
-        res.redirect('/category');
+        res.redirect('/admin/category');
     }
 };
 
@@ -113,14 +113,14 @@ exports.deleteCategory = async (req, res) => {
         );
         if (!category) {
             req.flash('red', 'Category not found!');
-            return res.redirect('/category');
+            return res.redirect('/admin/category');
         }
 
         req.flash('green', 'Category deleted successfully.');
-        res.redirect('/category');
+        res.redirect('/admin/category');
     } catch (error) {
         if (error.name === 'CastError') req.flash('red', 'Category not found!');
         else req.flash('red', error.message);
-        res.redirect('/category');
+        res.redirect('/admin/category');
     }
 };

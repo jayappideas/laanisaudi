@@ -10,7 +10,7 @@ exports.getPrivacy = async (req, res) => {
         res.render('privacy', { page });
     } catch (error) {
         req.flash('red', error.message);
-        res.redirect('/');
+        res.redirect('/admin');
     }
 };
 
@@ -27,7 +27,7 @@ exports.postPrivacy = async (req, res) => {
         await page.save();
 
         req.flash('green', 'Privacy Policy updated successfully.');
-        res.redirect('/cms/privacy');
+        res.redirect('/admin/cms/privacy');
     } catch (error) {
         req.flash('red', error.message);
         res.redirect(req.originalUrl);
@@ -41,7 +41,7 @@ exports.getTerm = async (req, res) => {
         res.render('term', { page });
     } catch (error) {
         req.flash('red', error.message);
-        res.redirect('/');
+        res.redirect('/admin');
     }
 };
 
@@ -58,7 +58,7 @@ exports.postTerm = async (req, res) => {
         await page.save();
 
         req.flash('green', 'Terms & Condition updated successfully.');
-        res.redirect('/cms/term');
+        res.redirect('/admin/cms/term');
     } catch (error) {
         req.flash('red', error.message);
         res.redirect(req.originalUrl);
@@ -72,7 +72,7 @@ exports.getFaq = async (req, res) => {
         res.render('faq', { faqs });
     } catch (error) {
         req.flash('red', error.message);
-        res.redirect('/');
+        res.redirect('/admin');
     }
 };
 
@@ -91,7 +91,7 @@ exports.postFaqAdd = async (req, res) => {
         });
 
         req.flash('green', 'FAQ added successfully.');
-        res.redirect('/cms/faq');
+        res.redirect('/admin/cms/faq');
     } catch (error) {
         req.flash('red', error.message);
         res.redirect(req.originalUrl);
@@ -117,7 +117,7 @@ exports.postFaqUpdate = async (req, res) => {
         await faq.save();
 
         req.flash('green', 'FAQ updated successfully.');
-        res.redirect('/cms/faq');
+        res.redirect('/admin/cms/faq');
     } catch (error) {
         req.flash('red', error.message);
         res.redirect(req.originalUrl);
@@ -129,7 +129,7 @@ exports.getFaqDelete = async (req, res) => {
         await faqModel.findByIdAndDelete(req.params.id);
 
         req.flash('green', 'FAQ deleted successfully.');
-        res.redirect('/cms/faq');
+        res.redirect('/admin/cms/faq');
     } catch (error) {
         console.log(error)
         req.flash('red', error.message);
@@ -145,7 +145,7 @@ exports.getContact = async (req, res) => {
         res.render('contact', { contact });
     } catch (error) {
         req.flash('red', error.message);
-        res.redirect('/');
+        res.redirect('/admin');
     }
 };
 
@@ -159,7 +159,7 @@ exports.postContact = async (req, res) => {
         await contact.save();
 
         req.flash('green', 'Contact us updated successfully.');
-        res.redirect('/cms/contact');
+        res.redirect('/admin/cms/contact');
     } catch (error) {
         req.flash('red', error.message);
         res.redirect(req.originalUrl);

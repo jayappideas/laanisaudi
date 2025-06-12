@@ -8,9 +8,9 @@ const fs = require('fs');
 const businessTypeModel = require('../../models/businessTypeModel');
 const countryCodes = require('../../countryCodes.json');
 const vendorNotificationModel = require('../../models/vendorNotificationModel');
-// const {
-//     sendNotificationsToTokens,
-// } = require('../../utils/sendNotificationStaff');
+const {
+    sendNotificationsToTokens,
+} = require('../../utils/sendNotificationStaff');
 
 
 
@@ -30,7 +30,7 @@ exports.getAllVendors = async (req, res) => {
         res.render('vendor', { vendors });
     } catch (error) {
         req.flash('red', error.message);
-        res.redirect('/');
+        res.redirect('/admin');
     }
 };
 
@@ -42,7 +42,7 @@ exports.viewVendor = async (req, res) => {
         });
         if (!vendor) {
             req.flash('red', 'vendor not found!');
-            return res.redirect('/vendor');
+            return res.redirect('/admin/vendor');
         }
 
         const branch = await branchModel
@@ -63,7 +63,7 @@ exports.viewVendor = async (req, res) => {
         console.log(error);
         if (error.name === 'CastError') req.flash('red', 'vendor not found!');
         else req.flash('red', error.message);
-        res.redirect('/vendor');
+        res.redirect('/admin/vendor');
     }
 };
 
@@ -73,7 +73,7 @@ exports.changeVendorStatus = async (req, res) => {
 
         if (!user) {
             req.flash('red', 'Vendor not found.');
-            return res.redirect('/vendor');
+            return res.redirect('/admin/vendor');
         }
 
         user.isActive = req.params.status;
@@ -86,7 +86,7 @@ exports.changeVendorStatus = async (req, res) => {
         if (error.name === 'CastError' || error.name === 'TypeError')
             req.flash('red', 'User not found!');
         else req.flash('red', error.message);
-        res.redirect('/vendor');
+        res.redirect('/admin/vendor');
     }
 };
 
@@ -99,12 +99,12 @@ exports.approvedVendor = async (req, res) => {
         await user.save();
 
         req.flash('green', 'Vendor application approved successfully.');
-        res.redirect('/vendor/view/' + req.params.id);
+        res.redirect('/admin/vendor/view/' + req.params.id);
     } catch (error) {
         if (error.name === 'CastError' || error.name === 'TypeError')
             req.flash('red', 'vendor not found!');
         else req.flash('red', error.message);
-        res.redirect('/vendor');
+        res.redirect('/admin/vendor');
     }
 };
 
@@ -115,7 +115,7 @@ exports.getAddVendor = async (req, res) => {
         res.render('vendor_add', { categories, countryCodes });
     } catch (error) {
         req.flash('red', error.message);
-        res.redirect('/vendor');
+        res.redirect('/admin/vendor');
     }
 };
 
@@ -127,7 +127,7 @@ exports.createVendor = async (req, res, next) => {
         const userExists = await vendorModel.findOne({ email: req.body.email });
         if (userExists) {
             req.flash('red', 'Vendor already exists with thie email.');
-            return res.redirect('/vendor');
+            return res.redirect('/admin/vendor');
         }
 
         // create user
@@ -162,7 +162,7 @@ exports.createVendor = async (req, res, next) => {
         user.save();
 
         req.flash('green', 'Vendor created successfully.');
-        res.redirect('/vendor');
+        res.redirect('/admin/vendor');
     } catch (error) {
         console.log(error);
         next(error);
@@ -179,7 +179,7 @@ exports.getEditVendor = async (req, res) => {
         res.render('vendor_edit', { categories, vendor, countryCodes });
     } catch (error) {
         req.flash('red', error.message);
-        res.redirect('/vendor');
+        res.redirect('/admin/vendor');
     }
 };
 
@@ -207,7 +207,7 @@ exports.editVendor = async (req, res, next) => {
         await user.save();
 
         req.flash('green', 'Vendor updated successfully.');
-        res.redirect('/vendor');
+        res.redirect('/admin/vendor');
     } catch (error) {
         next(error);
     }
@@ -230,7 +230,7 @@ exports.sendNotification = async (req, res) => {
         const fcmTokens = users.map(user => user.fcmToken);
         const usersWithNotification = users.map(user => user._id);
 
-        // await sendNotificationsToTokens(title, body, fcmTokens, 'vendorApp');
+        await sendNotificationsToTokens(title, body, fcmTokens, 'vendorApp');
 
         await vendorNotificationModel.create({
             sentTo: usersWithNotification,
@@ -239,10 +239,10 @@ exports.sendNotification = async (req, res) => {
         });
 
         req.flash('green', 'Notification sent successfully.');
-        res.redirect('/vendor');
+        res.redirect('/admin/vendor');
     } catch (error) {
         console.log('error: ', error);
         req.flash('red', error.message);
-        res.redirect('/vendor');
+        res.redirect('/admin/vendor');
     }
 };

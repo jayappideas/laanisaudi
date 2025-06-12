@@ -27,7 +27,7 @@
             </div>
             <div class="col s12 m6 l6 right-align-md" style="margin-top: -10px;">
               <ol class="breadcrumbs mb-0">
-                <li class="breadcrumb-item"><a href="/">Dashboard</a>
+                <li class="breadcrumb-item"><a href="/admin">Dashboard</a>
                 </li>
                 <li class="breadcrumb-item">ContactUS</a>
                 </li>
@@ -45,7 +45,7 @@
           <div class="col s12">
             <div id="basic-form" class=" card-default scrollspy">
               <div class="card-content">
-                <form method="POST" onsubmit="validate()" action="/cms/contact" id="form">
+                <form method="POST" onsubmit="validate()" action="/admin/cms/contact" id="form">
 
                   <div class="input-field col s12">
                     <input placeholder="Email" id="email" name="email" value="<%= contact.email %>" type="text">
@@ -57,7 +57,7 @@
 
                   <div class="col s12 mb-4">
                     <button type="submit" class="btn purple" id="submitBtn">Submit</button>
-                    <a href="/" class="btn btn-danger ml-1">Cancel</a>
+                    <a href="/admin" class="btn btn-danger ml-1">Cancel</a>
                   </div>
                 </form>
               </div>

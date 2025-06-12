@@ -26,9 +26,9 @@
                         </div>
                         <div class="col s12 m6 l6 right-align-md" style="margin-top: -10px;">
                             <ol class="breadcrumbs mb-0">
-                                <li class="breadcrumb-item"><a href="/">Dashboard</a>
+                                <li class="breadcrumb-item"><a href="/admin">Dashboard</a>
                                 </li>
-                                <li class="breadcrumb-item"><a href="/category">Categories</a>
+                                <li class="breadcrumb-item"><a href="/admin/category">Categories</a>
                                 </li>
                                 <li class="breadcrumb-item active">Add Category
                                 </li>
@@ -38,14 +38,14 @@
                 </div>
             </div>
         </div>
-    
+
         <div class="container pl-2 pr-2">
             <div class="card">
                 <div class="row">
                     <div class="col s12">
                         <div id="basic-form" class=" card-default scrollspy">
                             <div class="card-content">
-                                <form method="POST" action="/category/create-category" class="formValidate0" id="formValidate0" enctype="multipart/form-data">                                         
+                                <form method="POST" action="/admin/category/create-category" class="formValidate0" id="formValidate0" enctype="multipart/form-data">
                                     <div id="file-upload" class="section" style="margin: 0px 10px -20px 10px;">
                                         <div class="row section">
                                             <div class="input-field col s12">
@@ -60,7 +60,7 @@
                                         <input class="validate" id="ename" name="ename" type="text">
                                         <div class="error-message" id="enameError"></div>
                                     </div>
-                                    
+
                                     <div class="input-field col s12 m6">
                                         <label for="aname">Category Name (Arabic)</label>
                                         <input class="validate" id="aname" name="aname" type="text">
@@ -71,7 +71,7 @@
                                         <div class="col s12 display-flex justify-content-end">
                                             <button class="btn btn-edit" type="submit" name="action">Submit</button>
                                             &nbsp;&nbsp;&nbsp;
-                                            <a type="button" class="btn btn-delete" href="/category">Cancel</a>
+                                            <a type="button" class="btn btn-delete" href="/admin/category">Cancel</a>
                                         </div>
                                     </div>
                                 </form>
@@ -81,14 +81,14 @@
                 </div>
             </div>
         </div>
-    
+
     </div>
     <!-- END: Page Main-->
 
     <%- include('_layouts/commonJs') %>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Dropify/0.2.2/js/dropify.min.js"></script>
-    <script src="/app-assets/js/scripts/form-file-uploads.min.js"></script>  
-  
+    <script src="/app-assets/js/scripts/form-file-uploads.min.js"></script>
+
 
     <script>
         $(document).ready(function() {
@@ -143,7 +143,7 @@
                     // $('html, body').animate({ scrollTop: $('#input-file-events').offset().top }, 500);
                 }
             });
-         
+
             // Form Submission Validation
             $('#formValidate0').on('submit', function(e) {
                 let valid = true;
@@ -156,7 +156,7 @@
                     $('html, body').animate({ scrollTop: $('.error-message:contains("Please")').first().offset().top }, 500);
                 }
             });
-            
+
         });
     </script>
 

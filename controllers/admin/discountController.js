@@ -12,7 +12,7 @@ exports.getAllDiscount = async (req, res) => {
         res.render('discount', { discounts });
     } catch (error) {
         req.flash('red', error.message);
-        res.redirect('/');
+        res.redirect('/admin');
     }
 };
 
@@ -25,11 +25,11 @@ exports.approvedDiscount = async (req, res) => {
         await user.save();
 
         req.flash('green', 'Discount code approved successfully.');
-        res.redirect('/discount');
+        res.redirect('/admin/discount');
     } catch (error) {
         if (error.name === 'CastError' || error.name === 'TypeError')
             req.flash('red', 'discount not found!');
         else req.flash('red', error.message);
-        res.redirect('/discount');
+        res.redirect('/admin/discount');
     }
 };

@@ -74,7 +74,7 @@
                   <% if (vendor.adminApproved) { %>
                       <a class="waves-effect waves-light btn green mr-1 mb-2" style="cursor: none;">Approved</a>
                   <% } else { %>
-                      <a href="/vendor/approved/<%= vendor._id %>" class="waves-effect waves-light btn red mr-1 mb-2"  style="padding: 0px 16px 0px 16px;" onclick="return confirm('Are you sure want to approved this vendor?');">Pending</a>
+                      <a href="/admin/vendor/approved/<%= vendor._id %>" class="waves-effect waves-light btn red mr-1 mb-2"  style="padding: 0px 16px 0px 16px;" onclick="return confirm('Are you sure want to approved this vendor?');">Pending</a>
                   <% } %>
                 </div>
               </div>
@@ -231,7 +231,7 @@
                   <div id="modal" class="modal">
                     <div class="modal-content">
                       <h5>Send Notification</h5>
-                      <form id="form" class="image-form" method="POST" action="/user/notify" enctype="multipart/form-data">
+                      <form id="form" class="image-form" method="POST" action="/admin/user/notify" enctype="multipart/form-data">
                         <div class="input-field col s12">
                           <input placeholder="Title" id="title" name="title" type="text">
                           <label for="title">Title</label>

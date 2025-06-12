@@ -47,7 +47,7 @@
                   <h6 class="breadcrumbs-title"><span>Manage Vendors</span></h6>
                 </div>
                 <div class="col s12 m6 l6 right-align-md" style="display: flex; justify-content: flex-end; gap: 10px;">
-                  <a class="btn pull-right btn-add btn-breadcrumbs white-text" href="/vendor/add-vendor">Create Vendor</a>
+                  <a class="btn pull-right btn-add btn-breadcrumbs white-text" href="/admin/vendor/add-vendor">Create Vendor</a>
                   <a class="btn gradient-45deg-purple-deep-orange modal-trigger" href="#modal">Send Notification</a>
                 </div>
               </div>
@@ -116,16 +116,16 @@
                                                             </td> -->
                                                             <td>
                                                                 <% if (vendors[i].isActive) { %>
-                                                                    <a href="/vendor/change-status/<%= vendors[i]._id %>/0" class="waves-effect border-round waves-light btn green mr-1 mb-2"  onclick="return confirm('Are you sure want to De-Active this vendor?');">Active</a>
+                                                                    <a href="/admin/vendor/change-status/<%= vendors[i]._id %>/0" class="waves-effect border-round waves-light btn green mr-1 mb-2"  onclick="return confirm('Are you sure want to De-Active this vendor?');">Active</a>
                                                                 <% } else { %>
-                                                                    <a href="/vendor/change-status/<%= vendors[i]._id %>/1" class="waves-effect border-round waves-light btn red mr-1 mb-2"  style="padding: 0px 16px 0px 16px;" onclick="return confirm('Are you sure want to Active this vendor?');">De-Active</a>
+                                                                    <a href="/admin/vendor/change-status/<%= vendors[i]._id %>/1" class="waves-effect border-round waves-light btn red mr-1 mb-2"  style="padding: 0px 16px 0px 16px;" onclick="return confirm('Are you sure want to Active this vendor?');">De-Active</a>
                                                                 <% } %>
                                                             </td>
                                                             <td>
                                                                 <a href="/vendor/view/<%= vendors[i].id %>"><i class="material-icons">visibility</i></a>
                                                             </td>
                                                             <td>
-                                                              <a href="/vendor/edit-vendor/<%= vendors[i].id %>" class="waves-effect border-round waves-light btn mr-1 mb-2"><i class="material-icons">create</i></a>
+                                                              <a href="/admin/vendor/edit-vendor/<%= vendors[i].id %>" class="waves-effect border-round waves-light btn mr-1 mb-2"><i class="material-icons">create</i></a>
                                                             </td>
                                                         </tr>
                                                         <% } %>
@@ -141,7 +141,7 @@
                         <div id="modal" class="modal">
                           <div class="modal-content">
                             <h5>Send Notification</h5>
-                            <form id="form" class="image-form" method="POST" action="/vendor/notify" onsubmit="validate()" enctype="multipart/form-data">
+                            <form id="form" class="image-form" method="POST" action="/admin/vendor/notify" onsubmit="validate()" enctype="multipart/form-data">
                               <div class="input-field col s12">
                                 <input placeholder="Title" id="title" name="title" type="text">
                                 <label for="title">Title</label>

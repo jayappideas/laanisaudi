@@ -47,9 +47,9 @@
             </div>
             <div class="col s12 m6 l6 right-align-md" style="margin-top: -10px;">
               <ol class="breadcrumbs mb-0">
-                <li class="breadcrumb-item"><a href="/">Dashboard</a>
+                <li class="breadcrumb-item"><a href="/admin">Dashboard</a>
                 </li>
-                <li class="breadcrumb-item"><a href="/vendor">Vendor</a>
+                <li class="breadcrumb-item"><a href="/admin/vendor">Vendor</a>
                 </li>
                 <li class="breadcrumb-item active">Edit Vendor
                 </li>
@@ -66,7 +66,7 @@
           <div class="col s12">
             <div id="basic-form" class=" card-default scrollspy">
               <div class="card-content">
-                <form method="POST" action="/vendor/edit-vendor/<%= vendor._id %>" class="formValidate0" id="formValidate0" enctype="multipart/form-data">
+                <form method="POST" action="/admin/vendor/edit-vendor/<%= vendor._id %>" class="formValidate0" id="formValidate0" enctype="multipart/form-data">
 
                   <div class="input-field col s12 m6">
                     <label for="language" style="margin-top: -25px;font-size: 11px;">Language</label>
@@ -143,7 +143,7 @@
                     <div class="col s12 display-flex justify-content-end">
                       <button class="btn btn-edit" type="submit" name="action">Submit</button>
                       &nbsp;&nbsp;&nbsp;
-                      <a type="button" class="btn btn-delete" href="/category">Cancel</a>
+                      <a type="button" class="btn btn-delete" href="/admin/category">Cancel</a>
                     </div>
                   </div>
                 </form>

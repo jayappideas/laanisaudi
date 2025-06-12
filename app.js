@@ -115,20 +115,20 @@ app.use(function (req, res, next) {
 });
 
 //ADMIN ROUTES
-app.get('/receipt', async (req, res) => {
+app.get('/admin/receipt', async (req, res) => {
     res.render('receipt', { receiptData });
 });
-app.use('/', require('./routes/admin/authRoutes'));
-app.use('/user', require('./routes/admin/userRoutes'));
-app.use('/vendor', require('./routes/admin/vendorRoutes'));
-app.use('/banner', require('./routes/admin/bannerRoutes'));
-app.use('/category', require('./routes/admin/categoryRoutes'));
-app.use('/cms', require('./routes/admin/cmsRoutes'));
-app.use('/discount', require('./routes/admin/discountRoutes'));
-app.use('/sub-admin', require('./routes/admin/authRoutes'));
+app.use('/admin/', require('./routes/admin/authRoutes'));
+app.use('/admin/user', require('./routes/admin/userRoutes'));
+app.use('/admin/vendor', require('./routes/admin/vendorRoutes'));
+app.use('/admin/banner', require('./routes/admin/bannerRoutes'));
+app.use('/admin/category', require('./routes/admin/categoryRoutes'));
+app.use('/admin/cms', require('./routes/admin/cmsRoutes'));
+app.use('/admin/discount', require('./routes/admin/discountRoutes'));
+app.use('/admin/sub-admin', require('./routes/admin/authRoutes'));
 
 // 404 admin
-app.all('/*', (req, res) => res.status(404).render('404'));
+app.all('/admin/*', (req, res) => res.status(404).render('404'));
 
 // 4) ERROR HANDLING
 app.use(globalErrorHandler);

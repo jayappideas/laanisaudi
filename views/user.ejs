@@ -119,9 +119,9 @@
                               </td>
                               <td>
                                 <% if (users[i].isActive) { %>
-                                <a href="/user/change-status/<%= users[i]._id %>/0" class="waves-effect border-round waves-light btn green mr-1 mb-2" onclick="return confirm('Are you sure want to De-Active this user?');">Active</a>
+                                <a href="/admin/user/change-status/<%= users[i]._id %>/0" class="waves-effect border-round waves-light btn green mr-1 mb-2" onclick="return confirm('Are you sure want to De-Active this user?');">Active</a>
                                 <% } else { %>
-                                <a href="/user/change-status/<%= users[i]._id %>/1" class="waves-effect border-round waves-light btn red mr-1 mb-2" style="padding: 0px 16px 0px 16px;" onclick="return confirm('Are you sure want to Active this user?');">De-Active</a>
+                                <a href="/admin/user/change-status/<%= users[i]._id %>/1" class="waves-effect border-round waves-light btn red mr-1 mb-2" style="padding: 0px 16px 0px 16px;" onclick="return confirm('Are you sure want to Active this user?');">De-Active</a>
                                 <% } %>
 
                               </td>
@@ -137,7 +137,7 @@
               <div id="modal" class="modal">
                 <div class="modal-content">
                   <h5>Send Notification</h5>
-                  <form id="form" class="image-form" method="POST" action="/user/notify" enctype="multipart/form-data">
+                  <form id="form" class="image-form" method="POST" action="/admin/user/notify" enctype="multipart/form-data">
                     <div class="input-field col s12">
                       <input placeholder="Title" id="title" name="title" type="text">
                       <label for="title">Title</label>
