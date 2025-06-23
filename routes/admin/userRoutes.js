@@ -9,9 +9,9 @@ router.get(
     authController.checkPermission('user', 'isView'),
     userController.getAllUsers
 );
-router.get('/:type/:id', userController.viewUser);
 router.get('/change-status/:id/:status', userController.changeUserStatus);
-
+router.get('/user-delete/:id', userController.deleteAccountUser);
 router.post('/notify',fileUpload(), userController.sendNotification);
+router.get('/:type/:id', userController.viewUser);
 
 module.exports = router;

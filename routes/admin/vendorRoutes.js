@@ -13,6 +13,8 @@ router.get(
 router.get('/view/:id', vendorController.viewVendor);
 router.get('/change-status/:id/:status', vendorController.changeVendorStatus);
 router.get('/approved/:id', vendorController.approvedVendor);
+router.get('/disapproved/:id', vendorController.disapprovedVendor);
+router.get('/delete/:id', vendorController.deleteAccountVendor);
 
 router
     .route('/add-vendor')

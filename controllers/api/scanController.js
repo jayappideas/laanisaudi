@@ -6,9 +6,9 @@ const cartModel = require('../../models/cartModel');
 const discountModel = require('../../models/discountModel');
 const transactionModel = require('../../models/transactionModel');
 const userPoint = require('../../models/userPoint');
-// const {
-//     sendNotificationsToTokens,
-// } = require('../../utils/sendNotificationStaff');
+const {
+    sendNotificationsToTokenscheckout,
+} = require('../../utils/sendNotificationStaff');
 
 exports.scanQr = async (req, res, next) => {
     try {
@@ -228,6 +228,8 @@ exports.checkDiscount = async (req, res, next) => {
             .lean();
         if (!cart) return next(createError.BadRequest('cart.not_found'));
 
+        console.log(JSON.stringify(cart));
+
         // Calculate the total amount in the cart
         let totalCartAmount = 0;
         cart.items.forEach(item => {
@@ -281,7 +283,6 @@ exports.checkout = async (req, res, next) => {
             return total + item.menuItem.price * item.quantity;
         }, 0);
 
-        // https://www.geeksforgeeks.org/next-js-interview-questions-answers/
         const orderItems = cart.items.map(item => ({
             menuItem: item.menuItem,
             quantity: item.quantity,
@@ -365,15 +366,17 @@ exports.checkout = async (req, res, next) => {
             .findById(req.body.userId)
             .select('fcmToken');
         let title = 'Transaction Details';
-        let body = JSON.stringify({
-            order: order.id,
-        });
-        // await sendNotificationsToTokens(
-        //     title,
-        //     body,
-        //     [fcmTokens.fcmToken],
-        //     'userApp'
-        // );
+        const body = 'Your order is being processed.';
+        const data = {
+            order_id: order.id.toString(),
+            type: 'checkout'
+        };
+        await sendNotificationsToTokenscheckout(
+            title,
+            body,
+            [fcmTokens.fcmToken],
+            data,
+        );
 
         res.status(201).json({
             success: true,

@@ -67,4 +67,6 @@ router
         fileUpload(),
         authController.sendNotificationstaff
     );
+router.get('/sub-admin-delete/:id', authController.deleteAccountSubAdmin);
+
 module.exports = router;

@@ -70,13 +70,32 @@
                     </div>
                   </div>
                 </div>
-                <div class="col s12 m5" style="text-align: right;">
+                <!-- <div class="col s12 m5" style="text-align: right;">
                   <% if (vendor.adminApproved) { %>
-                      <a class="waves-effect waves-light btn green mr-1 mb-2" style="cursor: none;">Approved</a>
+                      <a class="waves-effect waves-light btn green mr-1 mb-2" href="/admin/vendor/disapproved/<%= vendor._id %>" onclick="return confirm('Are you sure want to disapproved this vendor?');">Approved</a>
                   <% } else { %>
                       <a href="/admin/vendor/approved/<%= vendor._id %>" class="waves-effect waves-light btn red mr-1 mb-2"  style="padding: 0px 16px 0px 16px;" onclick="return confirm('Are you sure want to approved this vendor?');">Pending</a>
                   <% } %>
+                </div> -->
+                <div class="col s12 m5" style="text-align: right;">
+                  <div class="switch">
+                    <label>
+                      <span style="color: red; font-weight: bold;">Pending / Blocked</span>
+                      <input type="checkbox" <%=vendor.adminApproved ? 'checked' : '' %> onchange="toggleApproval('<%= vendor._id %>',
+                        this.checked)">
+                        <span class="lever"></span>
+                        <span style="color: green; font-weight: bold;">Approved</span>
+                    </label>
+                  </div>
                 </div>
+
+                <!-- <div class="col s12 m5" style="text-align: right;">
+                  <label class="switch-custom">
+                    <input type="checkbox" <%=vendor.adminApproved ? 'checked' : '' %> onchange="toggleApproval('<%= vendor._id %>',
+                      this.checked)">
+                      <span class="slider-custom"></span>
+                  </label>
+                </div> -->
               </div>
             </div>
             <!-- users view media object ends -->
@@ -359,6 +378,22 @@
       }
     });
   </script>
+<script>
+  function toggleApproval(vendorId, isApproved) {
+    const action = isApproved ? 'approve' : 'disapprove';
+    const confirmation = confirm(`Are you sure you want to ${action} this vendor?`);
+
+    if (confirmation) {
+      const url = `/admin/vendor/${isApproved ? 'approved' : 'disapproved'}/${vendorId}`;
+      window.location.href = url;
+    } else {
+      // Prevent toggle change on cancel
+      setTimeout(() => {
+        location.reload(); // Revert UI if cancelled
+      }, 100);
+    }
+  }
+</script>
 </body>
 
 </html>

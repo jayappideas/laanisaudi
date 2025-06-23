@@ -10,6 +10,7 @@ const countryCodes = require('../../countryCodes.json');
 const vendorNotificationModel = require('../../models/vendorNotificationModel');
 const {
     sendNotificationsToTokens,
+    sendNotificationsToTokenscheckout,
 } = require('../../utils/sendNotificationStaff');
 
 
@@ -81,7 +82,7 @@ exports.changeVendorStatus = async (req, res) => {
         await user.save();
 
         req.flash('green', 'Status changed successfully.');
-        res.redirect('/vendor');
+        res.redirect('/admin/vendor');
     } catch (error) {
         if (error.name === 'CastError' || error.name === 'TypeError')
             req.flash('red', 'User not found!');
@@ -98,7 +99,51 @@ exports.approvedVendor = async (req, res) => {
 
         await user.save();
 
+        let title = 'Welcome! Your Account is Now Approved';
+        const body = 'Congratulations! Your account has been successfully approved. You can now access all features.';
+        const data = {
+            type: 'account_approved'
+        };
+        if (user?.fcmToken) {
+            await sendNotificationsToTokenscheckout(
+                title,
+                body,
+                [user.fcmToken],
+                data,
+            );
+        }
         req.flash('green', 'Vendor application approved successfully.');
+        res.redirect('/admin/vendor/view/' + req.params.id);
+    } catch (error) {
+        if (error.name === 'CastError' || error.name === 'TypeError')
+            req.flash('red', 'vendor not found!');
+        else req.flash('red', error.message);
+        res.redirect('/admin/vendor');
+    }
+};
+
+exports.disapprovedVendor = async (req, res) => {
+    try {
+        const user = await vendorModel.findById(req.params.id);
+
+        user.adminApproved = false;
+
+        await user.save();
+
+        let title = 'Sorry! Your Account is Not Approved';
+        const body = 'We regret to inform you that your account has not been approved. Please contact admin for further assistance.';
+        const data = {
+            type: 'account_rejected'
+        };
+        if (user?.fcmToken) {
+            await sendNotificationsToTokenscheckout(
+                title,
+                body,
+                [user.fcmToken],
+                data,
+            );
+        }
+        req.flash('green', 'Vendor application rejected successfully.');
         res.redirect('/admin/vendor/view/' + req.params.id);
     } catch (error) {
         if (error.name === 'CastError' || error.name === 'TypeError')
@@ -242,6 +287,32 @@ exports.sendNotification = async (req, res) => {
         res.redirect('/admin/vendor');
     } catch (error) {
         console.log('error: ', error);
+        req.flash('red', error.message);
+        res.redirect('/admin/vendor');
+    }
+};
+
+exports.deleteAccountVendor = async (req, res, next) => {
+    try {
+        const user = await vendorModel.findById(req.params.id);
+
+        const modifiedEmail = `${user.email}_deleted_${Date.now()}`;
+        const modifiedMobileNumber = `${user.mobileNumber
+            }_deleted_${Date.now()}`;
+
+        user.isDelete = true;
+        user.token = '';
+        user.fcmToken = '';
+        user.email = modifiedEmail;
+        user.mobileNumber = modifiedMobileNumber;
+
+        //Points Removed
+
+        await user.save();
+
+        req.flash('green', 'Vendor deleted successfully.');
+        res.redirect('/admin/vendor');
+    } catch (error) {
         req.flash('red', error.message);
         res.redirect('/admin/vendor');
     }

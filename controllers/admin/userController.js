@@ -103,3 +103,29 @@ exports.sendNotification = async (req, res) => {
         res.redirect('/admin/user');
     }
 };
+
+exports.deleteAccountUser = async (req, res, next) => {
+    try {
+        const user = await User.findById(req.params.id);
+
+        // const modifiedEmail = `${user.email}_deleted_${Date.now()}`;
+        const modifiedMobileNumber = `${user.mobileNumber
+            }_deleted_${Date.now()}`;
+
+        user.isDelete = true;
+        user.token = '';
+        user.fcmToken = '';
+        // user.email = modifiedEmail;
+        user.mobileNumber = modifiedMobileNumber;
+
+                //Points Removed
+
+        await user.save();
+
+        req.flash('green', 'User deleted successfully.');
+        res.redirect('/admin/user');
+    } catch (error) {
+        req.flash('red', error.message);
+        res.redirect('/admin/user');
+    }
+};

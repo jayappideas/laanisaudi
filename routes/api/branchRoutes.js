@@ -1,6 +1,6 @@
 const router = require('express').Router();
 const { upload } = require('../../controllers/uploadController');
-const { checkVendor } = require('../../controllers/api/authController');
+const { checkVendor, isVendor } = require('../../controllers/api/authController');
 const branchController = require('../../controllers/api/branchController');
 
 
@@ -8,11 +8,11 @@ const branchController = require('../../controllers/api/branchController');
         BRANCH API
 ===================================================*/
 
-router.post('/add',  checkVendor, upload.none(), branchController.addBranch);
-router.get('/',  checkVendor, upload.none(), branchController.getBranchList);
-router.get('/:id',  checkVendor, upload.none(), branchController.getBranchDetail);
-router.put('/update/:id',  checkVendor, upload.none(), branchController.updateBranch);
-router.delete('/delete/:id',  checkVendor, upload.none(), branchController.deleteBranch);
+router.post('/add', isVendor, upload.none(), branchController.addBranch);
+router.get('/', isVendor, upload.none(), branchController.getBranchList);
+router.get('/:id', isVendor, upload.none(), branchController.getBranchDetail);
+router.put('/update/:id', isVendor, upload.none(), branchController.updateBranch);
+router.delete('/delete/:id', isVendor, upload.none(), branchController.deleteBranch);
 
 /* ==================================================
         MENU CATEGORY API

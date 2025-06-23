@@ -459,3 +459,27 @@ exports.sendNotificationstaff = async (req, res) => {
         res.redirect('/admin/vendor');
     }
 };
+
+exports.deleteAccountSubAdmin = async (req, res, next) => {
+    try {
+        const subadmin = await adminModel.findByIdAndDelete(req.params.id);
+
+        // const modifiedEmail = `${subadmin.email}_deleted_${Date.now()}`;
+
+
+        // subadmin.isDelete = true;
+        // subadmin.token = '';
+        // subadmin.fcmToken = '';
+        // subadmin.email = modifiedEmail;
+
+        //Points Removed
+
+        // await subadmin.save();
+
+        req.flash('green', 'Sub Admin deleted successfully.');
+        res.redirect('/admin/sub-admin/list');
+    } catch (error) {
+        req.flash('red', error.message);
+        res.redirect('/admin/sub-admin/list');
+    }
+};
