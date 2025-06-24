@@ -143,6 +143,13 @@ exports.disapprovedVendor = async (req, res) => {
                 data,
             );
         }
+
+        // const branch = await branchModel.find({ vendor: req.params.id });
+        // branch.forEach(async (branch) => {
+        //     branch.isDelete = true;
+        //     await branch.save();
+        // });
+
         req.flash('green', 'Vendor application rejected successfully.');
         res.redirect('/admin/vendor/view/' + req.params.id);
     } catch (error) {
@@ -309,6 +316,11 @@ exports.deleteAccountVendor = async (req, res, next) => {
         //Points Removed
 
         await user.save();
+        // const branch = await branchModel.find({ vendor: req.params.id });
+        // branch.forEach(async (branch) => {
+        //     branch.isDelete = true;
+        //     await branch.save();
+        // });
 
         req.flash('green', 'Vendor deleted successfully.');
         res.redirect('/admin/vendor');

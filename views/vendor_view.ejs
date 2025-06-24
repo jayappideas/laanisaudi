@@ -27,6 +27,21 @@
       border-right-color: black;
       border-bottom-color: black;
     }
+
+  .switch label input[type=checkbox]:not(:checked) + .lever {
+    background-color: #f3374a; /* Light red track */
+  }
+  .switch label input[type=checkbox]:not(:checked) + .lever::before {
+    background-color: #ffaba5; /* Dark red thumb */
+  }
+
+  /* Toggle ON (switch track and thumb) */
+  .switch label input[type=checkbox]:checked + .lever {
+    background-color: #31db37; /* Light green track */
+  }
+  .switch label input[type=checkbox]:checked + .lever::before {
+    background-color: #4CAF50; /* Dark green thumb */
+  }
   </style>
 </head>
 <!-- END: Head-->
@@ -81,21 +96,27 @@
                   <div class="switch">
                     <label>
                       <span style="color: red; font-weight: bold;">Pending / Blocked</span>
-                      <input type="checkbox" <%=vendor.adminApproved ? 'checked' : '' %> onchange="toggleApproval('<%= vendor._id %>',
-                        this.checked)">
+                      <input type="checkbox" <%=vendor.adminApproved ? 'checked' : '' %>
+                      onchange="toggleApproval('<%= vendor._id %>', this.checked)">
                         <span class="lever"></span>
                         <span style="color: green; font-weight: bold;">Approved</span>
                     </label>
                   </div>
                 </div>
 
+                <!-- Below code is working but toggle color is not in green and red -->
                 <!-- <div class="col s12 m5" style="text-align: right;">
-                  <label class="switch-custom">
-                    <input type="checkbox" <%=vendor.adminApproved ? 'checked' : '' %> onchange="toggleApproval('<%= vendor._id %>',
-                      this.checked)">
-                      <span class="slider-custom"></span>
-                  </label>
+                  <div class="switch">
+                    <label>
+                      <span style="color: red; font-weight: bold;">Pending / Blocked</span>
+                      <input type="checkbox" <%=vendor.adminApproved ? 'checked' : '' %> onchange="toggleApproval('<%= vendor._id %>',
+                        this.checked)">
+                        <span class="lever"></span>
+                        <span style="color: green; font-weight: bold;">Approved</span>
+                    </label>
+                  </div>
                 </div> -->
+
               </div>
             </div>
             <!-- users view media object ends -->

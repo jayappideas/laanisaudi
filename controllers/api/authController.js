@@ -364,9 +364,8 @@ exports.deleteAccount = async (req, res, next) => {
         const user = await User.findById(req.user.id);
 
         const modifiedEmail = `${user.email}_deleted_${Date.now()}`;
-        const modifiedMobileNumber = `${
-            user.mobileNumber
-        }_deleted_${Date.now()}`;
+        const modifiedMobileNumber = `${user.mobileNumber
+            }_deleted_${Date.now()}`;
 
         user.isDelete = true;
         user.token = '';
@@ -406,21 +405,17 @@ exports.updateNotification = async (req, res, next) => {
     }
 };
 
-exports.changeLanguage = async (req, res, next) => {
+exports.changeLanguageUser = async (req, res, next) => {
     try {
         const user = await User.findById(req.user.id);
 
-        user.language = true;
-        user.token = '';
-        user.fcmToken = '';
-
-        //Points Removed
+        user.language = req.body.language;
 
         await user.save();
 
         res.status(201).json({
             success: true,
-            message: req.t('auth.deleted_success'),
+            message: req.t('auth.language_updated'),
         });
     } catch (error) {
         console.log(error);
@@ -458,7 +453,7 @@ exports.checkVendor = async (req, res, next) => {
             return next(createError.Unauthorized('auth.deleted'));
 
         if (!vendor.adminApproved)
-            return next(createError.Unauthorized('auth.pendingApproved'));
+            return next(createError.Forbidden('auth.pendingApproved'));
 
         req.vendor = vendor;
         next();
@@ -558,6 +553,24 @@ exports.dashboardVendor = async (req, res, next) => {
         });
     } catch (error) {
         console.log('error: ', error);
+        next(error);
+    }
+};
+
+exports.changeLanguageVendor = async (req, res, next) => {
+    try {
+        const user = await Vendor.findById(req.vendor.id);
+
+        user.language = req.body.language;
+
+        await user.save();
+
+        res.status(201).json({
+            success: true,
+            message: req.t('auth.language_updated'),
+        });
+    } catch (error) {
+        console.log(error);
         next(error);
     }
 };
@@ -725,9 +738,12 @@ exports.loginVendor = async (req, res, next) => {
             return next(createError.BadRequest('auth.vcredentials'));
 
         // if(user.signupStep == 0){
-        if (!user.adminApproved)
-            return next(createError.Unauthorized('auth.pendingApproved'));
-        // }
+        if (!user.adminApproved) {
+            return res.status(403).json({
+                success: false,
+                message: req.t('auth.pendingApproved'),
+            });
+        }
         const token = await user.generateAuthToken();
 
         user.fcmToken = fcmToken;
@@ -865,7 +881,7 @@ exports.updateBusinessInfo = async (req, res, next) => {
                 '../../public/uploads/',
                 vendor.businessLogo
             );
-            fs.unlink(oldImagePath, () => {});
+            fs.unlink(oldImagePath, () => { });
             vendor.businessLogo = req.files.businessLogo[0].filename;
         }
         if (req.files.businessLicense && req.files.businessLicense[0]) {
@@ -874,7 +890,7 @@ exports.updateBusinessInfo = async (req, res, next) => {
                 '../../public/uploads/',
                 vendor.businessLogo.license
             );
-            fs.unlink(oldImagePath, () => {});
+            fs.unlink(oldImagePath, () => { });
             vendor.businessLicense = req.files.businessLicense[0].filename;
         }
         // }
@@ -994,9 +1010,8 @@ exports.deleteAccountVendor = async (req, res, next) => {
         const user = await Vendor.findById(req.vendor.id);
 
         const modifiedEmail = `${user.email}_deleted_${Date.now()}`;
-        const modifiedMobileNumber = `${
-            user.mobileNumber
-        }_deleted_${Date.now()}`;
+        const modifiedMobileNumber = `${user.mobileNumber
+            }_deleted_${Date.now()}`;
 
         user.isDelete = true;
         user.token = '';
@@ -1075,6 +1090,24 @@ exports.notificationListStaff = async (req, res, next) => {
             message: 'Notifications retrieved successfully.',
         });
     } catch (error) {
+        next(error);
+    }
+};
+
+exports.changeLanguageStaff = async (req, res, next) => {
+    try {
+        const staff = await Staff.findById(req.staff.id);
+
+        staff.language = req.body.language;
+
+        await staff.save();
+
+        res.status(201).json({
+            success: true,
+            message: req.t('auth.language_updated'),
+        });
+    } catch (error) {
+        console.log(error);
         next(error);
     }
 };

@@ -53,7 +53,8 @@
     "deleted": "This account has been deleted.",
     "deleted_success": "Account has been deleted.",
     "signup_pending": "Please first complete signup process.",
-    "pendingApproved": "Admin hasn't approved your account yet! Please contact to admin."
+    "pendingApproved": "Admin hasn't approved your account yet! Please contact to admin.",
+    "language_updated": "Language updated successfully."
   },
   "changePass": {
     "pass": "Please provide a password.",

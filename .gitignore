@@ -4,6 +4,8 @@ test.txt
 todo.txt
 .prettierrc
 documents
+.env.production
+
 # public/uploads/
 utils/laani-saudi-firebase-adminsdk-fbsvc-dfa6252a6f-vendor.json
 utils/laani-saudi-firebase-adminsdk-fbsvc-a4349b10d1-user.json

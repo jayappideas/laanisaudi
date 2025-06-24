@@ -55,7 +55,12 @@ router.get(
     authController.checkUser,
     authController.notificationListUser
 );
-
+router.post(
+    '/user/change-language',
+    upload.none(),
+    authController.checkUser,
+    authController.changeLanguageUser
+);
 /* ===================================================
                 VENDOR AUTH API
 ======================================================*/
@@ -152,11 +157,23 @@ router.get(
     authController.checkVendor,
     authController.notificationListVendor
 );
+router.post(
+    '/vendor/change-language',
+    upload.none(),
+    authController.checkVendor,
+    authController.changeLanguageVendor
+);
 router.get(
     '/staff/notification-list',
     upload.none(),
     staffController.checkStaff,
     authController.notificationListStaff
+);
+router.post(
+    '/staff/change-language',
+    upload.none(),
+    staffController.checkStaff,
+    authController.changeLanguageStaff
 );
 
 module.exports = router;
