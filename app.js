@@ -53,9 +53,9 @@ app.use(flash());
 app.use((req, res, next) => {
     res.locals.messages = req.flash();
     res.locals.dateOptions = {
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: true,
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
     };
     res.locals.dateLocale = "en-US";
     next();
@@ -129,6 +129,25 @@ app.use('/admin/sub-admin', require('./routes/admin/authRoutes'));
 
 // 404 admin
 app.all('/admin/*', (req, res) => res.status(404).render('404'));
+
+app.get('/request-delete', (req, res) => {
+    res.render('request-delete'); // views/request-delete.ejs
+});
+
+app.post('/request-delete', (req, res) => {
+    const { email, reason } = req.body;
+
+    // Add your logic to handle deletion request here (e.g., database flag, send email, etc.)
+    if (!email) {
+        return res.render('request-delete', { errorMessage: "Email is required." });
+    }
+
+    res.render('request-delete', { successMessage: "Your deletion request has been submitted. We'll process it shortly." });
+});
+
+app.get('/policy', (req, res) => {
+    res.render('policy');
+});
 
 // 4) ERROR HANDLING
 app.use(globalErrorHandler);

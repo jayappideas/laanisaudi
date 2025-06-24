@@ -58,6 +58,7 @@ exports.addStaff = async (req, res, next) => {
             mobileNumber: req.body.mobileNumber,
             occupation: req.body.occupation,
             password: req.body.password,
+            photo: req.files.image[0].filename ? req.files.image[0].filename : '/uploads/default_user.jpg'
         });
 
         // Define the file path
@@ -144,6 +145,16 @@ exports.updateStaff = async (req, res, next) => {
             );
 
         const user = await Staff.findById(req.params.id);
+
+        if (req.files.image && req.files.image[0]) {
+            const oldImagePath = path.join(
+                __dirname,
+                '../../public/uploads/',
+                user.photo
+            );
+            fs.unlink(oldImagePath, () => { });
+            user.photo = req.files.photo[0].filename;
+        }
 
         user.branch = req.body.branch;
         user.name = req.body.name;

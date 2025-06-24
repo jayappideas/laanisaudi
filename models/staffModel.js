@@ -9,6 +9,10 @@ const staffSchema = new mongoose.Schema(
         qrCode: {
             type: String,
         },
+        photo: {
+            type: String,
+            default: '/uploads/default_user.jpg',
+        },
         vendor: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Vendor',
