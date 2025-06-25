@@ -109,14 +109,20 @@
                               <td><%= users[i].mobileNumber %></td>
                               <td><%= users[i].birthDate ? new Date(users[i].birthDate).toISOString().split('T')[0] : '-' %></td>
                               <td><%= users[i].gender %></td>
-                              <td><%= users[i].createdAt.toISOString().split('T')[0] %> <%=
+                              <!-- <td><%= users[i].createdAt.toISOString().split('T')[0] %> <%=
                                                                 users[i].createdAt.toLocaleString('en-US', {
                                                                     timeZone: 'UTC',
                                                                     hour: '2-digit',
                                                                     minute: '2-digit',
                                                                     hour12: true
                                                                   }).replace(',', ''); %>
-                              </td>
+                              </td> -->
+                                <% const createdAt=new Date(users[i].createdAt); const day=String(createdAt.getUTCDate()).padStart(2, '0' ); const
+                                  month=String(createdAt.getUTCMonth() + 1).padStart(2, '0' ); const year=createdAt.getUTCFullYear(); const
+                                  formattedDate=`${day}-${month}-${year}`; %>
+                                  <td>
+                                    <%= formattedDate %>
+                                  </td>
                               <td>
                                 <% if (users[i].isActive) { %>
                                 <a href="/admin/user/change-status/<%= users[i]._id %>/0" class="waves-effect border-round waves-light btn green mr-1 mb-2" onclick="return confirm('Are you sure want to De-Active this user?');">Active</a>

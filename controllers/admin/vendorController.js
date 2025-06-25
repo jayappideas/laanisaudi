@@ -52,7 +52,7 @@ exports.viewVendor = async (req, res) => {
             .sort('-_id');
         const staff = await staffModel
             .find({ vendor: req.params.id, isDelete: false })
-            .select('qrCode name email mobileNumber occupation')
+            .select('qrCode name email mobileNumber occupation photo')
             .populate({
                 path: 'branch',
                 select: 'buildingName',
@@ -61,7 +61,6 @@ exports.viewVendor = async (req, res) => {
 
         res.render('vendor_view', { vendor, staff, branch });
     } catch (error) {
-        console.log(error);
         if (error.name === 'CastError') req.flash('red', 'vendor not found!');
         else req.flash('red', error.message);
         res.redirect('/admin/vendor');

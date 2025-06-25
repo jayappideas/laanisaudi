@@ -5,6 +5,7 @@ const QRCode = require('qrcode');
 const path = require('path');
 const discountModel = require('../../models/discountModel');
 
+
 exports.checkStaff = async (req, res, next) => {
     try {
         let token;
@@ -48,6 +49,7 @@ exports.addStaff = async (req, res, next) => {
             return next(
                 createError.BadRequest('validation.alreadyRegisteredEmail')
             );
+        const photo = req.files?.image?.[0]?.filename ?? '/default_user.jpg';
 
         // create user
         let user = await Staff.create({
@@ -58,7 +60,7 @@ exports.addStaff = async (req, res, next) => {
             mobileNumber: req.body.mobileNumber,
             occupation: req.body.occupation,
             password: req.body.password,
-            photo: req.files.image[0].filename ? req.files.image[0].filename : '/uploads/default_user.jpg'
+            photo,
         });
 
         // Define the file path
@@ -90,7 +92,7 @@ exports.addStaff = async (req, res, next) => {
 exports.getStaffList = async (req, res, next) => {
     try {
         let staff = await Staff.find({ vendor: req.vendor.id, isDelete: false })
-            .select('name email password')
+            .select('name email password photo isActive')
             .sort({ createdAt: -1 });
 
         res.status(200).json({
@@ -146,14 +148,8 @@ exports.updateStaff = async (req, res, next) => {
 
         const user = await Staff.findById(req.params.id);
 
-        if (req.files.image && req.files.image[0]) {
-            const oldImagePath = path.join(
-                __dirname,
-                '../../public/uploads/',
-                user.photo
-            );
-            fs.unlink(oldImagePath, () => { });
-            user.photo = req.files.photo[0].filename;
+        if (req.files && req.files?.image && req.files.image[0]) {
+            user.photo = req.files.image[0].filename;
         }
 
         user.branch = req.body.branch;
@@ -182,9 +178,8 @@ exports.deleteStaffByStaff = async (req, res, next) => {
         const user = await Staff.findById(req.staff.id);
 
         const modifiedEmail = `${user.email}_deleted_${Date.now()}`;
-        const modifiedMobileNumber = `${
-            user.mobileNumber
-        }_deleted_${Date.now()}`;
+        const modifiedMobileNumber = `${user.mobileNumber
+            }_deleted_${Date.now()}`;
 
         user.isDelete = true;
         user.token = '';
@@ -209,9 +204,8 @@ exports.deleteStaff = async (req, res, next) => {
         const user = await Staff.findById(req.params.id);
 
         const modifiedEmail = `${user.email}_deleted_${Date.now()}`;
-        const modifiedMobileNumber = `${
-            user.mobileNumber
-        }_deleted_${Date.now()}`;
+        const modifiedMobileNumber = `${user.mobileNumber
+            }_deleted_${Date.now()}`;
 
         user.isDelete = true;
         user.token = '';
@@ -339,9 +333,8 @@ exports.deleteStaff = async (req, res, next) => {
         const user = await Staff.findById(req.params.id);
 
         const modifiedEmail = `${user.email}_deleted_${Date.now()}`;
-        const modifiedMobileNumber = `${
-            user.mobileNumber
-        }_deleted_${Date.now()}`;
+        const modifiedMobileNumber = `${user.mobileNumber
+            }_deleted_${Date.now()}`;
 
         user.isDelete = true;
         user.token = '';
@@ -357,5 +350,23 @@ exports.deleteStaff = async (req, res, next) => {
         });
     } catch (error) {
         next(error);
+    }
+};
+
+exports.changeStaffStatus = async (req, res) => {
+    try {
+        const user = await Staff.findById(req.params.id);
+        if (!user) return next(createError.BadRequest('Staff not found.'));
+
+        user.isActive = req.body.status;
+
+        await user.save();
+
+        res.status(200).json({
+            success: true,
+            message: req.t('staff.status'),
+        });
+    } catch (error) {
+        next(error)
     }
 };

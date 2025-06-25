@@ -79,7 +79,7 @@
                                                             <th>Business Name</th>
                                                             <th>Business Type</th>
                                                             <th>Application Status</th>
-                                                            <!-- <th>Created Date</th> -->
+                                                            <th>Created Date</th>
                                                             <th data-orderable="false">Status</th>
                                                             <th data-orderable="false">View</th>
                                                             <th data-orderable="false">Action</th>
@@ -106,14 +106,13 @@
                                                                     <a style="background-color: rgb(240, 212, 212);padding: 5px 10px 5px 10px;color: red;border-radius: 5px;">Pending</a>
                                                                 <% } %>
                                                             </td>
-                                                            <!-- <td><%= vendors[i].createdAt.toISOString().split('T')[0] %> <%=
-                                                                vendors[i].createdAt.toLocaleString('en-US', {
-                                                                    timeZone: 'UTC',
-                                                                    hour: '2-digit',
-                                                                    minute: '2-digit',
-                                                                    hour12: true
-                                                                  }).replace(',', ''); %>,
-                                                            </td> -->
+                                                              <% const createdAt=new Date(vendors[i].createdAt); const day=String(createdAt.getUTCDate()).padStart(2, '0' ); const
+                                                                month=String(createdAt.getUTCMonth() + 1).padStart(2, '0' ); const year=createdAt.getUTCFullYear(); const
+                                                                formattedDate=`${day}-${month}-${year}`; %>
+                                                                <td>
+                                                                  <%= formattedDate %>
+                                                                </td>
+
                                                             <td>
                                                                 <% if (vendors[i].isActive) { %>
                                                                     <a href="/admin/vendor/change-status/<%= vendors[i]._id %>/0" class="waves-effect border-round waves-light btn green mr-1 mb-2"  onclick="return confirm('Are you sure want to De-Active this vendor?');">Active</a>

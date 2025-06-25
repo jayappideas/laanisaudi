@@ -12,10 +12,14 @@ exports.addBranch = async (req, res, next) => {
         // create branch
         let branch = await Branch.create({
             vendor: req.vendor.id,
+            name: req.body.name,
+            email: req.body.email,
+            phone: req.body.phone,
             buildingNo: req.body.buildingNo,
             buildingName: req.body.buildingName,
             roadName: req.body.roadName,
             city: req.body.city,
+            state: req.body.state,
             country: req.body.country,
             location: {
                 type: 'Point',
@@ -75,6 +79,11 @@ exports.updateBranch = async (req, res, next) => {
         branch.roadName = req.body.roadName
         branch.city = req.body.city
         branch.country = req.body.country
+        branch.state = req.body.state
+        branch.name= req.body.name,
+        branch.email = req.body.email,
+        branch.phone = req.body.phone,
+
         branch.location = {
             type: 'Point',
             coordinates: [parseFloat(req.body.longitude), parseFloat(req.body.latitude)]

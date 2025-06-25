@@ -11,7 +11,7 @@ const staffSchema = new mongoose.Schema(
         },
         photo: {
             type: String,
-            default: '/uploads/default_user.jpg',
+            default: '/default_user.jpg',
         },
         vendor: {
             type: mongoose.Schema.Types.ObjectId,

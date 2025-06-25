@@ -322,10 +322,54 @@ exports.restaurantDetail = async (req, res, next) => {
             )
             .lean();
 
+        // const filteredOffers = offers.filter(offer => {
+        //     console.log(offer)
+        //     const [day, month, year] = offer.expiryDate.split('/').map(Number);
+        //     const expiryDate = new Date(year, month - 1, day); // JS Date months are 0-based
+        //     return expiryDate >= new Date();
+        // });
+        // const filteredOffers = offers.filter(offer => {
+
+        //     // Extract only the date and time string
+        //     const [datePart, timePart, meridian] = offer.expiryDate.split(/[\s:]+/); // Split by space and colon
+        //     const [day, month, year] = datePart.split('/').map(Number);
+        //     let hour = parseInt(timePart, 10);
+        //     const minute = parseInt(offer.expiryDate.split(':')[1], 10);
+
+        //     // Adjust hour for AM/PM
+        //     if (meridian === 'PM' && hour !== 12) {
+        //         hour += 12;
+        //     } else if (meridian === 'AM' && hour === 12) {
+        //         hour = 0;
+        //     }
+
+        //     // Create expiry Date object
+        //     const expiryDate = new Date(year, month - 1, day, hour, minute);
+
+        //     return expiryDate >= new Date();
+        // });
+
         const filteredOffers = offers.filter(offer => {
-            const [day, month, year] = offer.expiryDate.split('/').map(Number);
-            const expiryDate = new Date(year, month - 1, day); // JS Date months are 0-based
-            return expiryDate >= new Date();
+            const expiryStr = offer.expiryDate.trim();
+            let expiryDate;
+
+            if (/am|pm/i.test(expiryStr)) {
+                const [datePart, hourStr, minuteStr, meridian] = expiryStr.split(/[\s:]+/);
+                const [day, month, year] = datePart.split('/').map(Number);
+                let hour = parseInt(hourStr, 10);
+                const minute = parseInt(minuteStr, 10);
+
+                if (meridian.toUpperCase() === 'PM' && hour !== 12) hour += 12;
+                if (meridian.toUpperCase() === 'AM' && hour === 12) hour = 0;
+
+                expiryDate = new Date(year, month - 1, day, hour, minute);
+            } else {
+                const [day, month, year] = expiryStr.split('/').map(Number);
+                expiryDate = new Date(year, month - 1, day, 23, 59, 59); // End of day
+            }
+            const now = new Date();
+
+            return expiryDate >= now;
         });
 
         let menu = await Promise.all(
@@ -406,21 +450,21 @@ exports.getFavouriteList = async (req, res, next) => {
                 select: 'businessName businessLogo businessRating businessReview',
             });
 
-            const enrichedData = await Promise.all(
-                wishlist.map(async item => {
-                    const itemObj = item.toObject();
-                    const branch = await Branch.findOne({
-                        vendor: itemObj.vendor._id,
-                        isDelete: false,
-                    }).select('_id');
+        const enrichedData = await Promise.all(
+            wishlist.map(async item => {
+                const itemObj = item.toObject();
+                const branch = await Branch.findOne({
+                    vendor: itemObj.vendor._id,
+                    isDelete: false,
+                }).select('_id');
 
-                    if (itemObj.vendor) {
-                        itemObj.vendor.branchId = branch ? branch._id : null;
-                    }
+                if (itemObj.vendor) {
+                    itemObj.vendor.branchId = branch ? branch._id : null;
+                }
 
-                    return itemObj;
-                })
-            );
+                return itemObj;
+            })
+        );
 
         res.status(200).json({
             success: true,

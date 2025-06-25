@@ -143,13 +143,19 @@
                         </tr>
                         <tr>
                           <th>Registered Date</th>
-                          <td><%= vendor.createdAt.toISOString().split('T')[0] %> <%=
+                          <!-- <td><%= vendor.createdAt.toISOString().split('T')[0] %> <%=
                             vendor.createdAt.toLocaleString('en-US', {
                                 timeZone: 'UTC',
                                 hour: '2-digit',
                                 minute: '2-digit',
                                 hour12: true
-                              }).replace(',', ''); %></td>
+                              }).replace(',', ''); %></td> -->
+                                <% const createdAt=new Date(vendor.createdAt); const day=String(createdAt.getUTCDate()).padStart(2, '0' ); const
+                                  month=String(createdAt.getUTCMonth() + 1).padStart(2, '0' ); const year=createdAt.getUTCFullYear(); const
+                                  formattedDate=`${day}-${month}-${year}`; %>
+                                  <td>
+                                    <%= formattedDate %>
+                                  </td>
                         </tr>
                       </tbody>
                     </table>
@@ -251,7 +257,7 @@
                                                       </label>
                                                     </td>
                                                     <td width="100px"><img src="<%= process.env.IMAGE_URL%><%= staff[i].qrCode %>" style="width: 60%;"/></td>
-                                                    <td><%= staff[i].branch.buildingName %></td>
+                                                    <td><%= staff[i].branch?.buildingName %></td>
                                                     <td><%= staff[i].name %></td>
                                                     <td><%= staff[i].email %></td>
                                                     <td><%= staff[i].mobileNumber %></td>

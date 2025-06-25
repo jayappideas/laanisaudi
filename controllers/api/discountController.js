@@ -44,7 +44,7 @@ exports.addDiscount = async (req, res, next) => {
 exports.getDiscountList = async (req, res, next) => {
     try {
 
-        let discounts = await discountModel.find({vendor:req.vendor.id}).select('title description status totalUserCount redeemUserCount expiryDate').sort({createdAt: -1});
+        let discounts = await discountModel.find({ vendor: req.vendor.id }).select('title description status totalUserCount redeemUserCount expiryDate adminApprovedStatus').sort({createdAt: -1});
 
         res.status(200).json({
             success: true,

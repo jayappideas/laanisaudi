@@ -6,6 +6,15 @@ const branchSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Vendor',
     },
+    name: {
+      type: String,
+    },
+    email: {
+      type: String,
+    },
+    phone: {
+      type: String,
+    },
     buildingNo: {
       type: String,
       required: true
@@ -23,6 +32,10 @@ const branchSchema = new mongoose.Schema(
       required: true
     },
     country: {
+      type: String,
+      required: true
+    },
+    state: {
       type: String,
       required: true
     },

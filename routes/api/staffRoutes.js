@@ -12,7 +12,7 @@ router.put(
     upload.fields([{ name: 'image', maxCount: 1 }]),
     staffController.updateStaff
 );
-
+router.post('/status/:id', checkVendor, upload.none(), staffController.changeStaffStatus);
 router.delete(
     '/delete/:id',
     checkVendor,

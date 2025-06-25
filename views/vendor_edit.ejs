@@ -199,9 +199,11 @@
       function validatePW(fieldId, message) {
         const value = $('#' + fieldId).val().trim();
         if (!value) {
-          showError(fieldId, message);
-          return false;
-        } else if (value.length < 6) {
+          // showError(fieldId, message);
+          // return false;
+           clearError(fieldId);
+          return true;
+        } else if (value.length < 8) {
           showError(fieldId, message);
           return false;
         } else {
@@ -231,7 +233,7 @@
         valid &= validateSelect('language', 'Please select a language.');
         valid &= validateSelect('businessType', 'Please select a business type.');
         valid &= validateEmail('email');
-        // valid &= validatePW('password', 'Password should be atleast 6 characters long.');
+        valid &= validatePW('password', 'Password should be atleast 8 characters long.');
         valid &= validateText('businessName', 'Business name is required.');
         valid &= validateText('businessMobile', 'Business mobile is required.');
 

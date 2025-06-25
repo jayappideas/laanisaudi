@@ -149,6 +149,26 @@ app.get('/policy', (req, res) => {
     res.render('policy');
 });
 
+app.get('/support', (req, res) => {
+    res.render('support');
+});
+
+app.post('/support', (req, res) => {
+    const { name, email, subject, description, phone } = req.body;
+
+    if (!name || !email || !subject || !description) {
+        return res.render('support', {
+            errorMessage: 'Please fill all required fields.'
+        });
+    }
+
+    // console.log('Support Request:', { name, email, subject, description, phone });
+
+    res.render('support', {
+        successMessage: 'Your support request has been submitted. We’ll contact you soon.'
+    });
+});
+
 // 4) ERROR HANDLING
 app.use(globalErrorHandler);
 
