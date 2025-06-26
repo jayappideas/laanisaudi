@@ -374,7 +374,7 @@ exports.restaurantDetail = async (req, res, next) => {
                 const [day, month, year] = expiryStr.split('/').map(Number);
                 expiryDate = new Date(year, month - 1, day, 23, 59, 59); // End of day
             }
-            const now = new Date();
+            const now = new Date(req.body.time);
 
             return expiryDate >= now;
         });
