@@ -86,8 +86,9 @@ router.post(
     authController.addBusinessMenu
 );
 
-router.get(
+router.post(
     '/dashboardVendor',
+    upload.none(),
     authController.checkVendor,
     authController.dashboardVendor
 );
