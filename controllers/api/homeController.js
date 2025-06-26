@@ -74,15 +74,22 @@ exports.dashboardStaff = async (req, res, next) => {
 
 exports.getCategoryList = async (req, res, next) => {
     try {
-        let category = await businessTypeModel
-            .find({ isDelete: false, isActive: true })
+        const usedCategoryIds = await vendorModel.distinct('businessType');
+
+        let categories = await businessTypeModel
+            .find({
+                _id: { $in: usedCategoryIds },
+                isDelete: false,
+                isActive: true,
+            })
             .select('en ar image');
-        category = category.map(x => multilingual(x, req));
+
+        categories = categories.map(x => multilingual(x, req));
 
         res.status(200).json({
             success: true,
             message: req.t('success'),
-            data: category,
+            data: categories,
         });
     } catch (error) {
         next(error);

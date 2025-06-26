@@ -499,10 +499,33 @@ exports.dashboardVendor = async (req, res, next) => {
             isActive: true,
             isDelete: false,
         });
-        const totalDiscount = await discountModel.countDocuments({
+        const totalDiscount = await discountModel.find({
             vendor: vendorId,
             adminApprovedStatus: 'Approved',
             status: 'Active',
+        });
+
+        const filteredOffers = totalDiscount.filter(offer => {
+            const expiryStr = offer.expiryDate.trim();
+            let expiryDate;
+
+            if (/am|pm/i.test(expiryStr)) {
+                const [datePart, hourStr, minuteStr, meridian] = expiryStr.split(/[\s:]+/);
+                const [day, month, year] = datePart.split('/').map(Number);
+                let hour = parseInt(hourStr, 10);
+                const minute = parseInt(minuteStr, 10);
+
+                if (meridian.toUpperCase() === 'PM' && hour !== 12) hour += 12;
+                if (meridian.toUpperCase() === 'AM' && hour === 12) hour = 0;
+
+                expiryDate = new Date(year, month - 1, day, hour, minute);
+            } else {
+                const [day, month, year] = expiryStr.split('/').map(Number);
+                expiryDate = new Date(year, month - 1, day, 23, 59, 59); // End of day
+            }
+            const now = new Date();
+
+            return expiryDate >= now;
         });
 
         const data = await Transaction.aggregate([
@@ -548,7 +571,7 @@ exports.dashboardVendor = async (req, res, next) => {
             success: true,
             message: req.t('success'),
             totalStaff,
-            totalDiscount,
+            totalDiscount: filteredOffers.length,
             ...stats,
         });
     } catch (error) {
