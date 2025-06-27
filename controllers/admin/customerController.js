@@ -45,9 +45,9 @@ exports.postAddCategory = async (req, res) => {
 
 exports.getEditCategory = async (req, res) => {
     try {
-        const category = await customerModel.findById(req.params.id);
+        const customer = await customerModel.findById(req.params.id);
 
-        res.render('customer_edit', { category });
+        res.render('customer_edit', { customer });
 
     } catch (error) {
         if (error.name === 'CastError') req.flash('red', 'customer not found!');
