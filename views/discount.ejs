@@ -12,9 +12,44 @@
     <link rel="stylesheet" type="text/css" href="/app-assets/vendors/data-tables/css/select.dataTables.min.css">
     <link rel="stylesheet" type="text/css" href="/app-assets/css/pages/data-tables.css">
 
+    <!-- <style>
+
+    </style> -->
     <style>
-        table tr td,th{
+
+        table tr td,
+        th {
             text-align: center;
+        }
+
+        [type='checkbox']+span:not(.lever):before {
+            border-color: black;
+        }
+
+        [type='checkbox']:checked+span:not(.lever):before {
+            border-right-color: black;
+            border-bottom-color: black;
+        }
+
+        .switch label input[type=checkbox]:not(:checked)+.lever {
+            background-color: #f3374a;
+            /* Light red track */
+        }
+
+        .switch label input[type=checkbox]:not(:checked)+.lever::before {
+            background-color: #ffaba5;
+            /* Dark red thumb */
+        }
+
+        /* Toggle ON (switch track and thumb) */
+        .switch label input[type=checkbox]:checked+.lever {
+            background-color: #31db37;
+            /* Light green track */
+        }
+
+        .switch label input[type=checkbox]:checked+.lever::before {
+            background-color: #4CAF50;
+            /* Dark green thumb */
         }
     </style>
 </head>
@@ -80,7 +115,7 @@
                                                             <td>BHD <%= discounts[i].minBillAmount %></td>
                                                             <td><%= discounts[i].discountValue %> <%= discounts[i].discountType == 'Fixed' ? 'BHD' : '%' %></td>
                                                             <td><%= discounts[i].expiryDate%></td>
-                                                            <td>
+                                                            <!-- <td>
                                                                 <% if (discounts[i].adminApprovedStatus == 'Pending') { %>
                                                                     <a href="/admin/discount/change-status/<%= discounts[i]._id %>/Approved" style="background-color: rgb(212, 240, 216);padding: 5px 10px 5px 10px;color: green;border-radius: 5px;cursor: pointer;" onclick="return confirm('Are you sure want to Approve this discount?');">Approve</a>
                                                                     &nbsp;
@@ -88,7 +123,21 @@
                                                                 <% } else { %>
                                                                     <a style="background-color: <%= discounts[i].adminApprovedStatus == 'Approved' ? 'rgb(212, 240, 212)' : 'rgb(240, 212, 212)' %>;padding: 5px 10px 5px 10px;color: <%= discounts[i].adminApprovedStatus == 'Approved' ? 'green' : 'red' %>; border-radius: 5px;"><%= discounts[i].adminApprovedStatus %></a>
                                                                 <% } %>
-                                                            </td>
+                                                            </td> -->
+                                                        <td>
+                                                            <div class="col s12 m5" style="text-align: right;">
+                                                                <div class="switch">
+                                                                    <label>
+                                                                        <span style="color: red; font-weight: bold;"></span>
+                                                                        <input type="checkbox" <%=discounts[i].adminApprovedStatus==='Approved' ? 'checked' : '' %>
+                                                                        onchange="toggleApproval('<%= discounts[i]._id %>', this.checked)">
+                                                                            <span class="lever"></span>
+                                                                            <span style="color: green; font-weight: bold;"></span>
+                                                                    </label>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+
                                                             <td>
                                                                 <a data-id="<%= discounts[i]._id %>" class="view-discount" style="cursor: pointer;"><i class="material-icons">visibility</i></a>
                                                             </td>
@@ -166,7 +215,22 @@
           });
         });
     </script>
+<script>
+    function toggleApproval(vendorId, isApproved) {
+        const action = isApproved ? 'approve' : 'disapprove';
+        const confirmation = confirm(`Are you sure you want to change the status?`);
 
+        if (confirmation) {
+            const url = `/admin/discount/${isApproved ? 'approved' : 'disapproved'}/${vendorId}`;
+            window.location.href = url;
+        } else {
+            // Prevent toggle change on cancel
+            setTimeout(() => {
+                location.reload(); // Revert UI if cancelled
+            }, 100);
+        }
+    }
+</script>
 </body>
 
 </html>

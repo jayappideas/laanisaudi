@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html class="loading" lang="en" data-textdirection="ltr">
+<!-- BEGIN: Head-->
+
+<head>
+    <%- include('_layouts/head') %>
+    <title> Customer Type Add | <%= title %></title>
+
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/Dropify/0.2.2/css/dropify.min.css">
+</head>
+<!-- END: Head-->
+
+<body class="vertical-layout page-header-light vertical-menu-collapsible vertical-dark-menu preload-transitions 2-columns" data-open="click" data-menu="vertical-dark-menu" data-col="2-columns">
+
+    <%- include('_layouts/sidenavbar') %>
+
+    <!-- BEGIN: Page Main-->
+    <div id="main">
+        <div class="row">
+            <div class="pt-1 pb-0" id="breadcrumbs-wrapper">
+                <!-- Search for small screen-->
+                <div class="container">
+                    <div class="row">
+                        <div class="col s12 m6 l6">
+                            <h6 class="breadcrumbs-title"><span>Add Customer Type</span></h6>
+                        </div>
+                        <div class="col s12 m6 l6 right-align-md" style="margin-top: -10px;">
+                            <ol class="breadcrumbs mb-0">
+                                <li class="breadcrumb-item"><a href="/admin">Dashboard</a>
+                                </li>
+                                <li class="breadcrumb-item"><a href="/admin/customer">Customer Types</a>
+                                </li>
+                                <li class="breadcrumb-item active">Add Customer Type
+                                </li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="container pl-2 pr-2">
+            <div class="card">
+                <div class="row">
+                    <div class="col s12">
+                        <div id="basic-form" class=" card-default scrollspy">
+                            <div class="card-content">
+                                <form method="POST" action="/admin/customer/create-customer" class="formValidate0" id="formValidate0" enctype="multipart/form-data">
+
+                                    <div class="input-field col s12">
+                                        <label for="ename">Name</label>
+                                        <input class="validate" id="ename" name="ename" type="text" required>
+                                        <div class="error-message" id="enameError"></div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col s12 display-flex justify-content-end">
+                                            <button class="btn btn-edit" type="submit" name="action">Submit</button>
+                                            &nbsp;&nbsp;&nbsp;
+                                            <a type="button" class="btn btn-delete" href="/admin/customer">Cancel</a>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <!-- END: Page Main-->
+
+    <%- include('_layouts/commonJs') %>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Dropify/0.2.2/js/dropify.min.js"></script>
+    <script src="/app-assets/js/scripts/form-file-uploads.min.js"></script>
+
+</body>
+
+</html>

@@ -90,6 +90,13 @@
                                 </a>
                               </li>
 
+                              <li class="bold <%= url.startsWith('/admin/customer') ? 'active' : '' %>">
+                                    <a class="waves-effect waves-cyan" href="/admin/customer">
+                                      <i class="material-icons <%= url.startsWith('/admin/customer') ? 'theme-text' : 'black-text' %> ">wc</i>
+                                      <span class="menu-title <%= url.startsWith('/admin/customer') ? 'theme-text' : 'black-text' %> ">Customer Type</span>
+                                    </a>
+                              </li>
+
                               <!-- <li class="bold <%= url.startsWith('/report') ? 'active' : '' %>">
                                 <a class="waves-effect waves-cyan" href="/report">
                                   <i class="material-icons <%= url.startsWith('/report') ? 'theme-text' : 'black-text' %> ">insert_chart</i>

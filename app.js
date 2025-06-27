@@ -126,6 +126,7 @@ app.use('/admin/category', require('./routes/admin/categoryRoutes'));
 app.use('/admin/cms', require('./routes/admin/cmsRoutes'));
 app.use('/admin/discount', require('./routes/admin/discountRoutes'));
 app.use('/admin/sub-admin', require('./routes/admin/authRoutes'));
+app.use('/admin/customer', require('./routes/admin/customerRoutes'));
 
 // 404 admin
 app.all('/admin/*', (req, res) => res.status(404).render('404'));

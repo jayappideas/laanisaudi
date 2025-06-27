@@ -1,5 +1,6 @@
 const createError = require('http-errors');
 const discountModel = require('../../models/discountModel');
+const customerModel = require('../../models/customerModel');
 const { ObjectId } = require('mongodb');
 
 exports.addDiscount = async (req, res, next) => {
@@ -122,6 +123,21 @@ exports.deleteDiscount = async (req, res, next) => {
         });
     } catch (error) {
         console.log(error);
+        next(error);
+    }
+};
+
+exports.getCategories = async (req, res) => {
+    try {
+        const customer = await customerModel.find({
+            isDelete: false,
+        }).select('-isDelete -__v -updatedAt');
+
+        res.status(200).json({
+            success: true,
+            customer
+        });
+    } catch (error) {
         next(error);
     }
 };

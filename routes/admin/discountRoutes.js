@@ -9,5 +9,7 @@ router.get(
     discountController.getAllDiscount
 );
 router.get('/change-status/:id/:status', discountController.approvedDiscount);
+router.get('/approved/:id', discountController.approvedVendor);
+router.get('/disapproved/:id', discountController.disapprovedVendor);
 
 module.exports = router;
