@@ -492,6 +492,10 @@ exports.isVendor = async (req, res, next) => {
 //? Home screen dashboard Vendor
 exports.dashboardVendor = async (req, res, next) => {
     try {
+        if (!req.body.time) {
+            return next(createError.Unauthorized('Please enter time'))
+        }
+
         const vendorId = req.vendor._id;
 
         const totalStaff = await Staff.countDocuments({
@@ -566,6 +570,9 @@ exports.dashboardVendor = async (req, res, next) => {
             totalSpentPoints: 0,
             totalFinalAmount: 0,
         };
+
+        console.log('filteredOffers', filteredOffers)
+        console.log(filteredOffers.length);
 
         res.status(200).json({
             success: true,

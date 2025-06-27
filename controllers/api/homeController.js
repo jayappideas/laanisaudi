@@ -291,6 +291,9 @@ exports.getRestaurantList = async (req, res, next) => {
 
 exports.restaurantDetail = async (req, res, next) => {
     try {
+        if (!req.body.time) {
+            return next(createError.Unauthorized('Please enter time'))
+        }
         const vendorId = req.body.vendorId;
         const branchId = req.body.branchId;
 
