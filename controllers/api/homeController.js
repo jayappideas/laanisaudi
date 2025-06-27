@@ -74,8 +74,17 @@ exports.dashboardStaff = async (req, res, next) => {
 
 exports.getCategoryList = async (req, res, next) => {
     try {
-        const usedCategoryIds = await vendorModel.distinct('businessType');
+        // Step 1: Get vendor IDs who have at least one non-deleted branch
+        const vendorsWithBranches = await branchModel
+            .find({ isDelete: false })
+            .distinct('vendor');
 
+        // Step 2: Get businessType (category) IDs used by those vendors
+        const usedCategoryIds = await vendorModel
+            .find({ _id: { $in: vendorsWithBranches } })
+            .distinct('businessType');
+
+        // Step 3: Get businessType categories based on those IDs
         let categories = await businessTypeModel
             .find({
                 _id: { $in: usedCategoryIds },
@@ -84,6 +93,7 @@ exports.getCategoryList = async (req, res, next) => {
             })
             .select('en ar image');
 
+        // Step 4: Map to multilingual
         categories = categories.map(x => multilingual(x, req));
 
         res.status(200).json({

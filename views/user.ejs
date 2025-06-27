@@ -117,12 +117,23 @@
                                                                     hour12: true
                                                                   }).replace(',', ''); %>
                               </td> -->
-                                <% const createdAt=new Date(users[i].createdAt); const day=String(createdAt.getUTCDate()).padStart(2, '0' ); const
+                                <!-- <% const createdAt=new Date(users[i].createdAt); const day=String(createdAt.getUTCDate()).padStart(2, '0' ); const
                                   month=String(createdAt.getUTCMonth() + 1).padStart(2, '0' ); const year=createdAt.getUTCFullYear(); const
                                   formattedDate=`${day}-${month}-${year}`; %>
                                   <td>
                                     <%= formattedDate %>
-                                  </td>
+                                  </td> -->
+
+                                  <% let formattedDateTime='-' ; if (users[i].createdAt) { const createdAt=new Date(users[i].createdAt); const
+                                    day=String(createdAt.getUTCDate()).padStart(2, '0' ); const month=String(createdAt.getUTCMonth() + 1).padStart(2, '0'
+                                    ); const year=createdAt.getUTCFullYear(); const hours=String(createdAt.getUTCHours()).padStart(2, '0' ); const
+                                    minutes=String(createdAt.getUTCMinutes()).padStart(2, '0' ); const
+                                    seconds=String(createdAt.getUTCSeconds()).padStart(2, '0' ); formattedDateTime=`${day}-${month}-${year}
+                                    ${hours}:${minutes}:${seconds}`; } %>
+                                    <td>
+                                      <%= formattedDateTime %>
+                                    </td>
+
                               <td>
                                 <% if (users[i].isActive) { %>
                                 <a href="/admin/user/change-status/<%= users[i]._id %>/0" class="waves-effect border-round waves-light btn green mr-1 mb-2" onclick="return confirm('Are you sure want to De-Active this user?');">Active</a>

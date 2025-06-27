@@ -75,6 +75,9 @@ const vendorSchema = new mongoose.Schema(
         type: Boolean,
         default: false,
     },
+    // lastlogin: {
+    //   type: String,
+    // },
     isActive: {
       type: Boolean,
       default: true,

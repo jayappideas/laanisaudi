@@ -804,6 +804,7 @@ exports.loginVendor = async (req, res, next) => {
 
         user.fcmToken = fcmToken;
         user.token = token;
+        // user.lastlogin = new Date().toISOString();
 
         await user.save();
         // hide fields
