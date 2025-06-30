@@ -5,6 +5,8 @@ const vendorModel = require('../../models/vendorModel');
 const branchModel = require('../../models/branchModel');
 const QRCode = require('qrcode');
 const path = require('path');
+const otpModel = require('../../models/otpModel');
+const generateCode = require('../../utils/generateCode');
 
 exports.updateNotification = async (req, res, next) => {
     try {
