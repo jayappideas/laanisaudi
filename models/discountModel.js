@@ -27,9 +27,10 @@ const discountSchema = new mongoose.Schema(
             enum: ['Active', 'Inactive', 'Expired'],
             required: true,
         },
-        customerType: [
-            String
-        ],
+        customerType: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Customer',
+        },
         minBillAmount: {
             type: Number,
             required: true,
@@ -49,6 +50,10 @@ const discountSchema = new mongoose.Schema(
         },
         description: {
             type: String,
+        },
+        isDelete: {
+            type: Boolean,
+            default: false,
         },
         adminApprovedStatus: {
             type: String,

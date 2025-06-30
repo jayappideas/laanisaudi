@@ -276,7 +276,11 @@ exports.login = async (req, res, next) => {
         );
 
         if (!user) return next(createError.BadRequest('staff.credentials'));
+        if (user.isActive == false)
+            return next(createError.BadRequest('auth.blocked'));
 
+        if (user.vendorApproved == false)
+            return next(createError.BadRequest('auth.pendingVendorApproved'));
         if (user.password != password)
             return next(createError.BadRequest('staff.credentials'));
 
@@ -284,7 +288,9 @@ exports.login = async (req, res, next) => {
 
         user.fcmToken = fcmToken;
         user.token = token;
-        user.language = language;
+        if (language) {
+            user.language = language;
+        }
 
         await user.save();
         // hide fields
@@ -308,6 +314,51 @@ exports.login = async (req, res, next) => {
     }
 };
 
+
+exports.forgotPasswordVendor = async (req, res, next) => {
+    try {
+        const email = req.body.email;
+        if (!email) return next(createError.BadRequest('validation.email'));
+
+        const user = await Staff.findOne({ email });
+        if (!user)
+            return next(createError.BadRequest('phone.notRegisteredEmail'));
+
+        // generate and save OTP
+        const otp = generateCode(4);
+        await otpModel.updateOne(
+            { mobileNumber: email },
+            { $set: { otp: otp } },
+            { upsert: true }
+        );
+
+        // send OTP
+        // await sendOTP(phone, otp);
+
+        res.json({ success: true, message: req.t('otp.sentemail'), otp: otp });
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.resetPasswordVendor = async (req, res, next) => {
+    try {
+        const user = await Staff.findOne({ email: req.body.email });
+
+        // update passcode
+        user.password = req.body.password;
+
+        await user.save();
+
+        res.json({
+            success: true,
+            message: req.t('passwordUpdated'),
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
 exports.getStaffDiscountList = async (req, res, next) => {
     try {
         let discounts = await discountModel
@@ -315,6 +366,7 @@ exports.getStaffDiscountList = async (req, res, next) => {
                 vendor: req.staff.vendor,
                 adminApprovedStatus: { $nin: ['Pending', 'Rejected'] },
                 status: { $nin: ['Inactive', 'Expired'] },
+                isDelete: false
             })
             .select(
                 'title description status totalUserCount redeemUserCount expiryDate'

@@ -12,6 +12,7 @@ const {
     sendNotificationsToTokens,
     sendNotificationsToTokenscheckout,
 } = require('../../utils/sendNotificationStaff');
+const discountModel = require('../../models/discountModel');
 
 
 
@@ -315,6 +316,16 @@ exports.deleteAccountVendor = async (req, res, next) => {
         //Points Removed
 
         await user.save();
+
+        // Option A: Soft-delete related discounts
+        await discountModel.updateMany(
+            { vendor: req.params.id },
+            { $set: { isDelete: true } }
+        );
+
+        // Option B: Hard delete related discounts (uncomment if you prefer permanent deletion)
+        // await discountModel.deleteMany({ vendor: req.params.id });
+
         // const branch = await branchModel.find({ vendor: req.params.id });
         // branch.forEach(async (branch) => {
         //     branch.isDelete = true;

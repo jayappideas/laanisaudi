@@ -24,6 +24,16 @@ router.post(
 );
 router.post('/login', upload.none(), staffController.login);
 router.post(
+    '/forgotPassword',
+    upload.none(),
+    staffController.forgotPasswordVendor
+);
+router.post(
+    '/resetPassword',
+    upload.none(),
+    staffController.resetPasswordVendor
+);
+router.post(
     '/updateNotification/:status',
     staffController.checkStaff,
     upload.none(),

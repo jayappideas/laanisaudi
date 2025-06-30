@@ -78,11 +78,14 @@ exports.getCategoryList = async (req, res, next) => {
         const vendorsWithBranches = await branchModel
             .find({ isDelete: false })
             .distinct('vendor');
+        // console.log('vendorsWithBranches', vendorsWithBranches);
+
 
         // Step 2: Get businessType (category) IDs used by those vendors
         const usedCategoryIds = await vendorModel
             .find({ _id: { $in: vendorsWithBranches } })
             .distinct('businessType');
+        // console.log('usedCategoryIds', usedCategoryIds);
 
         // Step 3: Get businessType categories based on those IDs
         let categories = await businessTypeModel
@@ -92,6 +95,7 @@ exports.getCategoryList = async (req, res, next) => {
                 isActive: true,
             })
             .select('en ar image');
+        // console.log('categories', categories);
 
         // Step 4: Map to multilingual
         categories = categories.map(x => multilingual(x, req));

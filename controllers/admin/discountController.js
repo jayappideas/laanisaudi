@@ -7,10 +7,12 @@ const {
 exports.getAllDiscount = async (req, res) => {
 
     try {
-        const discounts = await discountModel.find().select('-updatedAt -createdAt -__v')
+        const discounts = await discountModel.find({ isDelete: false }).select('-updatedAt -createdAt -__v')
                                 .populate({
                                     path: 'vendor',
                                     select: 'businessName'
+                                }).populate({
+                                    path: 'customerType',
                                 }).sort('-_id');
 
                                 // Remove deleted vendor
