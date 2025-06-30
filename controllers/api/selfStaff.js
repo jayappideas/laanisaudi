@@ -128,6 +128,7 @@ exports.addStaff = async (req, res, next) => {
         // create user
         let user = await Staff.create({
             vendor: req.body.vendorid,
+            language: req.body.language,
             branch: req.body.branch,
             name: req.body.name,
             email: req.body.email,
@@ -189,6 +190,7 @@ exports.updateStaff = async (req, res, next) => {
             user.photo = req.files.image[0].filename;
         }
 
+        user.language = req.body.language;
         user.branch = req.body.branch;
         user.name = req.body.name;
         user.email = req.body.email;
