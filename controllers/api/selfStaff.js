@@ -1,6 +1,10 @@
 const createError = require('http-errors');
 const Staff = require('../../models/staffModel');
 const discountModel = require('../../models/discountModel');
+const vendorModel = require('../../models/vendorModel');
+const branchModel = require('../../models/branchModel');
+const QRCode = require('qrcode');
+const path = require('path');
 
 exports.updateNotification = async (req, res, next) => {
     try {
@@ -16,6 +20,44 @@ exports.updateNotification = async (req, res, next) => {
         });
     } catch (error) {
         console.log(error);
+        next(error);
+    }
+};
+
+
+
+exports.getAllVendors = async (req, res) => {
+    try {
+        const vendors = await vendorModel
+            .find({ isDelete: false })
+            .select('businessName businessMobile  businessLogo email')
+            .populate({
+                path: 'businessType',
+                select: 'en ar',
+            })
+            .sort('-_id');
+
+        res.status(200).json({
+            success: true,
+            message: req.t('success'),
+            vendors
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.getBranchList = async (req, res, next) => {
+    try {
+
+        let branch = await branchModel.find({ vendor: req.body.vendorid, isDelete: false }).select('-updatedAt -isDelete -__v').sort({ createdAt: -1 });
+
+        res.status(200).json({
+            success: true,
+            message: req.t('success'),
+            data: branch,
+        });
+    } catch (error) {
         next(error);
     }
 };
@@ -62,6 +104,108 @@ exports.login = async (req, res, next) => {
             user,
         });
     } catch (error) {
+        next(error);
+    }
+};
+
+exports.addStaff = async (req, res, next) => {
+    try {
+        const userExists = await Staff.findOne({
+            mobileNumber: req.body.mobileNumber,
+        });
+        if (userExists)
+            return next(
+                createError.BadRequest('validation.alreadyRegisteredPhone')
+            );
+
+        const userEmailExists = await Staff.findOne({ email: req.body.email });
+        if (userEmailExists)
+            return next(
+                createError.BadRequest('validation.alreadyRegisteredEmail')
+            );
+        const photo = req.files?.image?.[0]?.filename ?? '/default_user.jpg';
+
+        // create user
+        let user = await Staff.create({
+            vendor: req.body.vendorid,
+            branch: req.body.branch,
+            name: req.body.name,
+            email: req.body.email,
+            mobileNumber: req.body.mobileNumber,
+            occupation: req.body.occupation,
+            password: req.body.password,
+            photo,
+        });
+
+        // Define the file path
+        const uploadsDir = path.join('./public/uploads');
+        const fileName = `${user._id}_qr.png`;
+        const filePath = path.join(uploadsDir, fileName);
+
+        // Generate the QR code with the unique ID as the content
+        await QRCode.toFile(filePath, user._id.toString(), {
+            color: {
+                dark: '#000000',
+                light: '#ffffff',
+            },
+        });
+
+        user.qrCode = fileName;
+        user.save();
+
+        res.status(201).json({
+            success: true,
+            message: req.t('staff.add'),
+        });
+    } catch (error) {
+        console.log(error);
+        next(error);
+    }
+};
+
+exports.updateStaff = async (req, res, next) => {
+    try {
+        const userExists = await Staff.findOne({
+            mobileNumber: req.body.mobileNumber,
+            _id: { $ne: req.params.id },
+        });
+        if (userExists)
+            return next(
+                createError.BadRequest('validation.alreadyRegisteredPhone')
+            );
+
+        const userEmailExists = await Staff.findOne({
+            email: req.body.email,
+            _id: { $ne: req.params.id },
+        });
+        if (userEmailExists)
+            return next(
+                createError.BadRequest('validation.alreadyRegisteredEmail')
+            );
+
+        const user = await Staff.findById(req.params.id);
+
+        if (req.files && req.files?.image && req.files.image[0]) {
+            user.photo = req.files.image[0].filename;
+        }
+
+        user.branch = req.body.branch;
+        user.name = req.body.name;
+        user.email = req.body.email;
+        user.mobileNumber = req.body.mobileNumber;
+        user.occupation = req.body.occupation;
+
+        if (req.body.password != user.password) user.token = '';
+
+        user.password = req.body.password;
+        await user.save();
+
+        res.status(201).json({
+            success: true,
+            message: req.t('staff.update'),
+        });
+    } catch (error) {
+        console.log(error);
         next(error);
     }
 };

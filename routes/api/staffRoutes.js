@@ -13,6 +13,8 @@ router.put(
     staffController.updateStaff
 );
 router.post('/status/:id', checkVendor, upload.none(), staffController.changeStaffStatus);
+router.post('/registerStatus', checkVendor, upload.none(), staffController.registerStatus);
+
 router.delete(
     '/delete/:id',
     checkVendor,

@@ -70,6 +70,10 @@ const staffSchema = new mongoose.Schema(
             type: Boolean,
             default: true,
         },
+        vendorApproved: {
+            type: Boolean,
+            default: false,
+        },
     },
     { timestamps: true }
 );

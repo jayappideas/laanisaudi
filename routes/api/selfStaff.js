@@ -3,7 +3,21 @@ const { upload } = require('../../controllers/uploadController');
 const staffController = require('../../controllers/api/staffController');
 const selfStaff = require('../../controllers/api/selfStaff');
 
-
+router.post('/add', upload.fields([{ name: 'image', maxCount: 1 }]), staffController.addStaff);
+router.put(
+    '/update',
+    upload.fields([{ name: 'image', maxCount: 1 }]),
+    staffController.updateStaff
+);
+router.get(
+    '/vendorList',
+    selfStaff.getAllVendors
+);
+router.post(
+    '/branchList',
+    upload.none(),
+    selfStaff.getBranchList
+);
 router.post('/login', upload.none(), staffController.login);
 router.post(
     '/updateNotification/:status',

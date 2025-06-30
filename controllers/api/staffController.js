@@ -34,6 +34,24 @@ exports.checkStaff = async (req, res, next) => {
     }
 };
 
+exports.registerStatus = async (req, res) => {
+    try {
+        const user = await Staff.findById(req.body.staffid);
+        if (!user) return next(createError.BadRequest('Staff not found.'));
+
+        user.vendorApproved = req.body.status;
+
+        await user.save();
+
+        res.status(200).json({
+            success: true,
+            message: req.t('staff.status'),
+        });
+    } catch (error) {
+        next(error)
+    }
+};
+
 exports.addStaff = async (req, res, next) => {
     try {
         const userExists = await Staff.findOne({
@@ -92,7 +110,7 @@ exports.addStaff = async (req, res, next) => {
 exports.getStaffList = async (req, res, next) => {
     try {
         let staff = await Staff.find({ vendor: req.vendor.id, isDelete: false })
-            .select('name email password photo isActive')
+            .select('name email password photo isActive vendorApproved')
             .sort({ createdAt: -1 });
 
         res.status(200).json({
