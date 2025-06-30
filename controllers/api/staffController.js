@@ -4,7 +4,9 @@ const Staff = require('../../models/staffModel');
 const QRCode = require('qrcode');
 const path = require('path');
 const discountModel = require('../../models/discountModel');
-
+const {
+    sendNotificationsToTokenscheckout,
+} = require('../../utils/sendNotificationStaff');
 
 exports.checkStaff = async (req, res, next) => {
     try {
@@ -132,7 +134,13 @@ exports.addStaff = async (req, res, next) => {
 
 exports.getStaffList = async (req, res, next) => {
     try {
-        let staff = await Staff.find({ vendor: req.vendor.id, isDelete: false })
+        let status = req.params.status
+        if (status == 'pending') {
+            status = false
+        } else if (status == 'approved'){
+            status = true
+        }
+        let staff = await Staff.find({ vendor: req.vendor.id, isDelete: false, vendorApproved: status })
             .select('name email password photo isActive vendorApproved')
             .sort({ createdAt: -1 });
 
