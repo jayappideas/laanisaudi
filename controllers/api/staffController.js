@@ -141,6 +141,8 @@ exports.getStaffList = async (req, res, next) => {
             filter.vendorApproved = 'pending';
         } else if (status == 'approved') {
             filter.vendorApproved = 'approved';
+        } else if (status == 'rejected') {
+            filter.vendorApproved = 'rejected';
         }
 
         let staff = await Staff.find(filter)
