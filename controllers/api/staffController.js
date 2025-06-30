@@ -134,13 +134,16 @@ exports.addStaff = async (req, res, next) => {
 
 exports.getStaffList = async (req, res, next) => {
     try {
-        let status = req.params.status
+        let status = req.params.status;
+        let filter = { vendor: req.vendor.id, isDelete: false };
+
         if (status == 'pending') {
-            status = false
-        } else if (status == 'approved'){
-            status = true
+            filter.vendorApproved = false;
+        } else if (status == 'approved') {
+            filter.vendorApproved = true;
         }
-        let staff = await Staff.find({ vendor: req.vendor.id, isDelete: false, vendorApproved: status })
+
+        let staff = await Staff.find(filter)
             .select('name email password photo isActive vendorApproved')
             .sort({ createdAt: -1 });
 
@@ -153,6 +156,7 @@ exports.getStaffList = async (req, res, next) => {
         next(error);
     }
 };
+
 
 exports.getStaffDetail = async (req, res, next) => {
     try {
