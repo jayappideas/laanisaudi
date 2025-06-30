@@ -1080,6 +1080,11 @@ exports.deleteAccountVendor = async (req, res, next) => {
 
         await user.save();
 
+        await discountModel.updateMany(
+            { vendor: req.vendor.id },
+            { $set: { isDelete: true } }
+        );
+
         res.status(201).json({
             success: true,
             message: req.t('auth.deleted_success'),

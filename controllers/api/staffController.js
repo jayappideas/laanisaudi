@@ -45,7 +45,7 @@ exports.registerStatus = async (req, res, next) => {
 
         let title, body, data;
 
-        if (req.body.status === true) {
+        if (req.body.status === 'approved') {
             title = 'Welcome! Your Account is Now Approved';
             body = 'Congratulations! Your account has been successfully approved. You can now access all features.';
             data = { type: 'account_approved' };
@@ -138,9 +138,9 @@ exports.getStaffList = async (req, res, next) => {
         let filter = { vendor: req.vendor.id, isDelete: false };
 
         if (status == 'pending') {
-            filter.vendorApproved = false;
+            filter.vendorApproved = 'pending';
         } else if (status == 'approved') {
-            filter.vendorApproved = true;
+            filter.vendorApproved = 'approved';
         }
 
         let staff = await Staff.find(filter)

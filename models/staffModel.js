@@ -71,8 +71,9 @@ const staffSchema = new mongoose.Schema(
             default: true,
         },
         vendorApproved: {
-            type: Boolean,
-            default: false,
+            type: String,
+            enum: ['pending', 'approved', 'rejected'],
+            default: 'pending',
         },
     },
     { timestamps: true }
