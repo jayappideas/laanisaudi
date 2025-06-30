@@ -3,11 +3,15 @@ const { upload } = require('../../controllers/uploadController');
 const staffController = require('../../controllers/api/staffController');
 const selfStaff = require('../../controllers/api/selfStaff');
 
-router.post('/add', upload.fields([{ name: 'image', maxCount: 1 }]), staffController.addStaff);
+router.post('/sendOtp', upload.none(), selfStaff.sendOtpVendor);
+router.post('/verifyOtp', upload.none(), selfStaff.verifyOtpVendor);
+router.post('/resendOtp', upload.none(), selfStaff.resendOtpVendor);
+
+router.post('/add', upload.fields([{ name: 'image', maxCount: 1 }]), selfStaff.addStaff);
 router.put(
     '/update',
     upload.fields([{ name: 'image', maxCount: 1 }]),
-    staffController.updateStaff
+    selfStaff.updateStaff
 );
 router.get(
     '/vendorList',

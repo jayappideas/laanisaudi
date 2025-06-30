@@ -52,6 +52,7 @@ exports.registerStatus = async (req, res) => {
     }
 };
 
+
 exports.addStaff = async (req, res, next) => {
     try {
         const userExists = await Staff.findOne({

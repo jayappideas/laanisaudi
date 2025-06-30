@@ -24,7 +24,88 @@ exports.updateNotification = async (req, res, next) => {
     }
 };
 
+exports.sendOtpVendor = async (req, res, next) => {
+    try {
+        let { email } = req.body;
 
+        const userExist = await Staff.findOne({
+            email: email,
+            isDelete: false,
+        });
+
+        if (userExist) {
+            return next(
+                createError.BadRequest('validation.alreadyRegisteredEmail')
+            );
+        }
+
+        await otpModel.deleteMany({ mobileNumber: email });
+
+        // generate and save OTP
+        const otp = generateCode(4);
+
+        await otpModel.create({
+            mobileNumber: email,
+            otp,
+        });
+
+        // send OTP
+        // await sendOTP(phone, otp);
+
+        res.json({
+            success: true,
+            message: req.t('otp.sentemail'),
+            otp, //! Remove this OTP
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.verifyOtpVendor = async (req, res, next) => {
+    try {
+        let { email, otp } = req.body;
+
+        const otpVerified = await otpModel.findOne({
+            mobileNumber: email,
+            otp: otp,
+        });
+
+        if (!otpVerified) return next(createError.BadRequest('otp.fail'));
+
+        res.json({
+            success: true,
+            message: req.t('otp.verified'),
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.resendOtpVendor = async (req, res, next) => {
+    try {
+        let { email } = req.body;
+
+        // generate and save OTP
+        const otp = generateCode(4);
+        await otpModel.updateOne(
+            { mobileNumber: email },
+            { $set: { otp: otp } },
+            { upsert: true }
+        );
+
+        // send OTP
+        // await sendOTP(phone, otp);
+
+        res.json({
+            success: true,
+            message: req.t('otp.sentemail'),
+            otp, //! Remove this OTP
+        });
+    } catch (error) {
+        next(error);
+    }
+};
 
 exports.getAllVendors = async (req, res) => {
     try {
@@ -135,6 +216,7 @@ exports.addStaff = async (req, res, next) => {
             mobileNumber: req.body.mobileNumber,
             occupation: req.body.occupation,
             password: req.body.password,
+            fcmToken: req.body.fcmToken,
             photo,
         });
 
@@ -195,6 +277,7 @@ exports.updateStaff = async (req, res, next) => {
         user.name = req.body.name;
         user.email = req.body.email;
         user.mobileNumber = req.body.mobileNumber;
+        user.fcmToken = req.body.fcmToken;
         user.occupation = req.body.occupation;
 
         if (req.body.password != user.password) user.token = '';
@@ -273,43 +356,43 @@ exports.getStaffDetail = async (req, res, next) => {
     }
 };
 
-exports.updateStaff = async (req, res, next) => {
-    try {
-        // const userExists = await Staff.findOne({
-        //     mobileNumber: req.body.mobileNumber,
-        //     _id: { $ne: req.staff.id },
-        // });
-        // if (userExists)
-        //     return next(
-        //         createError.BadRequest('validation.alreadyRegisteredPhone')
-        //     );
+// exports.updateStaff = async (req, res, next) => {
+//     try {
+//         // const userExists = await Staff.findOne({
+//         //     mobileNumber: req.body.mobileNumber,
+//         //     _id: { $ne: req.staff.id },
+//         // });
+//         // if (userExists)
+//         //     return next(
+//         //         createError.BadRequest('validation.alreadyRegisteredPhone')
+//         //     );
 
-        // const userEmailExists = await Staff.findOne({
-        //     email: req.body.email,
-        //     _id: { $ne: req.staff.id },
-        // });
-        // if (userEmailExists)
-        //     return next(
-        //         createError.BadRequest('validation.alreadyRegisteredEmail')
-        //     );
+//         // const userEmailExists = await Staff.findOne({
+//         //     email: req.body.email,
+//         //     _id: { $ne: req.staff.id },
+//         // });
+//         // if (userEmailExists)
+//         //     return next(
+//         //         createError.BadRequest('validation.alreadyRegisteredEmail')
+//         //     );
 
-        const user = await Staff.findById(req.staff.id);
+//         const user = await Staff.findById(req.staff.id);
 
-        // user.branch = req.body.branch;
-        user.name = req.body.name;
-        user.email = user.email;
-        // user.password = user.password;
-        user.mobileNumber = req.body.mobileNumber;
-        user.occupation = req.body.occupation;
+//         // user.branch = req.body.branch;
+//         user.name = req.body.name;
+//         user.email = user.email;
+//         // user.password = user.password;
+//         user.mobileNumber = req.body.mobileNumber;
+//         user.occupation = req.body.occupation;
 
-        await user.save();
+//         await user.save();
 
-        res.status(201).json({
-            success: true,
-            message: req.t('staff.update'),
-        });
-    } catch (error) {
-        console.log(error);
-        next(error);
-    }
-};
+//         res.status(201).json({
+//             success: true,
+//             message: req.t('staff.update'),
+//         });
+//     } catch (error) {
+//         console.log(error);
+//         next(error);
+//     }
+// };
