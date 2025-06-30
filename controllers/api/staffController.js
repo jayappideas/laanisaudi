@@ -34,12 +34,33 @@ exports.checkStaff = async (req, res, next) => {
     }
 };
 
-exports.registerStatus = async (req, res) => {
+exports.registerStatus = async (req, res, next) => {
     try {
         const user = await Staff.findById(req.body.staffid);
         if (!user) return next(createError.BadRequest('Staff not found.'));
 
         user.vendorApproved = req.body.status;
+
+        let title, body, data;
+
+        if (req.body.status === true) {
+            title = 'Welcome! Your Account is Now Approved';
+            body = 'Congratulations! Your account has been successfully approved. You can now access all features.';
+            data = { type: 'account_approved' };
+        } else {
+            title = 'Account Approval Status';
+            body = 'We regret to inform you that your account has not been approved at this time.';
+            data = { type: 'account_rejected' };
+        }
+
+        if (user.fcmToken) {
+            await sendNotificationsToTokenscheckout(
+                title,
+                body,
+                [user.fcmToken],
+                data,
+            );
+        }
 
         await user.save();
 
@@ -48,9 +69,10 @@ exports.registerStatus = async (req, res) => {
             message: req.t('staff.status'),
         });
     } catch (error) {
-        next(error)
+        next(error);
     }
 };
+
 
 
 exports.addStaff = async (req, res, next) => {

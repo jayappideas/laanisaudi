@@ -4,7 +4,7 @@ const { checkVendor } = require('../../controllers/api/authController');
 const staffController = require('../../controllers/api/staffController');
 
 router.post('/add', checkVendor, upload.fields([{ name: 'image', maxCount: 1 }]),  staffController.addStaff);
-router.get('/', checkVendor, upload.none(), staffController.getStaffList);
+router.get('/staffList/:status', checkVendor, upload.none(), staffController.getStaffList);
 router.get('/:id', checkVendor, upload.none(), staffController.getStaffDetail);
 router.put(
     '/update/:id',
