@@ -5,6 +5,7 @@ const categoryModel = require('../../models/categoryModel');
 const menuItemModel = require('../../models/menuItemModel');
 const path = require('path');
 const fs = require('fs');
+const vendorActivityLog = require('../../models/vendorActivityLog');
 
 exports.addBranch = async (req, res, next) => {
     try {
@@ -27,6 +28,15 @@ exports.addBranch = async (req, res, next) => {
             },
         });
 
+        await vendorActivityLog.create({
+            vendorId: req.vendor.id,
+            action: 'BRANCH_CREATED',
+            targetRef: branch._id,
+            targetModel: 'Branch',
+            meta: {
+                title: branch.name,
+            },
+        });
         res.status(201).json({
             success: true,
             message: req.t('branch.add')
@@ -40,7 +50,7 @@ exports.addBranch = async (req, res, next) => {
 exports.getBranchList = async (req, res, next) => {
     try {
 
-        let branch = await Branch.find({vendor:req.vendor.id, isDelete: false}).select('-createdAt -updatedAt -isDelete -__v').sort({createdAt: -1});
+        let branch = await Branch.find({ vendor: req.vendor.id, isDelete: false }).select('-createdAt -updatedAt -isDelete -__v').sort({ createdAt: -1 });
 
         res.status(200).json({
             success: true,
@@ -80,17 +90,25 @@ exports.updateBranch = async (req, res, next) => {
         branch.city = req.body.city
         branch.country = req.body.country
         branch.state = req.body.state
-        branch.name= req.body.name,
-        branch.email = req.body.email,
-        branch.phone = req.body.phone,
+        branch.name = req.body.name,
+            branch.email = req.body.email,
+            branch.phone = req.body.phone,
 
-        branch.location = {
-            type: 'Point',
-            coordinates: [parseFloat(req.body.longitude), parseFloat(req.body.latitude)]
-        },
+            branch.location = {
+                type: 'Point',
+                coordinates: [parseFloat(req.body.longitude), parseFloat(req.body.latitude)]
+            },
 
-        await branch.save();
-
+            await branch.save();
+        await vendorActivityLog.create({
+            vendorId: req.vendor.id,
+            action: 'BRANCH_UPDATED',
+            targetRef: branch._id,
+            targetModel: 'Branch',
+            meta: {
+                title: branch.name,
+            },
+        });
         res.status(201).json({
             success: true,
             message: req.t('branch.update')
@@ -109,6 +127,16 @@ exports.deleteBranch = async (req, res, next) => {
         branch.isDelete = true;
 
         await branch.save();
+
+        await vendorActivityLog.create({
+            vendorId: req.vendor.id,
+            action: 'BRANCH_DELETED',
+            targetRef: branch._id,
+            targetModel: 'Branch',
+            meta: {
+                title: branch.name,
+            },
+        });
 
         res.status(201).json({
             success: true,
@@ -145,25 +173,25 @@ exports.getCategoryList = async (req, res, next) => {
 
         const categories = await categoryModel.aggregate([
             {
-              $match: {
-                vendor: mongoose.Types.ObjectId(req.vendor.id),
-                isDelete: false,
-              },
+                $match: {
+                    vendor: mongoose.Types.ObjectId(req.vendor.id),
+                    isDelete: false,
+                },
             },
             {
-              $lookup: {
-                from: 'menuitems',
-                localField: '_id',
-                foreignField: 'category',
-                as: 'menuItems',
-              },
+                $lookup: {
+                    from: 'menuitems',
+                    localField: '_id',
+                    foreignField: 'category',
+                    as: 'menuItems',
+                },
             },
             {
-              $project: {
-                _id: 1,
-                name: 1,
-                itemCount: { $size: '$menuItems' },
-              },
+                $project: {
+                    _id: 1,
+                    name: 1,
+                    itemCount: { $size: '$menuItems' },
+                },
             },
         ]);
 
@@ -223,7 +251,7 @@ exports.addItem = async (req, res, next) => {
             vendor: req.vendor.id,
             category: req.body.category,
             name: req.body.name,
-            price : req.body.price,
+            price: req.body.price,
             image: req.file ? req.file.filename : ''
         });
 
@@ -240,7 +268,7 @@ exports.addItem = async (req, res, next) => {
 exports.getItemList = async (req, res, next) => {
     try {
 
-        let items = await menuItemModel.find({category: req.params.id, isDelete:false}).select('name price image isActive');
+        let items = await menuItemModel.find({ category: req.params.id, isDelete: false }).select('name price image isActive');
 
         res.status(200).json({
             success: true,
@@ -259,17 +287,17 @@ exports.updateItem = async (req, res, next) => {
         const menu = await menuItemModel.findById(req.params.id);
 
         menu.name = req.body.name ? req.body.name : menu.name
-        menu.price = req.body.price? req.body.price : menu.price
-        menu.isActive = req.body.isActive? req.body.isActive : menu.isActive
+        menu.price = req.body.price ? req.body.price : menu.price
+        menu.isActive = req.body.isActive ? req.body.isActive : menu.isActive
 
         if (req.file) {
-            if(menu.image != ''){
+            if (menu.image != '') {
                 const oldImagePath = path.join(
                     __dirname,
                     '../../public/uploads/',
                     menu.image
                 );
-                fs.unlink(oldImagePath, () => {});
+                fs.unlink(oldImagePath, () => { });
             }
 
             menu.image = req.file.filename;

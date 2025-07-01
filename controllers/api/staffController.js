@@ -125,7 +125,17 @@ exports.addStaff = async (req, res, next) => {
         });
 
         user.qrCode = fileName;
-        user.save();
+        await user.save();
+
+        await vendorActivityLog.create({
+            vendorId: req.vendor.id,
+            action: 'STAFF_CREATED',
+            targetRef: user._id,
+            targetModel: 'Staff',
+            meta: {
+                title: user.name,
+            },
+        });
 
         res.status(201).json({
             success: true,
@@ -222,6 +232,16 @@ exports.updateStaff = async (req, res, next) => {
 
         user.password = req.body.password;
         await user.save();
+
+        await vendorActivityLog.create({
+            vendorId: req.vendor.id,
+            action: 'STAFF_UPDATED',
+            targetRef: user._id,
+            targetModel: 'Staff',
+            meta: {
+                title: user.name,
+            },
+        });
 
         res.status(201).json({
             success: true,
@@ -462,6 +482,16 @@ exports.deleteStaff = async (req, res, next) => {
         user.mobileNumber = modifiedMobileNumber;
 
         await user.save();
+
+        await vendorActivityLog.create({
+            vendorId: req.vendor.id,
+            action: 'STAFF_DELETED',
+            targetRef: user._id,
+            targetModel: 'Staff',
+            meta: {
+                title: user.name,
+            },
+        });
 
         res.status(201).json({
             success: true,

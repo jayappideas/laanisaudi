@@ -111,9 +111,6 @@ exports.updateDiscount = async (req, res, next) => {
         } = req.body;
 
         const discount = await discountModel.findById(req.params.id);
-        console.log(discount);
-
-        console.log(title);
 
         (discount.title = title),
             (discount.totalUserCount = totalUserCount),
@@ -159,6 +156,9 @@ exports.deleteDiscount = async (req, res, next) => {
             action: 'DISCOUNT_DELETED',
             targetRef: discount._id,
             targetModel: 'Discount',
+            meta: {
+                title: discount.title,
+            },
         });
 
         res.status(201).json({
