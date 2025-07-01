@@ -110,12 +110,15 @@ exports.updateDiscount = async (req, res, next) => {
             description,
         } = req.body;
 
+
         const discount = await discountModel.findById(req.params.id);
 
         (discount.title = title),
             (discount.totalUserCount = totalUserCount),
             (discount.status = status),
-            (discount.customerType = JSON.parse(customerType)),
+            discount.customerType = Array.isArray(customerType)
+                ? customerType
+                : JSON.parse(customerType.replace(/'/g, '"')),
             (discount.minBillAmount = minBillAmount),
             (discount.discountType = discountType),
             (discount.discountValue = discountValue),
