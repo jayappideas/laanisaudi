@@ -7,6 +7,8 @@ const discountModel = require('../../models/discountModel');
 // const {
 //     sendNotificationsToTokenscheckout,
 // } = require('../../utils/sendNotificationStaff');
+const generateCode = require('../../utils/generateCode');
+const otpModel = require('../../models/otpModel');
 
 exports.checkStaff = async (req, res, next) => {
     try {
@@ -358,6 +360,7 @@ exports.forgotPasswordVendor = async (req, res, next) => {
         if (!email) return next(createError.BadRequest('validation.email'));
 
         const user = await Staff.findOne({ email });
+        console.log(user);
         if (!user)
             return next(createError.BadRequest('phone.notRegisteredEmail'));
 
