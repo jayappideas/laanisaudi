@@ -2,9 +2,11 @@ const createError = require('http-errors');
 const discountModel = require('../../models/discountModel');
 const customerModel = require('../../models/customerModel');
 const { ObjectId } = require('mongodb');
+const VendorActivityLog = require('../../models/vendorActivityLog');
 
 exports.addDiscount = async (req, res, next) => {
     try {
+
         const {
             title,
             status,
@@ -17,19 +19,33 @@ exports.addDiscount = async (req, res, next) => {
             expiryDate,
             description,
         } = req.body;
+        console.log('Received customerType:', customerType);
+        console.log(JSON.parse(customerType),'JSON.parse(customerType)');
 
-        await discountModel.create({
+
+        const discount = await discountModel.create({
             vendor: req.vendor.id,
             title: title,
             totalUserCount: totalUserCount,
             status: status,
-            customerType,
+            customerType: JSON.parse(customerType),
             minBillAmount: minBillAmount,
             discountType: discountType,
             discountValue: discountValue,
             couponUsage: couponUsage,
             expiryDate: expiryDate,
             description: description,
+        });
+
+        await VendorActivityLog.create({
+            vendorId: req.vendor.id,
+            action: 'DISCOUNT_CREATED',
+            targetRef: discount._id,
+            targetModel: 'Discount',
+            meta: {
+                title: title,
+                discount: discountValue,
+            },
         });
 
         res.status(201).json({
@@ -47,6 +63,9 @@ exports.getDiscountList = async (req, res, next) => {
 
         let discounts = await discountModel.find({
             vendor: req.vendor.id, isDelete: false
+        }).populate({
+            path: 'customerType',
+            select : 'name'
         }).select('title description status totalUserCount redeemUserCount expiryDate adminApprovedStatus').sort({ createdAt: -1 });
 
         res.status(200).json({
@@ -91,11 +110,14 @@ exports.updateDiscount = async (req, res, next) => {
         } = req.body;
 
         const discount = await discountModel.findById(req.params.id);
+        console.log(discount);
+
+        console.log(title);
 
         (discount.title = title),
             (discount.totalUserCount = totalUserCount),
             (discount.status = status),
-            (discount.customerType = customerType),
+            (discount.customerType = JSON.parse(customerType)),
             (discount.minBillAmount = minBillAmount),
             (discount.discountType = discountType),
             (discount.discountValue = discountValue),
@@ -105,6 +127,16 @@ exports.updateDiscount = async (req, res, next) => {
 
         await discount.save();
 
+        await VendorActivityLog.create({
+            vendorId: req.vendor.id,
+            action: 'DISCOUNT_UPDATED',
+            targetRef: discount._id,
+            targetModel: 'Discount',
+            meta: {
+                title: title,
+                discount: discountValue,
+            },
+        });
         res.status(201).json({
             success: true,
             message: req.t('discount.update'),
@@ -117,7 +149,16 @@ exports.updateDiscount = async (req, res, next) => {
 
 exports.deleteDiscount = async (req, res, next) => {
     try {
+        const discount = await discountModel.findById(req.params.id);
+
         await discountModel.deleteOne({ _id: ObjectId(req.params.id) });
+
+        await VendorActivityLog.create({
+            vendorId: req.vendor.id,
+            action: 'DISCOUNT_DELETED',
+            targetRef: discount._id,
+            targetModel: 'Discount',
+        });
 
         res.status(201).json({
             success: true,

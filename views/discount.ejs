@@ -201,7 +201,11 @@
                 <p>
                     <strong>Total Number of Counts :</strong> ${discount.totalUserCount}
                     &nbsp;&nbsp;
-                    <strong>Customer Type :</strong> ${discount.customerType?.name}
+ <strong>Customer Type :</strong>
+${Array.isArray(discount.customerType)
+                        ? discount.customerType.map(x => x.name).join(', ')
+                        : '-'}
+
                 </p>
                   <p></p>
                   <p><strong>Expiry Date :</strong> ${discount.expiryDate}</p>
