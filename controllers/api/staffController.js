@@ -4,9 +4,9 @@ const Staff = require('../../models/staffModel');
 const QRCode = require('qrcode');
 const path = require('path');
 const discountModel = require('../../models/discountModel');
-const {
-    sendNotificationsToTokenscheckout,
-} = require('../../utils/sendNotificationStaff');
+// const {
+//     sendNotificationsToTokenscheckout,
+// } = require('../../utils/sendNotificationStaff');
 
 exports.checkStaff = async (req, res, next) => {
     try {
@@ -56,12 +56,12 @@ exports.registerStatus = async (req, res, next) => {
         }
 
         if (user.fcmToken) {
-            await sendNotificationsToTokenscheckout(
-                title,
-                body,
-                [user.fcmToken],
-                data,
-            );
+            // await sendNotificationsToTokenscheckout(
+            //     title,
+            //     body,
+            //     [user.fcmToken],
+            //     data,
+            // );
         }
 
         await user.save();
@@ -488,7 +488,7 @@ exports.deleteStaff = async (req, res, next) => {
     }
 };
 
-exports.changeStaffStatus = async (req, res) => {
+exports.changeStaffStatus = async (req, res, next) => {
     try {
         const user = await Staff.findById(req.params.id);
         if (!user) return next(createError.BadRequest('Staff not found.'));
