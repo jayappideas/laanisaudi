@@ -68,11 +68,13 @@ exports.registerStatus = async (req, res, next) => {
 
         await user.save();
 
+
         res.status(200).json({
             success: true,
             message: req.t('staff.status'),
         });
     } catch (error) {
+        console.log(error);
         next(error);
     }
 };
@@ -257,32 +259,6 @@ exports.deleteStaffByStaff = async (req, res, next) => {
     }
 };
 
-exports.deleteStaff = async (req, res, next) => {
-    try {
-        const user = await Staff.findById(req.params.id);
-
-        const modifiedEmail = `${user.email}_deleted_${Date.now()}`;
-        const modifiedMobileNumber = `${user.mobileNumber
-            }_deleted_${Date.now()}`;
-
-        user.isDelete = true;
-        user.token = '';
-        user.fcmToken = '';
-        user.email = modifiedEmail;
-        user.mobileNumber = modifiedMobileNumber;
-
-        await user.save();
-
-        res.status(201).json({
-            success: true,
-            message: req.t('staff.delete'),
-        });
-    } catch (error) {
-        console.log(error);
-        next(error);
-    }
-};
-
 exports.updateNotification = async (req, res, next) => {
     try {
         const user = await Staff.findById(req.staff.id);
@@ -360,7 +336,6 @@ exports.forgotPasswordVendor = async (req, res, next) => {
         if (!email) return next(createError.BadRequest('validation.email'));
 
         const user = await Staff.findOne({ email });
-        console.log(user);
         if (!user)
             return next(createError.BadRequest('phone.notRegisteredEmail'));
 
@@ -434,6 +409,9 @@ exports.getStaffDiscountList = async (req, res, next) => {
                 adminApprovedStatus: { $nin: ['Pending', 'Rejected'] },
                 status: { $nin: ['Inactive', 'Expired'] },
                 isDelete: false
+            }).populate({
+                path: 'customerType',
+                select: 'name'
             })
             .select(
                 'title description status totalUserCount redeemUserCount expiryDate'
@@ -453,7 +431,10 @@ exports.getStaffDiscountList = async (req, res, next) => {
 exports.getDiscountDetail = async (req, res, next) => {
     try {
         let discount = await discountModel
-            .findById(req.params.id)
+            .findById(req.params.id).populate({
+                path: 'customerType',
+                select: 'name'
+            })
             .select('-updatedAt -__v -createdAt');
 
         res.status(200).json({

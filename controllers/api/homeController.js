@@ -340,7 +340,10 @@ exports.restaurantDetail = async (req, res, next) => {
             .lean();
 
         const offers = await discountModel
-            .find({ vendor: vendor._id, adminApprovedStatus: 'Approved' })
+            .find({ vendor: vendor._id, adminApprovedStatus: 'Approved' }).populate({
+                path: 'customerType',
+                select: 'name'
+            })
             .select(
                 'title description customerType totalUserCount expiryDate minBillAmount remainingUserCount'
             )

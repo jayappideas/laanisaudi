@@ -19,9 +19,6 @@ exports.addDiscount = async (req, res, next) => {
             expiryDate,
             description,
         } = req.body;
-        console.log('Received customerType:', customerType);
-        console.log(JSON.parse(customerType),'JSON.parse(customerType)');
-
 
         const discount = await discountModel.create({
             vendor: req.vendor.id,
@@ -81,8 +78,12 @@ exports.getDiscountList = async (req, res, next) => {
 exports.getDiscountDetail = async (req, res, next) => {
     try {
         let discount = await discountModel
-            .findById(req.params.id)
+            .findById(req.params.id).populate({
+                path: 'customerType',
+                select: 'name'
+            })
             .select('-updatedAt -__v -createdAt');
+        // discount.customerType = discount.customerType.map(c => c.name);
 
         res.status(200).json({
             success: true,
