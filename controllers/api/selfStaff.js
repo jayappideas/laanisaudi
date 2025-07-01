@@ -259,32 +259,32 @@ exports.updateStaff = async (req, res, next) => {
                 createError.BadRequest('validation.alreadyRegisteredPhone')
             );
 
-        const userEmailExists = await Staff.findOne({
-            email: req.body.email,
-            _id: { $ne: req.params.id },
-        });
-        if (userEmailExists)
-            return next(
-                createError.BadRequest('validation.alreadyRegisteredEmail')
-            );
+        // const userEmailExists = await Staff.findOne({
+        //     email: req.body.email,
+        //     _id: { $ne: req.params.id },
+        // });
+        // if (userEmailExists)
+        //     return next(
+        //         createError.BadRequest('validation.alreadyRegisteredEmail')
+        //     );
 
-        const user = await Staff.findById(req.params.id);
+        const user = await Staff.findById(req.staff.id);
 
-        if (req.files && req.files?.image && req.files.image[0]) {
-            user.photo = req.files.image[0].filename;
-        }
+        // if (req.files && req.files?.image && req.files.image[0]) {
+        //     user.photo = req.files.image[0].filename;
+        // }
 
-        user.language = req.body.language;
-        user.branch = req.body.branch;
+        // user.language = req.body.language;
+        // user.branch = req.body.branch;
         user.name = req.body.name;
-        user.email = req.body.email;
+        // user.email = req.body.email;
         user.mobileNumber = req.body.mobileNumber;
-        user.fcmToken = req.body.fcmToken;
-        user.occupation = req.body.occupation;
+        // user.fcmToken = req.body.fcmToken;
+        // user.occupation = req.body.occupation;
 
-        if (req.body.password != user.password) user.token = '';
+        // if (req.body.password != user.password) user.token = '';
 
-        user.password = req.body.password;
+        // user.password = req.body.password;
         await user.save();
 
         res.status(201).json({
