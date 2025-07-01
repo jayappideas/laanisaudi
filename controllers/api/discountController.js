@@ -63,7 +63,7 @@ exports.getDiscountList = async (req, res, next) => {
         }).populate({
             path: 'customerType',
             select : 'name'
-        }).select('title description status totalUserCount redeemUserCount expiryDate adminApprovedStatus').sort({ createdAt: -1 });
+        }).select('-updatedAt -__v -createdAt').sort({ createdAt: -1 });
 
         res.status(200).json({
             success: true,
