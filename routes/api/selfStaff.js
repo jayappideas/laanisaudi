@@ -34,6 +34,12 @@ router.post(
     staffController.resetPasswordVendor
 );
 router.post(
+    '/changePassword',
+    staffController.checkStaff,
+    upload.none(),
+    staffController.changePasswordVendor
+);
+router.post(
     '/updateNotification/:status',
     staffController.checkStaff,
     upload.none(),

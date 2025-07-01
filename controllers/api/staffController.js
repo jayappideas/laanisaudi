@@ -104,6 +104,7 @@ exports.addStaff = async (req, res, next) => {
             occupation: req.body.occupation,
             password: req.body.password,
             photo,
+            vendorApproved: 'approved'
         });
 
         // Define the file path
@@ -389,6 +390,33 @@ exports.resetPasswordVendor = async (req, res, next) => {
         res.json({
             success: true,
             message: req.t('passwordUpdated'),
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.changePasswordVendor = async (req, res, next) => {
+    try {
+        const { oldPassword, newPassword } = req.body;
+        const user = await Staff.findById(req.staff.id).select('+password');
+
+
+
+        if (oldPassword !== user.password)
+            return next(createError.BadRequest('changePass.wrongPass'));
+
+        // update password
+        if (oldPassword == newPassword)
+            return next(createError.BadRequest('changePass.samePass'));
+
+        user.password = newPassword;
+
+        await user.save();
+
+        res.json({
+            success: true,
+            message: req.t('changePass.updated'),
         });
     } catch (error) {
         next(error);
