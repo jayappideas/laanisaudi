@@ -1,6 +1,7 @@
 const createError = require('http-errors');
 const jwt = require('jsonwebtoken');
 const Staff = require('../../models/staffModel');
+const vendorActivityLog = require('../../models/vendorActivityLog');
 const QRCode = require('qrcode');
 const path = require('path');
 const discountModel = require('../../models/discountModel');
