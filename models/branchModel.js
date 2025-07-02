@@ -33,11 +33,11 @@ const branchSchema = new mongoose.Schema(
     },
     country: {
       type: String,
-      required: true
+      // required: true
     },
     state: {
       type: String,
-      required: true
+      // required: true
     },
     location: {
       type: {

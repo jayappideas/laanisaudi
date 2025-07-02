@@ -14,6 +14,29 @@ const Transaction = require('../../models/transactionModel');
 const Staff = require('../../models/staffModel');
 const Branch = require('../../models/branchModel');
 
+
+// (async () => {
+//     try {
+
+//         const customerIdsToAdd = [
+//             new mongoose.Types.ObjectId("685e6302a63162572a2e7d2a"),
+//             new mongoose.Types.ObjectId("685e6e6e54eadf4dfd1354bc")
+//         ];
+
+//         const updatedDiscount = await discountModel.updateMany(
+//             {},
+//             { $addToSet: { customerType: { $each: customerIdsToAdd } } }, // Ensures no duplicates
+//             { new: true }
+//         );
+
+//         console.log('Updated Discount:', updatedDiscount);
+
+//     } catch (error) {
+//         console.error('Error updating discount:', error);
+//     }
+// })();
+
+
 exports.dashboardStaff = async (req, res, next) => {
     try {
         const staffId = req.staff.id;

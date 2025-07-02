@@ -9,6 +9,7 @@ const userPoint = require('../../models/userPoint');
 const {
     sendNotificationsToTokenscheckout,
 } = require('../../utils/sendNotificationStaff');
+const VendorActivityLog = require('../../models/vendorActivityLog');
 
 exports.scanQr = async (req, res, next) => {
     try {

@@ -4,6 +4,7 @@ const discountModel = require('../../models/discountModel');
 const cartModel = require('../../models/cartModel');
 const userModel = require('../../models/userModel');
 const { path } = require('../../app');
+const VendorActivityLog = require('../../models/vendorActivityLog');
 
 exports.scanQr = async (req, res, next) => {
     try {
