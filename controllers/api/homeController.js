@@ -17,25 +17,43 @@ const Branch = require('../../models/branchModel');
 
 // (async () => {
 //     try {
-
 //         const customerIdsToAdd = [
-//             new mongoose.Types.ObjectId("685e6302a63162572a2e7d2a"),
-//             new mongoose.Types.ObjectId("685e6e6e54eadf4dfd1354bc")
+//             new mongoose.Types.ObjectId(""),
+//             new mongoose.Types.ObjectId("") // add live id here as per db
 //         ];
 
+//         // Step 1: Set customerType to an empty array
+//         await discountModel.updateMany({}, { $set: { customerType: [] } });
+
+//         // Step 2: Add the new customerIds using $addToSet
 //         const updatedDiscount = await discountModel.updateMany(
 //             {},
-//             { $addToSet: { customerType: { $each: customerIdsToAdd } } }, // Ensures no duplicates
+//             { $addToSet: { customerType: { $each: customerIdsToAdd } } },
 //             { new: true }
 //         );
 
 //         console.log('Updated Discount:', updatedDiscount);
-
 //     } catch (error) {
 //         console.error('Error updating discount:', error);
 //     }
 // })();
 
+
+// (async () => {
+//     try {
+
+//         const newExpiryDate = "20/10/2025 06:47 PM";
+
+//         const result = await discountModel.updateMany(
+//             {},
+//             { $set: { expiryDate: newExpiryDate } }
+//         );
+
+//         console.log('Expiry date updated for all discounts:', result);
+//     } catch (error) {
+//         console.error('Error updating expiry date:', error);
+//     }
+// })();
 
 exports.dashboardStaff = async (req, res, next) => {
     try {
@@ -368,7 +386,7 @@ exports.restaurantDetail = async (req, res, next) => {
                 select: 'name'
             })
             .select(
-                'title description customerType totalUserCount expiryDate minBillAmount remainingUserCount'
+                'title description customerType totalUserCount expiryDate minBillAmount remainingUserCount adminApprovedStatus'
             )
             .lean();
 
