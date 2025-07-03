@@ -21,9 +21,10 @@ router.post(
     upload.none(),
     scanController.decreaseCart
 );
-router.get(
-    '/apply-discount/:discountId/:userId',
+router.post(
+    '/apply-discount',
     checkStaff,
+    upload.none(),
     scanController.checkDiscount
 );
 router.post('/checkout', upload.none(), checkStaff, scanController.checkout);

@@ -183,76 +183,178 @@ exports.getCart = async (req, res, next) => {
     }
 };
 
+// exports.checkDiscount = async (req, res, next) => {
+//     try {
+//         const discount = await discountModel
+//             .findById(req.params.discountId)
+//             .select('-__v -updatedAt')
+//             .lean();
+//         if (!discount) return next(createError.BadRequest('discount.invalid'));
+
+//         const [day, month, year] = discount.expiryDate.split('/'); // Split the string
+//         const expiryDate = new Date(`${year}-${month}-${day}`); // Convert to Date object
+
+//         // const [day, month, year] = discount.expiryDate.split('/').map(Number);
+//         // const expiryDate = new Date(year, month - 1, day); // Month is 0-based
+
+//         if (expiryDate < new Date())
+//             return next(createError.BadRequest('discount.expired'));
+
+//         // Check total max usage
+//         if (
+//             discount.totalUserCount &&
+//             discount.redeemUserCount >= discount.totalUserCount
+//         )
+//             return next(createError.BadRequest('discount.expired'));
+
+//         // !Need to increase totalUserCount or redeemUserCount and save in db
+//         // !coupon usage pening (only once)
+//         // ! Pending maxUsage implementation
+//         // !Customer how much points earned from this discount or order need to send in response
+//         // !user name total balance points as per figma
+//         // Check maxUsage
+//         // const usage = await UserPromoAssociation.countDocuments({
+//         //     subscriber: req.subscriber.id,
+//         //     promoCode: promoCode.id,
+//         // });
+
+//         // if (promoCode.maxUsage && usage >= promoCode.maxUsage)
+//         //     return next(createError.BadRequest('promoCode.limit'));
+
+//         // Check cart
+//         const cart = await cartModel
+//             .findOne({ user: req.params.userId })
+//             .populate('items.menuItem', 'name price')
+//             .select('-__v -updatedAt -user')
+//             .lean();
+//         if (!cart) return next(createError.BadRequest('cart.not_found'));
+
+//         console.log(JSON.stringify(cart));
+
+//         // Calculate the total amount in the cart
+//         let totalCartAmount = 0;
+//         cart.items.forEach(item => {
+//             totalCartAmount += item.menuItem.price * item.quantity;
+//         });
+
+//         if (totalCartAmount < discount.minBillAmount)
+//             return next(createError.BadRequest('discount.min_bill_not_met'));
+
+//         // Apply discount based on type
+//         let discountAmount = 0;
+//         if (discount.discountType === 'Percentage') {
+//             discountAmount = (totalCartAmount * discount.discountValue) / 100;
+//         } else if (discount.discountType === 'Fixed') {
+//             discountAmount = discount.discountValue;
+//         }
+//         const finalAmount = totalCartAmount - discountAmount;
+
+//         // Prevent discount from exceeding the total cart amount
+//         if (discountAmount > totalCartAmount) discountAmount = totalCartAmount;
+
+//         // !Redemable poins pending
+
+//         res.json({
+//             success: true,
+//             message: req.t('discount.applied'),
+//             data: {
+//                 ...cart,
+//                 originalAmount: totalCartAmount,
+//                 discountAmount: discountAmount,
+//                 finalAmount: finalAmount,
+//             },
+//         });
+//     } catch (error) {
+//         next(error);
+//     }
+// };
+
 exports.checkDiscount = async (req, res, next) => {
     try {
         const discount = await discountModel
-            .findById(req.params.discountId)
+            .findById(req.body.discountId)
             .select('-__v -updatedAt')
             .lean();
-        if (!discount) return next(createError.BadRequest('discount.invalid'));
 
-        const [day, month, year] = discount.expiryDate.split('/'); // Split the string
-        const expiryDate = new Date(`${year}-${month}-${day}`); // Convert to Date object
+        if (!discount) {
+            return next(createError.BadRequest('discount.invalid'));
+        }
 
-        // const [day, month, year] = discount.expiryDate.split('/').map(Number);
-        // const expiryDate = new Date(year, month - 1, day); // Month is 0-based
+        // Parse expiry date
+        const expiryStr = discount.expiryDate?.trim(); // e.g., "02/07/2025 10:44 AM"
+        let expiryDate;
 
-        if (expiryDate < new Date())
+        if (!expiryStr) {
+            return next(createError.BadRequest('discount.expiry_date_missing'));
+        }
+
+        if (/am|pm/i.test(expiryStr)) {
+            // Format: dd/mm/yyyy hh:mm AM/PM
+            const [datePart, timePart, meridian] = expiryStr.split(' ');
+            const [day, month, year] = datePart.split('/').map(Number);
+            const [hourStr, minuteStr] = timePart.split(':');
+            let hour = parseInt(hourStr, 10);
+            const minute = parseInt(minuteStr, 10);
+
+            if (meridian.toUpperCase() === 'PM' && hour !== 12) hour += 12;
+            if (meridian.toUpperCase() === 'AM' && hour === 12) hour = 0;
+
+            expiryDate = new Date(year, month - 1, day, hour, minute);
+        } else {
+            // Format: dd/mm/yyyy
+            const [day, month, year] = expiryStr.split('/').map(Number);
+            expiryDate = new Date(year, month - 1, day, 23, 59, 59); // End of the day
+        }
+
+        const now = new Date(req.body.time);
+
+        if (expiryDate < now) {
             return next(createError.BadRequest('discount.expired'));
+        }
 
         // Check total max usage
         if (
             discount.totalUserCount &&
             discount.redeemUserCount >= discount.totalUserCount
-        )
+        ) {
             return next(createError.BadRequest('discount.expired'));
+        }
 
-        // !Need to increase totalUserCount or redeemUserCount and save in db
-        // !coupon usage pening (only once)
-        // ! Pending maxUsage implementation
-        // !Customer how much points earned from this discount or order need to send in response
-        // !user name total balance points as per figma
-        // Check maxUsage
-        // const usage = await UserPromoAssociation.countDocuments({
-        //     subscriber: req.subscriber.id,
-        //     promoCode: promoCode.id,
-        // });
-
-        // if (promoCode.maxUsage && usage >= promoCode.maxUsage)
-        //     return next(createError.BadRequest('promoCode.limit'));
-
-        // Check cart
+        // Get user's cart
         const cart = await cartModel
-            .findOne({ user: req.params.userId })
+            .findOne({ user: req.body.userId })
             .populate('items.menuItem', 'name price')
             .select('-__v -updatedAt -user')
             .lean();
-        if (!cart) return next(createError.BadRequest('cart.not_found'));
 
-        console.log(JSON.stringify(cart));
+        if (!cart) {
+            return next(createError.BadRequest('cart.not_found'));
+        }
 
-        // Calculate the total amount in the cart
+        // Calculate total cart amount
         let totalCartAmount = 0;
         cart.items.forEach(item => {
             totalCartAmount += item.menuItem.price * item.quantity;
         });
 
-        if (totalCartAmount < discount.minBillAmount)
+        if (totalCartAmount < discount.minBillAmount) {
             return next(createError.BadRequest('discount.min_bill_not_met'));
+        }
 
-        // Apply discount based on type
+        // Apply discount
         let discountAmount = 0;
         if (discount.discountType === 'Percentage') {
             discountAmount = (totalCartAmount * discount.discountValue) / 100;
         } else if (discount.discountType === 'Fixed') {
             discountAmount = discount.discountValue;
         }
+
+        // Ensure discount doesn't exceed total
+        if (discountAmount > totalCartAmount) {
+            discountAmount = totalCartAmount;
+        }
+
         const finalAmount = totalCartAmount - discountAmount;
-
-        // Prevent discount from exceeding the total cart amount
-        if (discountAmount > totalCartAmount) discountAmount = totalCartAmount;
-
-        // !Redemable poins pending
 
         res.json({
             success: true,
@@ -260,11 +362,12 @@ exports.checkDiscount = async (req, res, next) => {
             data: {
                 ...cart,
                 originalAmount: totalCartAmount,
-                discountAmount: discountAmount,
-                finalAmount: finalAmount,
+                discountAmount,
+                finalAmount,
             },
         });
     } catch (error) {
+        console.error(error);
         next(error);
     }
 };
@@ -304,8 +407,8 @@ exports.checkout = async (req, res, next) => {
             const [day, month, year] = discount.expiryDate.split('/'); // Split the string
             const expiryDate = new Date(`${year}-${month}-${day}`); // Convert to Date object
 
-            if (expiryDate < new Date())
-                return next(createError.BadRequest('discount.expired'));
+            // if (expiryDate < new Date())
+            //     return next(createError.BadRequest('discount.expired'));
 
             // Check total max usage
             if (

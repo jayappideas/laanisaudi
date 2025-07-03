@@ -7,6 +7,7 @@ const QRCode = require('qrcode');
 const path = require('path');
 const otpModel = require('../../models/otpModel');
 const generateCode = require('../../utils/generateCode');
+const VendorActivityLog = require('../../models/vendorActivityLog');
 
 exports.updateNotification = async (req, res, next) => {
     try {
