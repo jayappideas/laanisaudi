@@ -6,9 +6,9 @@ const cartModel = require('../../models/cartModel');
 const discountModel = require('../../models/discountModel');
 const transactionModel = require('../../models/transactionModel');
 const userPoint = require('../../models/userPoint');
-const {
-    sendNotificationsToTokenscheckout,
-} = require('../../utils/sendNotificationStaff');
+// const {
+//     sendNotificationsToTokenscheckout,
+// } = require('../../utils/sendNotificationStaff');
 const VendorActivityLog = require('../../models/vendorActivityLog');
 
 exports.scanQr = async (req, res, next) => {
@@ -475,12 +475,12 @@ exports.checkout = async (req, res, next) => {
             order_id: order.id.toString(),
             type: 'checkout'
         };
-        await sendNotificationsToTokenscheckout(
-            title,
-            body,
-            [fcmTokens.fcmToken],
-            data,
-        );
+        // await sendNotificationsToTokenscheckout(
+        //     title,
+        //     body,
+        //     [fcmTokens.fcmToken],
+        //     data,
+        // );
 
         res.status(201).json({
             success: true,
