@@ -15,6 +15,7 @@ router.get('/change-status/:id/:status', vendorController.changeVendorStatus);
 router.get('/approved/:id', vendorController.approvedVendor);
 router.get('/disapproved/:id', vendorController.disapprovedVendor);
 router.get('/delete/:id', vendorController.deleteAccountVendor);
+router.get('/logs/:id', vendorController.vendorlogs);
 
 router
     .route('/add-vendor')

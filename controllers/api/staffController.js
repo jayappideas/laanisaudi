@@ -5,11 +5,12 @@ const vendorActivityLog = require('../../models/vendorActivityLog');
 const QRCode = require('qrcode');
 const path = require('path');
 const discountModel = require('../../models/discountModel');
-// const {
-//     sendNotificationsToTokenscheckout,
-// } = require('../../utils/sendNotificationStaff');
+const {
+    sendNotificationsToTokenscheckout,
+} = require('../../utils/sendNotificationStaff');
 const generateCode = require('../../utils/generateCode');
 const otpModel = require('../../models/otpModel');
+const staffNotificationModel = require('../../models/staffNotificationModel');
 
 exports.checkStaff = async (req, res, next) => {
     try {
@@ -28,7 +29,8 @@ exports.checkStaff = async (req, res, next) => {
         );
 
         if (!staff) return next(createError.Unauthorized('auth.pleaseLogin'));
-
+        if (!staff.isActive)
+            return next(createError.Unauthorized('auth.blocked'));
         if (staff.isDelete)
             return next(createError.Unauthorized('auth.deleted'));
 
@@ -59,12 +61,17 @@ exports.registerStatus = async (req, res, next) => {
         }
 
         if (user.fcmToken) {
-            // await sendNotificationsToTokenscheckout(
-            //     title,
-            //     body,
-            //     [user.fcmToken],
-            //     data,
-            // );
+            await sendNotificationsToTokenscheckout(
+                title,
+                body,
+                [user.fcmToken],
+                data,
+            );
+            await staffNotificationModel.create({
+                sentTo: [user?._id],
+                title,
+                body,
+            });
         }
 
         await user.save();
@@ -509,6 +516,7 @@ exports.changeStaffStatus = async (req, res, next) => {
         if (!user) return next(createError.BadRequest('Staff not found.'));
 
         user.isActive = req.body.status;
+        user.token = ""
 
         await user.save();
 

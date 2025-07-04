@@ -62,7 +62,7 @@ exports.getDiscountList = async (req, res, next) => {
             vendor: req.vendor.id, isDelete: false
         }).populate({
             path: 'customerType',
-            select : 'name'
+            select: 'name'
         }).select('-updatedAt -__v -createdAt').sort({ createdAt: -1 });
 
         res.status(200).json({
@@ -180,6 +180,8 @@ exports.getCategories = async (req, res) => {
             isDelete: false,
         }).select('-isDelete -__v -updatedAt');
 
+        console.log(customer);
+        
         res.status(200).json({
             success: true,
             customer

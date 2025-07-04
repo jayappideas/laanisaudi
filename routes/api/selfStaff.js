@@ -71,8 +71,8 @@ router.get(
 );
 router.put(
     '/update/staffDetails',
+    upload.fields([{ name: 'image', maxCount: 1 }]),
     staffController.checkStaff,
-    upload.none(),
     selfStaff.updateStaff
 );
 module.exports = router;

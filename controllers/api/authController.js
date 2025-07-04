@@ -597,8 +597,8 @@ exports.dashboardVendor = async (req, res, next) => {
             totalFinalAmount: 0,
         };
 
-        console.log('filteredOffers', filteredOffers)
-        console.log(filteredOffers.length);
+        // console.log('filteredOffers', filteredOffers)
+        // console.log(filteredOffers.length);
 
         res.status(200).json({
             success: true,

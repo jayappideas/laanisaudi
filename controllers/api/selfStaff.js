@@ -29,7 +29,8 @@ exports.updateNotification = async (req, res, next) => {
 
 exports.sendOtpVendor = async (req, res, next) => {
     try {
-        let { email } = req.body;
+        let { email, mobileNumber } = req.body;
+        console.log(email, mobileNumber);
 
         const userExist = await Staff.findOne({
             email: email,
@@ -42,6 +43,15 @@ exports.sendOtpVendor = async (req, res, next) => {
             );
         }
 
+        const userExist2 = await Staff.findOne({
+            mobileNumber: mobileNumber,
+            isDelete: false,
+        });
+        if (userExist2) {
+                return next(
+                    createError.BadRequest('validation.alreadyRegisteredPhone')
+                );
+        }
         await otpModel.deleteMany({ mobileNumber: email });
 
         // generate and save OTP
@@ -251,14 +261,14 @@ exports.addStaff = async (req, res, next) => {
 
 exports.updateStaff = async (req, res, next) => {
     try {
-        const userExists = await Staff.findOne({
-            mobileNumber: req.body.mobileNumber,
-            _id: { $ne: req.params.id },
-        });
-        if (userExists)
-            return next(
-                createError.BadRequest('validation.alreadyRegisteredPhone')
-            );
+        // const userExists = await Staff.findOne({
+        //     mobileNumber: req.body.mobileNumber,
+        //     _id: { $ne: req.params.id },
+        // });
+        // if (userExists)
+        //     return next(
+        //         createError.BadRequest('validation.alreadyRegisteredPhone')
+        //     );
 
         // const userEmailExists = await Staff.findOne({
         //     email: req.body.email,
@@ -271,9 +281,9 @@ exports.updateStaff = async (req, res, next) => {
 
         const user = await Staff.findById(req.staff.id);
 
-        // if (req.files && req.files?.image && req.files.image[0]) {
-        //     user.photo = req.files.image[0].filename;
-        // }
+        if (req.files && req.files?.image && req.files.image[0]) {
+            user.photo = req.files.image[0].filename;
+        }
 
         // user.language = req.body.language;
         // user.branch = req.body.branch;

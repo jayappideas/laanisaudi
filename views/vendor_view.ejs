@@ -12,6 +12,7 @@
   <link rel="stylesheet" type="text/css" href="/app-assets/vendors/data-tables/css/select.dataTables.min.css">
   <link rel="stylesheet" type="text/css" href="/app-assets/css/pages/data-tables.css">
   <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/Dropify/0.2.2/css/dropify.min.css">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
   <style>
     table tr td,
@@ -82,6 +83,13 @@
 
                       <span>Email:</span>
                       <span class="users-view-id"><a href="mailto:<%= vendor.email %>"><%= vendor.email %></a></span>
+
+                    <div style="margin-top: 10px;">
+                      <a href="/admin/vendor/logs/<%= vendor._id %>" class="btn-small indigo waves-effect waves-light">
+                        View Activity
+                        <!--  <i class="material-icons left">visibility</i> -->
+                      </a>
+                    </div>
                     </div>
                   </div>
                 </div>

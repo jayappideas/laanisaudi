@@ -18,8 +18,8 @@ const Branch = require('../../models/branchModel');
 // (async () => {
 //     try {
 //         const customerIdsToAdd = [
-//             new mongoose.Types.ObjectId(""),
-//             new mongoose.Types.ObjectId("") // add live id here as per db
+//             new mongoose.Types.ObjectId("685e77ef7c201b9149ef5704"),
+//             new mongoose.Types.ObjectId("685e78197c201b9149ef572d") // add live id here as per db
 //         ];
 
 //         // Step 1: Set customerType to an empty array

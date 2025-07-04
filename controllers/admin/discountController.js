@@ -3,19 +3,20 @@ const {
     sendNotificationsToTokens,
     sendNotificationsToTokenscheckout,
 } = require('../../utils/sendNotificationStaff');
+const vendorNotificationModel = require('../../models/vendorNotificationModel');
 
 exports.getAllDiscount = async (req, res) => {
 
     try {
         const discounts = await discountModel.find({ isDelete: false }).select('-updatedAt -createdAt -__v')
-                                .populate({
-                                    path: 'vendor',
-                                    select: 'businessName'
-                                }).populate({
-                                    path: 'customerType',
-                                }).sort('-_id');
+            .populate({
+                path: 'vendor',
+                select: 'businessName'
+            }).populate({
+                path: 'customerType',
+            }).sort('-_id');
 
-                                // Remove deleted vendor
+        // Remove deleted vendor
         res.render('discount', { discounts });
     } catch (error) {
         req.flash('red', error.message);
@@ -62,6 +63,11 @@ exports.approvedVendor = async (req, res) => {
                 [user?.vendor?.fcmToken],
                 data,
             );
+            await vendorNotificationModel.create({
+                sentTo: [user?.vendor?._id],
+                title,
+                body,
+            });
         }
         req.flash('green', 'Discount approved successfully.');
         res.redirect('/admin/discount');
@@ -94,6 +100,11 @@ exports.disapprovedVendor = async (req, res) => {
                 [user?.vendor?.fcmToken],
                 data,
             );
+            await vendorNotificationModel.create({
+                sentTo: [user?.vendor?._id],
+                title,
+                body,
+            });
         }
 
         // const branch = await branchModel.find({ vendor: req.params.id });

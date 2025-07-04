@@ -6,10 +6,13 @@ const cartModel = require('../../models/cartModel');
 const discountModel = require('../../models/discountModel');
 const transactionModel = require('../../models/transactionModel');
 const userPoint = require('../../models/userPoint');
-// const {
-//     sendNotificationsToTokenscheckout,
-// } = require('../../utils/sendNotificationStaff');
+const {
+    sendNotificationsToTokenscheckout,
+} = require('../../utils/sendNotificationStaff');
 const VendorActivityLog = require('../../models/vendorActivityLog');
+const userNotificationModel = require('../../models/userNotificationModel');
+const staffNotificationModel = require('../../models/staffNotificationModel');
+const vendorNotificationModel = require('../../models/vendorNotificationModel');
 
 exports.scanQr = async (req, res, next) => {
     try {
@@ -475,12 +478,24 @@ exports.checkout = async (req, res, next) => {
             order_id: order.id.toString(),
             type: 'checkout'
         };
-        // await sendNotificationsToTokenscheckout(
+        if (fcmTokens.fcmToken){
+            await sendNotificationsToTokenscheckout(
+                title,
+                body,
+                [fcmTokens.fcmToken],
+                data,
+            );
+            await userNotificationModel.create({
+                sentTo: [fcmTokens?._id],
+                title,
+                body,
+            });
+        }
+        // await staffNotificationModel.create({
+        //     sentTo: [req.staff.id],
         //     title,
         //     body,
-        //     [fcmTokens.fcmToken],
-        //     data,
-        // );
+        // });
 
         res.status(201).json({
             success: true,

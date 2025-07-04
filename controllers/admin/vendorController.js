@@ -1,6 +1,7 @@
 const staffModel = require('../../models/staffModel');
 const branchModel = require('../../models/branchModel');
 const vendorModel = require('../../models/vendorModel');
+const vendorActivityLog = require('../../models/vendorActivityLog');
 const path = require('path');
 const QRCode = require('qrcode');
 const bcrypt = require('bcryptjs');
@@ -68,6 +69,24 @@ exports.viewVendor = async (req, res) => {
     }
 };
 
+exports.vendorlogs = async (req, res) => {
+    try {
+        const vendor = await vendorActivityLog.find({ vendorId: req.params.id }).populate(
+            'vendorId', 'email'
+        ).sort({ createdAt: -1 });
+        if (!vendor) {
+            req.flash('red', 'vendor not found!');
+            return res.redirect('/admin/vendor');
+        }
+
+        res.render('vendor_logs', { logs: vendor });
+    } catch (error) {
+        if (error.name === 'CastError') req.flash('red', 'vendor not found!');
+        else req.flash('red', error.message);
+        res.redirect('/admin/vendor');
+    }
+};
+
 exports.changeVendorStatus = async (req, res) => {
     try {
         const user = await vendorModel.findById(req.params.id);
@@ -111,6 +130,11 @@ exports.approvedVendor = async (req, res) => {
                 [user.fcmToken],
                 data,
             );
+            await vendorNotificationModel.create({
+                sentTo: [user?.vendor?._id],
+                title,
+                body,
+            });
         }
         req.flash('green', 'Vendor application approved successfully.');
         res.redirect('/admin/vendor/view/' + req.params.id);
@@ -142,6 +166,11 @@ exports.disapprovedVendor = async (req, res) => {
                 [user.fcmToken],
                 data,
             );
+            await vendorNotificationModel.create({
+                sentTo: [user?.vendor?._id],
+                title,
+                body,
+            });
         }
 
         // const branch = await branchModel.find({ vendor: req.params.id });
