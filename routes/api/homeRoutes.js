@@ -10,6 +10,7 @@ router.get(
     homeController.dashboardStaff
 );
 router.get('/categoryList', upload.none(), homeController.getCategoryList);
+router.get('/categoryListVendor', upload.none(), homeController.getCategoryListVendor);
 router.get('/banners', upload.none(), homeController.getBannerList);
 router.get('/searchSuggestion', isUser, upload.none(), homeController.getSearchSuggestion);
 router.post('/restaurantList', isUser, upload.none(), homeController.getRestaurantList);

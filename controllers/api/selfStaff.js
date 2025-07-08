@@ -8,6 +8,8 @@ const path = require('path');
 const otpModel = require('../../models/otpModel');
 const generateCode = require('../../utils/generateCode');
 const VendorActivityLog = require('../../models/vendorActivityLog');
+const vendorNotificationModel = require('../../models/vendorNotificationModel');
+const { sendNotificationsToTokenscheckout } = require('../../utils/sendNotificationStaff');
 
 exports.updateNotification = async (req, res, next) => {
     try {
@@ -249,6 +251,27 @@ exports.addStaff = async (req, res, next) => {
         user.qrCode = fileName;
         user.save();
 
+        const vExists = await vendorModel.findOne({
+            _id: req.body.vendorid,
+        });
+        let title = 'New Staff Request Received';
+        const body = 'A new staff request has been submitted and is awaiting your review.';
+        const data = {
+            type: 'staff_request'
+        };
+        if (vExists?.fcmToken) {
+            await sendNotificationsToTokenscheckout(
+                title,
+                body,
+                [vExists.fcmToken],
+                data,
+            );
+            await vendorNotificationModel.create({
+                sentTo: [req.body.vendorid],
+                title,
+                body,
+            });
+        }
         res.status(201).json({
             success: true,
             message: req.t('staff.add'),
