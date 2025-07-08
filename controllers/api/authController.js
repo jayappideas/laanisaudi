@@ -515,6 +515,32 @@ exports.isVendor = async (req, res, next) => {
     }
 };
 
+exports.isVendorCheck = async (req, res, next) => {
+    try {
+        let token;
+        if (
+            req.headers.authorization &&
+            req.headers.authorization.startsWith('Bearer')
+        ) {
+            token = req.headers.authorization.split(' ')[1];
+        }
+
+        if (!token) return next();
+
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+        const vendor = await Vendor.findById(decoded._id).select(
+            '+isActive +passcode +token'
+        );
+
+        if (vendor) req.vendor = vendor;
+
+        next();
+    } catch (error) {
+        next(error);
+    }
+};
+
 //? Home screen dashboard Vendor
 exports.dashboardVendor = async (req, res, next) => {
     try {

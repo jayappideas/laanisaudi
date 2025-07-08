@@ -1,6 +1,6 @@
 const router = require('express').Router();
 const { upload } = require('../../controllers/uploadController');
-const { checkUser,isUser } = require('../../controllers/api/authController');
+const { checkUser, isUser,  isVendorCheck } = require('../../controllers/api/authController');
 const homeController = require('../../controllers/api/homeController');
 const staffController = require('../../controllers/api/staffController');
 
@@ -9,7 +9,7 @@ router.get(
     staffController.checkStaff,
     homeController.dashboardStaff
 );
-router.get('/categoryList', upload.none(), homeController.getCategoryList);
+router.get('/categoryList', isVendorCheck,upload.none(), homeController.getCategoryList);
 router.get('/categoryListVendor', upload.none(), homeController.getCategoryListVendor);
 router.get('/banners', upload.none(), homeController.getBannerList);
 router.get('/searchSuggestion', isUser, upload.none(), homeController.getSearchSuggestion);

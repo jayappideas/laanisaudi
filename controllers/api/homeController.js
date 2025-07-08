@@ -113,7 +113,7 @@ exports.dashboardStaff = async (req, res, next) => {
     }
 };
 
-// Use below code when need for only users 
+// Use below code when need for only users
 // exports.getCategoryList = async (req, res, next) => {
 //     try {
 //         // Step 1: Get vendor IDs who have at least one non-deleted branch
@@ -155,38 +155,56 @@ exports.dashboardStaff = async (req, res, next) => {
 
 exports.getCategoryList = async (req, res, next) => {
     try {
-        // Step 1: Get vendor IDs who have at least one non-deleted branch
-        const vendorsWithBranches = await branchModel
-            .find({ isDelete: false })
-            .distinct('vendor');
+        if (req.vendor?.id) {
+            // Step 1: Get vendor IDs who have at least one non-deleted branch
+            const vendorsWithBranches = await branchModel
+                .find({ isDelete: false })
+                .distinct('vendor');
 
 
-        // Step 2: Get businessType (category) IDs used by those vendors
-        const usedCategoryIds = await vendorModel
-            .find({
-                _id: { $in: vendorsWithBranches },
-                isActive: true,
-                isDelete: false,
-            })
-            .distinct('businessType');
+            // Step 2: Get businessType (category) IDs used by those vendors
+            const usedCategoryIds = await vendorModel
+                .find({
+                    _id: { $in: vendorsWithBranches },
+                    isActive: true,
+                    isDelete: false,
+                })
+                .distinct('businessType');
 
-        // Step 3: Get businessType categories based on those IDs
-        let categories = await businessTypeModel
-            .find({
-                _id: { $in: usedCategoryIds },
-                isDelete: false,
-                isActive: true,
-            })
-            .select('en ar image');
+            // Step 3: Get businessType categories based on those IDs
+            let categories = await businessTypeModel
+                .find({
+                    _id: { $in: usedCategoryIds },
+                    isDelete: false,
+                    isActive: true,
+                })
+                .select('en ar image');
 
-        // Step 4: Map to multilingual
-        categories = categories.map(x => multilingual(x, req));
+            // Step 4: Map to multilingual
+            categories = categories.map(x => multilingual(x, req));
 
-        res.status(200).json({
-            success: true,
-            message: req.t('success'),
-            data: categories,
-        });
+            return res.status(200).json({
+                success: true,
+                message: req.t('success'),
+                data: categories,
+            });
+        } else {
+            let categories = await businessTypeModel
+                .find({
+                    isDelete: false,
+                    isActive: true,
+                })
+                .select('en ar image');
+
+            // Step 4: Map to multilingual
+            categories = categories.map(x => multilingual(x, req));
+
+            res.status(200).json({
+                success: true,
+                message: req.t('success'),
+                data: categories,
+            });
+        }
     } catch (error) {
         next(error);
     }
