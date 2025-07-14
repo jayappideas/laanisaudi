@@ -443,8 +443,10 @@ exports.sendNotificationstaff = async (req, res) => {
 
         const fcmTokens = users.map(user => user.fcmToken);
         const usersWithNotification = users.map(user => user._id);
-
-        await sendNotificationsToTokens(title, body, fcmTokens, 'staffApp');
+        const data = {
+            type: 'admin_notification'
+        };
+        await sendNotificationsToTokens(title, body, fcmTokens, data);
 
         await staffNotificationModel.create({
             sentTo: usersWithNotification,

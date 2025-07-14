@@ -181,7 +181,7 @@ exports.getCategories = async (req, res) => {
         }).select('-isDelete -__v -updatedAt');
 
         console.log(customer);
-        
+
         res.status(200).json({
             success: true,
             customer

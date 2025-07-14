@@ -247,8 +247,9 @@
                                                       </label>
                                                     </th>
                                                     <th>QR Code</th>
-                                                    <th>Branch</th>
-                                                    <th>Name</th>
+                                                    <th>Building Name</th>
+                                                    <th>Branch Name</th>
+                                                    <th>Staff Name</th>
                                                     <th>Email</th>
                                                     <th>Mobile Number</th>
                                                     <th>Occupation</th>
@@ -266,6 +267,9 @@
                                                     </td>
                                                     <td width="100px"><img src="<%= process.env.IMAGE_URL%><%= staff[i].qrCode %>" style="width: 60%;"/></td>
                                                     <td><%= staff[i].branch?.buildingName %></td>
+                                                    <td>
+                                                      <%= staff[i].branch?.name %>
+                                                    </td>
                                                     <td><%= staff[i].name %></td>
                                                     <td><%= staff[i].email %></td>
                                                     <td><%= staff[i].mobileNumber %></td>

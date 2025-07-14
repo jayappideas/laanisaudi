@@ -155,7 +155,7 @@ exports.dashboardStaff = async (req, res, next) => {
 
 exports.getCategoryList = async (req, res, next) => {
     try {
-        if (req.vendor?.id) {
+        if (!req.vendor?.id) {
             // Step 1: Get vendor IDs who have at least one non-deleted branch
             const vendorsWithBranches = await branchModel
                 .find({ isDelete: false })

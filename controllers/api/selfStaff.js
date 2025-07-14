@@ -50,9 +50,9 @@ exports.sendOtpVendor = async (req, res, next) => {
             isDelete: false,
         });
         if (userExist2) {
-                return next(
-                    createError.BadRequest('validation.alreadyRegisteredPhone')
-                );
+            return next(
+                createError.BadRequest('validation.alreadyRegisteredPhone')
+            );
         }
         await otpModel.deleteMany({ mobileNumber: email });
 
@@ -375,11 +375,14 @@ exports.getStaffDetail = async (req, res, next) => {
     try {
         let staff = await Staff.findById(req.staff.id)
             .select(
-                '-language -vendor -isDelete -isActive -createdAt -updatedAt -__v -fcmToken -token'
+                '-language  -isDelete -isActive -createdAt -updatedAt -__v -fcmToken -token'
             )
             .populate({
                 path: 'branch',
-                select: 'buildingName',
+                select: 'buildingName name',
+            }).populate({
+                path: 'vendor',
+                select: 'businessName',
             });
 
         res.status(200).json({

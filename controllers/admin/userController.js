@@ -87,8 +87,10 @@ exports.sendNotification = async (req, res) => {
 
         const fcmTokens = users.map(user => user.fcmToken);
         const usersWithNotification = users.map(user => user._id);
-
-        await sendNotificationsToTokens(title, body, fcmTokens, 'userApp');
+        const data = {
+            type: 'admin_notification'
+        };
+        await sendNotificationsToTokens(title, body, fcmTokens, data);
 
         await userNotificationModel.create({
             sentTo: usersWithNotification,
@@ -118,7 +120,7 @@ exports.deleteAccountUser = async (req, res, next) => {
         // user.email = modifiedEmail;
         user.mobileNumber = modifiedMobileNumber;
 
-                //Points Removed
+        //Points Removed
 
         await user.save();
 

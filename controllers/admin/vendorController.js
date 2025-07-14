@@ -57,7 +57,7 @@ exports.viewVendor = async (req, res) => {
             .select('qrCode name email mobileNumber occupation photo')
             .populate({
                 path: 'branch',
-                select: 'buildingName',
+                select: 'buildingName name',
             })
             .sort('-_id');
 
@@ -310,8 +310,10 @@ exports.sendNotification = async (req, res) => {
 
         const fcmTokens = users.map(user => user.fcmToken);
         const usersWithNotification = users.map(user => user._id);
-
-        await sendNotificationsToTokens(title, body, fcmTokens, 'vendorApp');
+        const data = {
+            type: 'admin_notification'
+        };
+        await sendNotificationsToTokens(title, body, fcmTokens, data);
 
         await vendorNotificationModel.create({
             sentTo: usersWithNotification,

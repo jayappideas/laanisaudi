@@ -191,7 +191,7 @@ exports.getStaffDetail = async (req, res, next) => {
             )
             .populate({
                 path: 'branch',
-                select: 'buildingName',
+                select: 'buildingName name',
             });
 
         res.status(200).json({
