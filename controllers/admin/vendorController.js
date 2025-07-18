@@ -253,7 +253,6 @@ exports.createVendor = async (req, res, next) => {
 exports.getEditVendor = async (req, res) => {
     try {
         const vendor = await vendorModel.findById(req.params.id);
-        console.log('vendor: ', vendor);
 
         const categories = await businessTypeModel.find({ isDelete: false });
 

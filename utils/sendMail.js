@@ -9,6 +9,7 @@ const mailjet = Mailjet.apiConnect(
     }
 );
 
+// send to staff, vendor
 const sendOtp = function (to, otp) {
     const request = mailjet.post('send', { version: 'v3.1' }).request({
         Messages: [
