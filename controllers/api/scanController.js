@@ -6,6 +6,7 @@ const cartModel = require('../../models/cartModel');
 const discountModel = require('../../models/discountModel');
 const transactionModel = require('../../models/transactionModel');
 const userPoint = require('../../models/userPoint');
+const User = require('../../models/userModel');
 const {
     sendNotificationsToTokenscheckout,
 } = require('../../utils/sendNotificationStaff');
@@ -13,6 +14,7 @@ const VendorActivityLog = require('../../models/vendorActivityLog');
 const userNotificationModel = require('../../models/userNotificationModel');
 const staffNotificationModel = require('../../models/staffNotificationModel');
 const vendorNotificationModel = require('../../models/vendorNotificationModel');
+const PointsHistory = require('../../models/PointsHistory');
 
 exports.scanQr = async (req, res, next) => {
     try {
@@ -345,19 +347,19 @@ exports.checkDiscount = async (req, res, next) => {
         }
 
         // Apply discount
-        let discountAmount = 0;
-        if (discount.discountType === 'Percentage') {
-            discountAmount = (totalCartAmount * discount.discountValue) / 100;
-        } else if (discount.discountType === 'Fixed') {
-            discountAmount = discount.discountValue;
-        }
+        // let discountAmount = 0;
+        // if (discount.discountType === 'Percentage') {
+        //     discountAmount = (totalCartAmount * discount.discountValue) / 100;
+        // } else if (discount.discountType === 'Fixed') {
+        //     discountAmount = discount.discountValue;
+        // }
 
-        // Ensure discount doesn't exceed total
-        if (discountAmount > totalCartAmount) {
-            discountAmount = totalCartAmount;
-        }
+        // // Ensure discount doesn't exceed total
+        // if (discountAmount > totalCartAmount) {
+        //     discountAmount = totalCartAmount;
+        // }
 
-        const finalAmount = totalCartAmount - discountAmount;
+        // const finalAmount = totalCartAmount - discountAmount;
 
         res.json({
             success: true,
@@ -365,8 +367,8 @@ exports.checkDiscount = async (req, res, next) => {
             data: {
                 ...cart,
                 originalAmount: totalCartAmount,
-                discountAmount,
-                finalAmount,
+                // discountAmount,
+                // finalAmount,
             },
         });
     } catch (error) {
@@ -462,6 +464,7 @@ exports.checkout = async (req, res, next) => {
             spentPoints,
             finalAmount, // The final amount after discount and points redemption need to pay by the user
             redeemBalancePoint: req.body.redeemBalancePoint,
+            ...(req.body.discountId && { discount: req.body.discountId }),
         });
 
         await cartModel.findOneAndUpdate(
@@ -476,14 +479,14 @@ exports.checkout = async (req, res, next) => {
         const body = 'Your order is being processed.';
         const data = {
             order_id: order.id.toString(),
-            type: 'checkout'
+            type: 'checkout',
         };
-        if (fcmTokens.fcmToken){
+        if (fcmTokens.fcmToken) {
             await sendNotificationsToTokenscheckout(
                 title,
                 body,
                 [fcmTokens.fcmToken],
-                data,
+                data
             );
             await userNotificationModel.create({
                 sentTo: [fcmTokens?._id],
@@ -513,6 +516,10 @@ exports.getCurrentTransaction = async (req, res, next) => {
         const transactions = await transactionModel
             .findOne({ user: req.user.id, status: 'pending' })
             .populate('items.menuItem', 'name price')
+            .populate(
+                'discount',
+                'discountType discountValue title description'
+            )
             .sort({
                 createdAt: -1,
             })
@@ -526,12 +533,11 @@ exports.getCurrentTransaction = async (req, res, next) => {
 
         const amount = transactions.billAmount - transactions.discountAmount;
 
-        //! Calculate 0.5% of the bill amount need to change the method of calculation as per client
-        const points = 50;
+        const points = transactions?.discount?.discountValue;
 
         res.status(200).json({
             success: true,
-            message: `You can receive ${points} points on this purchase.`,
+            // message: `You can receive ${points} points on this purchase.`,
             transactions,
         });
     } catch (error) {
@@ -558,22 +564,66 @@ exports.updateOrderStatus = async (req, res, next) => {
                 user: req.user.id,
                 status: 'pending',
             })
+            .populate(
+                'discount',
+                'discountType discountValue title description'
+            )
             .select('-__v -updatedAt');
         if (!order) return next(createError.NotFound('Order not found'));
 
-        const amount = order.billAmount - order.discountAmount;
+        // Calculate final amount the user has to pay (bill - redeemed points)
+        const finalAmount = order.billAmount - order.spentPoints;
 
-        //! Calculate 0.5% of the bill amount or as per client PENDING
-        const points = 50;
+        // Calculate earned points based on billAmount (discount doesn't apply now)
+        let points = 0;
+
+        if (order.discount) {
+            const { discountType, discountValue } = order.discount;
+
+            if (discountType === 'Percentage') {
+                points = (order.billAmount * discountValue) / 100;
+            } else if (discountType === 'Fixed') {
+                points = discountValue;
+            }
+        }
+
+        points = Math.floor(points);
 
         if (status === 'accepted') {
             order.status = 'accepted';
             order.earnedPoints = points;
+            order.finalAmount = finalAmount; // Save actual final amount user paid
 
-            user.totalPoints += points;
+            user.totalPoints =
+                (user.totalPoints || 0) - order.spentPoints + points;
+            // user.totalPoints -= order.spentPoints; // Deduct the spent points from the user's account
+            // user.totalPoints += points; // earned points from the current order
+
+            // 1. Record spent points (if any)
+            if (order.spentPoints > 0) {
+                await PointsHistory.create({
+                    user: user._id,
+                    order: order._id,
+                    type: 'spend',
+                    points: order.spentPoints,
+                    note: 'Points redeemed during checkout',
+                });
+            }
+
+            // 2. Record earned points
+            if (points > 0) {
+                await PointsHistory.create({
+                    user: user._id,
+                    order: order._id,
+                    type: 'earn',
+                    points: points,
+                    note: 'Points earned from order',
+                });
+            }
         } else {
             order.status = 'rejected';
-            user.totalPoints += order.spentPoints; // Restore the spent points back to the user
+            // user.totalPoints += order.spentPoints; // Restore the spent points back to the user
+            // now we are not deducting points in checkout API
         }
 
         await order.save();
@@ -620,9 +670,10 @@ exports.getCurrentTransactionStaff = async (req, res, next) => {
 };
 
 const handlePointsRedemption = async (userId, subtotal, vendor) => {
-    const user = await userPoint
-        .findOne({ user: userId, vendor: vendor.toString() })
-        .select('totalPoints');
+    const user = await User.findOne({
+        user: userId,
+        vendor: vendor.toString(),
+    }).select('totalPoints');
 
     let finalAmount = subtotal;
     let spentPoints = 0; // to track how many points are used by the user to pay bill amount
@@ -640,7 +691,7 @@ const handlePointsRedemption = async (userId, subtotal, vendor) => {
         user.totalPoints = 0;
     }
 
-    await user.save();
+    // await user.save();
 
     return { finalAmount, spentPoints };
 };

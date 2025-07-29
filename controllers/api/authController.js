@@ -1,6 +1,7 @@
 const createError = require('http-errors');
 const jwt = require('jsonwebtoken');
-// const { sendOTP } = require('../../utils/sendSMS');
+const { sendOTP } = require('../../utils/sendSMS');
+const { sendOtpRegister } = require('../../utils/sendMail');
 const generateCode = require('../../utils/generateCode');
 const { isValidPhone } = require('../../utils/validation');
 const deleteFile = require('../../utils/deleteFile');
@@ -108,7 +109,7 @@ exports.sendOtp = async (req, res, next) => {
         });
 
         // send OTP
-        // await sendOTP(phone, otp);
+        await sendOTP(mobileNumber, otp);
 
         res.json({
             success: true,
@@ -683,7 +684,7 @@ exports.sendOtpVendor = async (req, res, next) => {
         });
 
         // send OTP
-        // await sendOTP(phone, otp);
+        await sendOtpRegister(email, otp)
 
         res.json({
             success: true,

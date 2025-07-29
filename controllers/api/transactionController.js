@@ -5,6 +5,7 @@ const cartModel = require('../../models/cartModel');
 const userModel = require('../../models/userModel');
 const { path } = require('../../app');
 const VendorActivityLog = require('../../models/vendorActivityLog');
+const PointsHistory = require('../../models/PointsHistory');
 
 exports.scanQr = async (req, res, next) => {
     try {
@@ -53,6 +54,26 @@ exports.getTransactionHistory = async (req, res, next) => {
         next(error);
     }
 };
+
+
+exports.getPointsHistory = async (req, res, next) => {
+    try {
+        const userId = req.user.id;
+
+        const pointsHistory = await PointsHistory.find({ user: userId })
+            .populate('transaction', 'billAmount finalAmount status')
+            .sort({ createdAt: -1 })
+            .select('-__v -updatedAt');
+
+        res.status(200).json({
+            success: true,
+            history: pointsHistory,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
 
 exports.getMenuList = async (req, res, next) => {
     try {

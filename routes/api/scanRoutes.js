@@ -1,4 +1,4 @@
-const router = require('express').Router();
+ const router = require('express').Router();
 const { upload } = require('../../controllers/uploadController');
 const { checkUser } = require('../../controllers/api/authController');
 const scanController = require('../../controllers/api/scanController');
@@ -28,11 +28,14 @@ router.post(
     scanController.checkDiscount
 );
 router.post('/checkout', upload.none(), checkStaff, scanController.checkout);
+
+//? For USER call this every 10 sec to show the user then user can accept or reject the order
 router.get(
     '/current-transaction',
     checkUser,
     scanController.getCurrentTransaction
 );
+//? Accept or Reject an order by USER
 router.post(
     '/update-order-status',
     upload.none(),

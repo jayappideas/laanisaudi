@@ -10,6 +10,7 @@ const generateCode = require('../../utils/generateCode');
 const VendorActivityLog = require('../../models/vendorActivityLog');
 const vendorNotificationModel = require('../../models/vendorNotificationModel');
 const { sendNotificationsToTokenscheckout } = require('../../utils/sendNotificationStaff');
+const { sendOtpRegister } = require('../../utils/sendMail');
 
 exports.updateNotification = async (req, res, next) => {
     try {
@@ -32,7 +33,6 @@ exports.updateNotification = async (req, res, next) => {
 exports.sendOtpVendor = async (req, res, next) => {
     try {
         let { email, mobileNumber } = req.body;
-        console.log(email, mobileNumber);
 
         const userExist = await Staff.findOne({
             email: email,
@@ -65,7 +65,7 @@ exports.sendOtpVendor = async (req, res, next) => {
         });
 
         // send OTP
-        // await sendOTP(phone, otp);
+        await sendOtpRegister(email, otp)
 
         res.json({
             success: true,

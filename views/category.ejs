@@ -74,7 +74,10 @@
                                                         <% for( let i=0; i < categories.length; i++ ) { %>
                                                         <tr>
                                                             <td><%= i+1 %></td>
-                                                            <td><img src="<%= process.env.IMAGE_URL %><%= categories[i].image %>" width="60px"></td>
+                                                            <!-- <td><img src="<%= process.env.IMAGE_URL %><%= categories[i].image %>" width="60px"
+                                                                   ></td> -->
+
+                                                            <td><img src="<%= process.env.IMAGE_URL %><%= categories[i].image %>" width="60px" style="background-color: #001858; padding: 4px; border-radius: 4px;"></td>
                                                             <td><%= categories[i].en.name %></td>
                                                             <td><%= categories[i].ar.name %></td>
                                                             <td>
