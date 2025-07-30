@@ -5,85 +5,89 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 
 const vendorSchema = new mongoose.Schema(
-  {
-    qrCode: {
-      type: String,
-    },
-    email: {
-      type: String,
-      required: [true, 'validation.email'],
-      unique: true,
-      lowercase: true,
-      // validate: [validator.isEmail, 'validation.emailInvalid'],
-    },
-    password: {
-      type: String,
-      required: [true, 'validation.password'],
-      minlength: [6, 'Password should be atleast 6 characters long.'],
-      trim: true,
-      select: false,
-    },
-    language: {
-      type: String,
-      enum: ['en','ar'],
-      required: true,
-    },
+    {
+        qrCode: {
+            type: String,
+        },
+        email: {
+            type: String,
+            required: [true, 'validation.email'],
+            unique: true,
+            lowercase: true,
+            // validate: [validator.isEmail, 'validation.emailInvalid'],
+        },
+        password: {
+            type: String,
+            required: [true, 'validation.password'],
+            minlength: [6, 'Password should be atleast 6 characters long.'],
+            trim: true,
+            select: false,
+        },
+        language: {
+            type: String,
+            enum: ['en', 'ar'],
+            required: true,
+        },
 
-    businessType : {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'BusinessType',
-    },
-    businessName: {
-      type: String,
-    },
-    businessMobile: {
-      type: String,
-    },
-    businessLogo: {
-      type: String,
-    },
-    businessLicense: {
-      type: String,
-    },
+        businessType: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'BusinessType',
+        },
+        businessName: {
+            type: String,
+        },
+        businessMobile: {
+            type: String,
+        },
+        businessLogo: {
+            type: String,
+        },
+        businessLicense: {
+            type: String,
+        },
 
-    adminApproved: {
-      type: Boolean,
-      default: false,
+        adminApproved: {
+            type: Boolean,
+            default: false,
+        },
+        signupStep: {
+            type: Number,
+        },
+        businessRating: {
+            type: Number,
+            default: 0,
+        },
+        businessReview: {
+            type: Number,
+            default: 0,
+        },
+        fcmToken: {
+            type: String,
+        },
+        token: {
+            type: String,
+        },
+        isNotification: {
+            type: Boolean,
+            default: true,
+        },
+        adminCommission: {
+            type: Number,
+            default: 0,
+        },
+        isDelete: {
+            type: Boolean,
+            default: false,
+        },
+        // lastlogin: {
+        //   type: String,
+        // },
+        isActive: {
+            type: Boolean,
+            default: true,
+        },
     },
-    signupStep: {
-      type: Number
-    },
-    businessRating: {
-      type: Number,
-      default : 0
-    },
-    businessReview: {
-      type: Number,
-      default : 0
-    },
-    fcmToken: {
-      type: String
-    },
-    token: {
-      type: String
-    },
-    isNotification: {
-      type: Boolean,
-      default: true,
-    },
-    isDelete: {
-        type: Boolean,
-        default: false,
-    },
-    // lastlogin: {
-    //   type: String,
-    // },
-    isActive: {
-      type: Boolean,
-      default: true,
-    },
-  },
-  { timestamps: true }
+    { timestamps: true }
 );
 
 

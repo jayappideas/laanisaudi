@@ -329,6 +329,24 @@ exports.sendNotification = async (req, res) => {
     }
 };
 
+exports.adminCommission = async (req, res) => {
+    const vendorId = req.params.id;
+    const { adminCommission } = req.body;
+
+    try {
+        await vendorModel.findByIdAndUpdate(vendorId, {
+            adminCommission: parseFloat(adminCommission),
+        });
+
+        req.flash('green', 'Admin commission updated successfully.');
+        res.redirect(`/admin/vendor/view/${vendorId}`);
+    } catch (err) {
+        console.error(err);
+        req.flash('error', 'Something went wrong.');
+        res.redirect(`/admin/vendor/view/${vendorId}`);
+    }
+};
+
 exports.deleteAccountVendor = async (req, res, next) => {
     try {
         const user = await vendorModel.findById(req.params.id);

@@ -34,7 +34,7 @@ const transactionSchema = new mongoose.Schema(
             default: 0,
         },
         billAmount: {
-            type: Number, // Amount of the bill before discount
+            type: Number, // Amount of  bill before discount
             required: true,
         },
         redeemBalancePoint: {
@@ -54,6 +54,9 @@ const transactionSchema = new mongoose.Schema(
         adminCommission: {
             type: Number,
             default: 0,
+        },
+        tID:{
+            type: String, // Transaction ID for payment gateway
         },
         status: {
             type: String,

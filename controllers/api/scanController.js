@@ -15,6 +15,7 @@ const userNotificationModel = require('../../models/userNotificationModel');
 const staffNotificationModel = require('../../models/staffNotificationModel');
 const vendorNotificationModel = require('../../models/vendorNotificationModel');
 const PointsHistory = require('../../models/PointsHistory');
+const generateCode = require('../../utils/generateCode');
 
 exports.scanQr = async (req, res, next) => {
     try {
@@ -454,6 +455,8 @@ exports.checkout = async (req, res, next) => {
             { status: 'expired' }
         );
 
+        const tID = generateCode(8);
+
         const order = await transactionModel.create({
             user: req.body.userId,
             staff: req.staff.id,
@@ -462,6 +465,7 @@ exports.checkout = async (req, res, next) => {
             discountAmount,
             status: 'pending',
             spentPoints,
+            tID,
             finalAmount, // The final amount after discount and points redemption need to pay by the user
             redeemBalancePoint: req.body.redeemBalancePoint,
             ...(req.body.discountId && { discount: req.body.discountId }),
@@ -649,6 +653,18 @@ exports.getCurrentTransactionStaff = async (req, res, next) => {
                 // status: { $in: ['accepted', 'rejected'] },
             })
             .populate('items.menuItem', 'name price')
+            .populate({
+                path: 'staff',
+                select: 'branch vendor',
+                populate: {
+                    path: 'branch',
+                    select: 'city name country', // Add more fields if needed
+                },
+                populate: {
+                    path: 'vendor',
+                    select: 'businessName', // Add more fields if needed
+                },
+            })
             .sort({
                 createdAt: -1,
             })
