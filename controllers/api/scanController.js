@@ -348,23 +348,24 @@ exports.checkDiscount = async (req, res, next) => {
         }
 
         // Apply discount
-        // let discountAmount = 0;
-        // if (discount.discountType === 'Percentage') {
-        //     discountAmount = (totalCartAmount * discount.discountValue) / 100;
-        // } else if (discount.discountType === 'Fixed') {
-        //     discountAmount = discount.discountValue;
-        // }
+        let discountAmount = 0;
+        if (discount.discountType === 'Percentage') {
+            discountAmount = (totalCartAmount * discount.discountValue) / 100;
+        } else if (discount.discountType === 'Fixed') {
+            discountAmount = discount.discountValue;
+        }
 
-        // // Ensure discount doesn't exceed total
-        // if (discountAmount > totalCartAmount) {
-        //     discountAmount = totalCartAmount;
-        // }
+        // Ensure discount doesn't exceed total
+        if (discountAmount > totalCartAmount) {
+            discountAmount = totalCartAmount;
+        }
 
         // const finalAmount = totalCartAmount - discountAmount;
 
         res.json({
             success: true,
             message: req.t('discount.applied'),
+            msg: `Customer can receive ${discountAmount} points on this purchase.`,
             data: {
                 ...cart,
                 originalAmount: totalCartAmount,
@@ -572,6 +573,7 @@ exports.updateOrderStatus = async (req, res, next) => {
                 'discount',
                 'discountType discountValue title description'
             )
+            .populate('staff', 'fcmToken')
             .select('-__v -updatedAt');
         if (!order) return next(createError.NotFound('Order not found'));
 
@@ -631,7 +633,29 @@ exports.updateOrderStatus = async (req, res, next) => {
         }
 
         await order.save();
+        console.log('order: ', order);
         await user.save();
+
+        let title = 'Order Status Update';
+        const body = `User order status ${status}.`;
+        const data = {
+            order_id: order.id.toString(),
+            type: 'order',
+            body,
+        };
+        if (order.staff?.fcmToken) {
+            await sendNotificationsToTokenscheckout(
+                title,
+                body,
+                [order.staff?.fcmToken],
+                data
+            );
+            await staffNotificationModel.create({
+                sentTo: [order?.staff],
+                title,
+                body,
+            });
+        }
 
         res.status(200).json({
             success: true,

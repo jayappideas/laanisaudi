@@ -253,7 +253,7 @@
                               <div class="card-content">
                                 <div class="row">
                                   <div class="col s12 overflow">
-                                    <table id="page-length-option" class="display">
+                                    <table id="branches-table" class="display">
                                       <thead>
                                         <tr>
                                           <th>Sr</th>
@@ -328,7 +328,7 @@
                               <div class="card-content">
                                 <div class="row">
                                   <div class="col s12 overflow">
-                                    <table id="page-length-option" class="display">
+                                    <table id="staff-table" class="display">
                                       <thead>
                                         <tr>
                                           <th>Sr</th>
@@ -543,5 +543,12 @@
         }
       </script>
 </body>
+<script>
+  $(document).ready(function() {
+    $('#branches-table').DataTable();
+    $('#staff-table').DataTable();
+  });
+</script>
+
 
 </html>

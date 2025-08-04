@@ -73,7 +73,7 @@ exports.vendorlogs = async (req, res) => {
     try {
         const vendor = await vendorActivityLog.find({ vendorId: req.params.id }).populate(
             'vendorId', 'email'
-        ).sort({ createdAt: -1 });
+        ).sort({ createdAt: -1 }).limit(100);
         if (!vendor) {
             req.flash('red', 'vendor not found!');
             return res.redirect('/admin/vendor');
