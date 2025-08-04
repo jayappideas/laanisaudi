@@ -633,7 +633,6 @@ exports.updateOrderStatus = async (req, res, next) => {
         }
 
         await order.save();
-        console.log('order: ', order);
         await user.save();
 
         let title = 'Order Status Update';
@@ -678,17 +677,23 @@ exports.getCurrentTransactionStaff = async (req, res, next) => {
             })
             .populate('items.menuItem', 'name price')
             .populate({
+                path: 'discount',
+                select: 'title minBillAmount discountType discountValue', // Add more fields if needed
+            })
+            .populate({
                 path: 'staff',
                 select: 'branch vendor',
                 populate: {
                     path: 'branch',
                     select: 'city name country', // Add more fields if needed
                 },
+
                 populate: {
                     path: 'vendor',
                     select: 'businessName', // Add more fields if needed
                 },
             })
+
             .sort({
                 createdAt: -1,
             })
