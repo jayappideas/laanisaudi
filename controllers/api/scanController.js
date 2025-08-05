@@ -525,6 +525,20 @@ exports.getCurrentTransaction = async (req, res, next) => {
                 'discount',
                 'discountType discountValue title description'
             )
+            .populate({
+                path: 'staff',
+                select: 'branch vendor',
+                populate: [
+                    {
+                        path: 'branch',
+                        select: 'city state name country buildingName buildingNo roadName',
+                    },
+                    {
+                        path: 'vendor',
+                        select: 'businessName businessLogo',
+                    },
+                ],
+            })
             .sort({
                 createdAt: -1,
             })
@@ -573,7 +587,20 @@ exports.updateOrderStatus = async (req, res, next) => {
                 'discount',
                 'discountType discountValue title description'
             )
-            .populate('staff', 'fcmToken')
+            .populate({
+                path: 'staff',
+                select: 'branch vendor fcmToken',
+                populate: [
+                    {
+                        path: 'branch',
+                        select: 'city state name country buildingName buildingNo roadName',
+                    },
+                    {
+                        path: 'vendor',
+                        select: 'businessName businessLogo',
+                    },
+                ],
+            })
             .select('-__v -updatedAt');
         if (!order) return next(createError.NotFound('Order not found'));
 
@@ -683,17 +710,17 @@ exports.getCurrentTransactionStaff = async (req, res, next) => {
             .populate({
                 path: 'staff',
                 select: 'branch vendor',
-                populate: {
-                    path: 'branch',
-                    select: 'city name country', // Add more fields if needed
-                },
-
-                populate: {
-                    path: 'vendor',
-                    select: 'businessName', // Add more fields if needed
-                },
+                populate: [
+                    {
+                        path: 'branch',
+                        select: 'city state name country buildingName buildingNo roadName',
+                    },
+                    {
+                        path: 'vendor',
+                        select: 'businessName',
+                    },
+                ],
             })
-
             .sort({
                 createdAt: -1,
             })
