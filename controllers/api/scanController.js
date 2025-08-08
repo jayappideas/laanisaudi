@@ -702,6 +702,7 @@ exports.getCurrentTransactionStaff = async (req, res, next) => {
                 _id: req.body.transactionsid,
                 // status: { $in: ['accepted', 'rejected'] },
             })
+            .populate('user', 'name')
             .populate('items.menuItem', 'name price')
             .populate({
                 path: 'discount',
@@ -731,10 +732,15 @@ exports.getCurrentTransactionStaff = async (req, res, next) => {
                     'transactions is empty, can not checkout.'
                 )
             );
+        let discountAmount = 0;
+        if (transactions?.earnedPoints) {
+            discountAmount = transactions?.earnedPoints;
+        }
 
         res.status(200).json({
             success: true,
             transactions,
+            msg: `Customer can receive ${discountAmount} points on this purchase.`,
         });
     } catch (error) {
         next(error);
