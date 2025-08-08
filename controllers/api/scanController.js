@@ -7,9 +7,9 @@ const discountModel = require('../../models/discountModel');
 const transactionModel = require('../../models/transactionModel');
 const userPoint = require('../../models/userPoint');
 const User = require('../../models/userModel');
-const {
-    sendNotificationsToTokenscheckout,
-} = require('../../utils/sendNotificationStaff');
+// const {
+//     sendNotificationsToTokenscheckout,
+// } = require('../../utils/sendNotificationStaff');
 const VendorActivityLog = require('../../models/vendorActivityLog');
 const userNotificationModel = require('../../models/userNotificationModel');
 const staffNotificationModel = require('../../models/staffNotificationModel');
@@ -349,6 +349,8 @@ exports.checkDiscount = async (req, res, next) => {
 
         // Apply discount
         let discountAmount = 0;
+        let finalAmount = totalCartAmount;
+        let spentPoints = 0;
         if (discount.discountType === 'Percentage') {
             discountAmount = (totalCartAmount * discount.discountValue) / 100;
         } else if (discount.discountType === 'Fixed') {
@@ -360,17 +362,32 @@ exports.checkDiscount = async (req, res, next) => {
             discountAmount = totalCartAmount;
         }
 
-        // const finalAmount = totalCartAmount - discountAmount;
+        const redemptionResult = await handlePointsRedemption(
+            req.body.userId,
+            finalAmount,
+            req.staff.vendor
+        );
+            console.log('redemptionResult: ', redemptionResult);
+
+        if (redemptionResult) {
+            finalAmount = redemptionResult.finalAmount;
+            spentPoints = redemptionResult.spentPoints;
+        }
+
+        console.log('finalAmount', finalAmount);
+        console.log('totalCartAmount', totalCartAmount);
+        console.log('discountAmount: ', discountAmount);
 
         res.json({
             success: true,
             message: req.t('discount.applied'),
-            msg: `Customer can receive ${discountAmount} points on this purchase.`,
+            discountAmount,
             data: {
                 ...cart,
-                originalAmount: totalCartAmount,
-                // discountAmount,
-                // finalAmount,
+                billAmount: totalCartAmount,
+                discountAmount,
+                finalAmount,
+                spentPoints,
             },
         });
     } catch (error) {
@@ -429,14 +446,28 @@ exports.checkout = async (req, res, next) => {
                     createError.BadRequest('discount.min_bill_not_met')
                 );
 
+            let discountValue = discount.discountValue;
+            if (typeof discountValue === 'string') {
+                discountValue = discountValue.replace('%', '');
+            }
+            discountValue = Number(discountValue);
+
+            if (isNaN(discountValue)) {
+                return next(createError.BadRequest('discount.value_invalid'));
+            }
+
             if (discount.discountType === 'Percentage') {
-                discountAmount = (subtotal * discount.discountValue) / 100;
+                discountAmount = (subtotal * discountValue) / 100;
             } else if (discount.discountType === 'Fixed') {
-                discountAmount = discount.discountValue;
+                discountAmount = discountValue;
+            }
+
+            if (discountAmount > subtotal) {
+                discountAmount = subtotal;
             }
 
             // Deduct discount from the subtotal first
-            finalAmount = subtotal - discountAmount;
+            // finalAmount = subtotal - discountAmount;
         }
 
         if (req.body.redeemBalancePoint) {
@@ -487,12 +518,12 @@ exports.checkout = async (req, res, next) => {
             type: 'checkout',
         };
         if (fcmTokens.fcmToken) {
-            await sendNotificationsToTokenscheckout(
-                title,
-                body,
-                [fcmTokens.fcmToken],
-                data
-            );
+            // await sendNotificationsToTokenscheckout(
+            //     title,
+            //     body,
+            //     [fcmTokens.fcmToken],
+            //     data
+            // );
             await userNotificationModel.create({
                 sentTo: [fcmTokens?._id],
                 title,
@@ -632,6 +663,27 @@ exports.updateOrderStatus = async (req, res, next) => {
             // user.totalPoints -= order.spentPoints; // Deduct the spent points from the user's account
             // user.totalPoints += points; // earned points from the current order
 
+            let userSpecificP = await userPoint.findOne({
+                user: user._id,
+                vendor: order.vendor,
+            });
+
+            if (!userSpecificP) {
+                // Create a new userPoint record if it doesn't exist
+                userSpecificP = new userPoint({
+                    user: user._id,
+                    vendor: order.staff.vendor,
+                    totalPoints: 0,
+                });
+            }
+
+            // Update the totalPoints
+            userSpecificP.totalPoints =
+                (userSpecificP.totalPoints || 0) - order.spentPoints + points;
+
+            await userSpecificP.save();
+            console.log('userSpecificP: ', userSpecificP);
+
             // 1. Record spent points (if any)
             if (order.spentPoints > 0) {
                 await PointsHistory.create({
@@ -748,10 +800,14 @@ exports.getCurrentTransactionStaff = async (req, res, next) => {
 };
 
 const handlePointsRedemption = async (userId, subtotal, vendor) => {
-    const user = await User.findOne({
-        user: userId,
-        vendor: vendor.toString(),
-    }).select('totalPoints');
+    console.log('userId, subtotal, vendor: ', userId, subtotal, vendor);
+    const user = await userPoint
+        .findOne({
+            user: userId,
+            vendor: vendor.toString(),
+        })
+        .select('totalPoints');
+    console.log('useruserPoint: ', user);
 
     let finalAmount = subtotal;
     let spentPoints = 0; // to track how many points are used by the user to pay bill amount
