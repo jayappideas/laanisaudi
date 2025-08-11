@@ -7,9 +7,9 @@ const discountModel = require('../../models/discountModel');
 const transactionModel = require('../../models/transactionModel');
 const userPoint = require('../../models/userPoint');
 const User = require('../../models/userModel');
-// const {
-//     sendNotificationsToTokenscheckout,
-// } = require('../../utils/sendNotificationStaff');
+const {
+    sendNotificationsToTokenscheckout,
+} = require('../../utils/sendNotificationStaff');
 const VendorActivityLog = require('../../models/vendorActivityLog');
 const userNotificationModel = require('../../models/userNotificationModel');
 const staffNotificationModel = require('../../models/staffNotificationModel');
@@ -367,16 +367,12 @@ exports.checkDiscount = async (req, res, next) => {
             finalAmount,
             req.staff.vendor
         );
-            console.log('redemptionResult: ', redemptionResult);
 
         if (redemptionResult) {
             finalAmount = redemptionResult.finalAmount;
+            finalAmount = finalAmount - discountAmount; // Apply discount to the final amount for preview
             spentPoints = redemptionResult.spentPoints;
         }
-
-        console.log('finalAmount', finalAmount);
-        console.log('totalCartAmount', totalCartAmount);
-        console.log('discountAmount: ', discountAmount);
 
         res.json({
             success: true,
@@ -518,12 +514,12 @@ exports.checkout = async (req, res, next) => {
             type: 'checkout',
         };
         if (fcmTokens.fcmToken) {
-            // await sendNotificationsToTokenscheckout(
-            //     title,
-            //     body,
-            //     [fcmTokens.fcmToken],
-            //     data
-            // );
+            await sendNotificationsToTokenscheckout(
+                title,
+                body,
+                [fcmTokens.fcmToken],
+                data
+            );
             await userNotificationModel.create({
                 sentTo: [fcmTokens?._id],
                 title,
@@ -682,27 +678,27 @@ exports.updateOrderStatus = async (req, res, next) => {
                 (userSpecificP.totalPoints || 0) - order.spentPoints + points;
 
             await userSpecificP.save();
-            console.log('userSpecificP: ', userSpecificP);
 
+            let dataa;
             // 1. Record spent points (if any)
             if (order.spentPoints > 0) {
-                await PointsHistory.create({
+                dataa = await PointsHistory.create({
                     user: user._id,
-                    order: order._id,
+                    staff: order.staff.id,
+                    transaction: order._id,
                     type: 'spend',
                     points: order.spentPoints,
-                    note: 'Points redeemed during checkout',
                 });
             }
 
             // 2. Record earned points
             if (points > 0) {
-                await PointsHistory.create({
+                dataa = await PointsHistory.create({
+                    staff: order.staff.id,
                     user: user._id,
-                    order: order._id,
+                    transaction: order._id,
                     type: 'earn',
                     points: points,
-                    note: 'Points earned from order',
                 });
             }
         } else {

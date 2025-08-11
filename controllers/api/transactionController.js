@@ -61,7 +61,24 @@ exports.getPointsHistory = async (req, res, next) => {
         const userId = req.user.id;
 
         const pointsHistory = await PointsHistory.find({ user: userId })
-            .populate('transaction', 'billAmount finalAmount status')
+            .populate({
+                path: 'transaction',
+                select: 'billAmount discountAmount spentPoints earnedPoints finalAmount status staff',
+                populate: {
+                    path: 'staff',
+                    select: 'branch vendor fcmToken',
+                    populate: [
+                        {
+                            path: 'branch',
+                            select: 'city state name country buildingName buildingNo roadName',
+                        },
+                        {
+                            path: 'vendor',
+                            select: 'businessName businessLogo',
+                        },
+                    ],
+                },
+            })
             .sort({ createdAt: -1 })
             .select('-__v -updatedAt');
 
@@ -74,6 +91,40 @@ exports.getPointsHistory = async (req, res, next) => {
     }
 };
 
+exports.getPointsHistoryS = async (req, res, next) => {
+    try {
+        const userId = req.staff.id;
+
+        const pointsHistory = await PointsHistory.find({ staff: userId })
+            .populate({
+                path: 'transaction',
+                select: 'billAmount finalAmount status staff',
+                populate: {
+                    path: 'staff',
+                    select: 'branch vendor fcmToken',
+                    populate: [
+                        {
+                            path: 'branch',
+                            select: 'city state name country buildingName buildingNo roadName',
+                        },
+                        {
+                            path: 'vendor',
+                            select: 'businessName businessLogo',
+                        },
+                    ],
+                },
+            })
+            .sort({ createdAt: -1 })
+            .select('-__v -updatedAt');
+
+        res.status(200).json({
+            success: true,
+            history: pointsHistory,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
 
 exports.getMenuList = async (req, res, next) => {
     try {

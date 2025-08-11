@@ -7,6 +7,11 @@ const pointsHistorySchema = new mongoose.Schema(
             ref: 'User',
             required: true,
         },
+        staff: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Staff',
+            required: true,
+        },
         transaction: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Transaction',
