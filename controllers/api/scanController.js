@@ -796,14 +796,14 @@ exports.getCurrentTransactionStaff = async (req, res, next) => {
 };
 
 const handlePointsRedemption = async (userId, subtotal, vendor) => {
-    console.log('userId, subtotal, vendor: ', userId, subtotal, vendor);
+    // console.log('userId, subtotal, vendor: ', userId, subtotal, vendor);
     const user = await userPoint
         .findOne({
             user: userId,
             vendor: vendor.toString(),
         })
         .select('totalPoints');
-    console.log('useruserPoint: ', user);
+    // console.log('useruserPoint: ', user);
 
     let finalAmount = subtotal;
     let spentPoints = 0; // to track how many points are used by the user to pay bill amount

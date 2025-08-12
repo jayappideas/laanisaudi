@@ -6,6 +6,7 @@ const userModel = require('../../models/userModel');
 const { path } = require('../../app');
 const VendorActivityLog = require('../../models/vendorActivityLog');
 const PointsHistory = require('../../models/PointsHistory');
+const menuItemModel = require('../../models/menuItemModel');
 
 exports.scanQr = async (req, res, next) => {
     try {
@@ -63,7 +64,7 @@ exports.getPointsHistory = async (req, res, next) => {
         const pointsHistory = await PointsHistory.find({ user: userId })
             .populate({
                 path: 'transaction',
-                select: 'billAmount discountAmount spentPoints earnedPoints finalAmount status staff',
+                select: 'billAmount discountAmount spentPoints earnedPoints finalAmount status staff tID',
                 populate: {
                     path: 'staff',
                     select: 'branch vendor fcmToken',
@@ -98,21 +99,21 @@ exports.getPointsHistoryS = async (req, res, next) => {
         const pointsHistory = await PointsHistory.find({ staff: userId })
             .populate({
                 path: 'transaction',
-                select: 'billAmount finalAmount status staff',
-                populate: {
-                    path: 'staff',
-                    select: 'branch vendor fcmToken',
-                    populate: [
-                        {
-                            path: 'branch',
-                            select: 'city state name country buildingName buildingNo roadName',
-                        },
-                        {
-                            path: 'vendor',
-                            select: 'businessName businessLogo',
-                        },
-                    ],
-                },
+                select: 'billAmount discountAmount spentPoints earnedPoints finalAmount status staff tID',
+                // populate: {
+                //     path: 'staff',
+                //     select: 'branch vendor',
+                //     populate: [
+                //         {
+                //             path: 'branch',
+                //             select: 'city state name country buildingName buildingNo roadName',
+                //         },
+                //         {
+                //             path: 'vendor',
+                //             select: 'businessName businessLogo',
+                //         },
+                //     ],
+                // },
             })
             .sort({ createdAt: -1 })
             .select('-__v -updatedAt');
