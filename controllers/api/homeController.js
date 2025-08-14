@@ -13,7 +13,7 @@ const discountModel = require('../../models/discountModel');
 const Transaction = require('../../models/transactionModel');
 const Staff = require('../../models/staffModel');
 const Branch = require('../../models/branchModel');
-
+const userPoint = require('../../models/userPoint');
 
 // (async () => {
 //     try {
@@ -37,7 +37,6 @@ const Branch = require('../../models/branchModel');
 //         console.error('Error updating discount:', error);
 //     }
 // })();
-
 
 // (async () => {
 //     try {
@@ -121,7 +120,6 @@ exports.dashboardStaff = async (req, res, next) => {
 //             .find({ isDelete: false })
 //             .distinct('vendor');
 
-
 //         // Step 2: Get businessType (category) IDs used by those vendors
 //         const usedCategoryIds = await vendorModel
 //             .find({
@@ -160,7 +158,6 @@ exports.getCategoryList = async (req, res, next) => {
             const vendorsWithBranches = await branchModel
                 .find({ isDelete: false })
                 .distinct('vendor');
-
 
             // Step 2: Get businessType (category) IDs used by those vendors
             const usedCategoryIds = await vendorModel
@@ -293,13 +290,6 @@ exports.getRestaurantList = async (req, res, next) => {
             sortBy,
         } = req.body;
 
-        // Validate input
-        if (!latitude || !longitude) {
-            return res
-                .status(400)
-                .json({ error: 'Latitude and longitude are required' });
-        }
-
         let sortCondition = {};
 
         if (sortBy === 'high_to_low_rating') {
@@ -312,21 +302,35 @@ exports.getRestaurantList = async (req, res, next) => {
             sortCondition = { businessName: 1 };
         }
 
-        const branches = await branchModel.aggregate([
-            {
-                $geoNear: {
-                    near: {
-                        type: 'Point',
-                        coordinates: [
-                            parseFloat(longitude),
-                            parseFloat(latitude),
-                        ],
-                    },
-                    distanceField: 'distance',
-                    maxDistance: location ? location * 1000 : 50000, //Default 50KM
-                    spherical: true,
-                },
-            },
+        // Start building the pipeline
+        let pipeline = [];
+
+        // const includeGeo = sortBy !== 'all';
+
+        // if (includeGeo) {
+        //     if (!latitude || !longitude) {
+        //         return res.status(400).json({
+        //             error: 'Latitude and longitude are required for this sortBy option',
+        //         });
+        //     }
+
+        //     pipeline.push({
+        //         $geoNear: {
+        //             near: {
+        //                 type: 'Point',
+        //                 coordinates: [
+        //                     parseFloat(longitude),
+        //                     parseFloat(latitude),
+        //                 ],
+        //             },
+        //             distanceField: 'distance',
+        //             maxDistance: location ? location * 1000 : 50000, // default 50KM
+        //             spherical: true,
+        //         },
+        //     });
+        // }
+
+        pipeline = pipeline.concat([
             {
                 $match: {
                     isDelete: false,
@@ -354,7 +358,7 @@ exports.getRestaurantList = async (req, res, next) => {
             {
                 $unwind: {
                     path: '$menuItems',
-                    preserveNullAndEmptyArrays: true, // In case a vendor has no menuItems
+                    preserveNullAndEmptyArrays: true,
                 },
             },
             {
@@ -406,7 +410,8 @@ exports.getRestaurantList = async (req, res, next) => {
                     businessLogo: { $first: '$vendorDetails.businessLogo' },
                     rating: { $first: '$vendorDetails.businessRating' },
                     review: { $first: '$vendorDetails.businessReview' },
-                    distance_in_mt: { $min: '$distance' },
+                    // distance_in_mt: { $min: '$distance' }, // May be undefined if no geoNear
+                    distance_in_mt: { $min: { $ifNull: ['$distance', 0] } },
                     branchId: { $first: '$_id' },
                 },
             },
@@ -414,6 +419,8 @@ exports.getRestaurantList = async (req, res, next) => {
                 $sort: sortCondition,
             },
         ]);
+
+        const branches = await branchModel.aggregate(pipeline);
 
         res.status(200).json({
             success: true,
@@ -425,10 +432,11 @@ exports.getRestaurantList = async (req, res, next) => {
     }
 };
 
+
 exports.restaurantDetail = async (req, res, next) => {
     try {
         if (!req.body.time) {
-            return next(createError.Unauthorized('Please enter time'))
+            return next(createError.Unauthorized('Please enter time'));
         }
         const vendorId = req.body.vendorId;
         const branchId = req.body.branchId;
@@ -439,6 +447,11 @@ exports.restaurantDetail = async (req, res, next) => {
                 'businessName businessLogo businessMobile email businessRating businessReview'
             )
             .lean();
+
+        let userSpecificP = await userPoint.findOne({
+            user: req.user.id,
+            vendor: vendorId,
+        });
 
         const branches = await branchModel
             .find({ vendor: vendor._id, isDelete: false })
@@ -462,9 +475,10 @@ exports.restaurantDetail = async (req, res, next) => {
             .lean();
 
         const offers = await discountModel
-            .find({ vendor: vendor._id, adminApprovedStatus: 'Approved' }).populate({
+            .find({ vendor: vendor._id, adminApprovedStatus: 'Approved' })
+            .populate({
                 path: 'customerType',
-                select: 'name'
+                select: 'name',
             })
             .select(
                 'title description customerType totalUserCount expiryDate minBillAmount remainingUserCount adminApprovedStatus'
@@ -503,7 +517,8 @@ exports.restaurantDetail = async (req, res, next) => {
             let expiryDate;
 
             if (/am|pm/i.test(expiryStr)) {
-                const [datePart, hourStr, minuteStr, meridian] = expiryStr.split(/[\s:]+/);
+                const [datePart, hourStr, minuteStr, meridian] =
+                    expiryStr.split(/[\s:]+/);
                 const [day, month, year] = datePart.split('/').map(Number);
                 let hour = parseInt(hourStr, 10);
                 const minute = parseInt(minuteStr, 10);
@@ -543,6 +558,9 @@ exports.restaurantDetail = async (req, res, next) => {
         vendor.branches = branches;
         vendor.menu = menu;
         vendor.isFavourite = isFavourite ? true : false;
+        vendor.totalPoints = userSpecificP ? userSpecificP.totalPoints : 0;
+        console.log('vendor.totalPoints: ', vendor.totalPoints);
+        console.log('vendor: ', vendor);
 
         res.status(200).json({
             success: true,

@@ -240,7 +240,7 @@ exports.createVendor = async (req, res, next) => {
         });
 
         user.qrCode = fileName;
-        user.save();
+        await user.save();
 
         req.flash('green', 'Vendor created successfully.');
         res.redirect('/admin/vendor');

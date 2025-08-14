@@ -201,7 +201,7 @@ exports.signUp = async (req, res, next) => {
 
         user.qrCode = fileName;
         user.token = token;
-        user.save();
+        await user.save();
 
         // hide fields
         user = user.toObject();

@@ -89,7 +89,7 @@ app.use('/api/auth', require('./routes/api/authRoutes'));
 app.use('/api/staff', require('./routes/api/staffRoutes'));
 app.use('/api/staff-self', require('./routes/api/selfStaff'));
 app.use('/api/branch', require('./routes/api/branchRoutes'));
-app.use('/api/menu', require('./routes/api/branchRoutes'));
+app.use('/api/menu', require('./routes/api/branchRoutes')); 
 app.use('/api/cms', require('./routes/api/cmsRoutes'));
 app.use('/api/home', require('./routes/api/homeRoutes'));
 app.use('/api/review', require('./routes/api/homeRoutes'));

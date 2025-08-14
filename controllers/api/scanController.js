@@ -16,16 +16,26 @@ const staffNotificationModel = require('../../models/staffNotificationModel');
 const vendorNotificationModel = require('../../models/vendorNotificationModel');
 const PointsHistory = require('../../models/PointsHistory');
 const generateCode = require('../../utils/generateCode');
+const moment = require('moment');
 
 exports.scanQr = async (req, res, next) => {
     try {
         const userId = req.body.qrId;
+        const vendor = req.body.vendor;
 
         let user = await userModel
             .findById({ _id: userId, isActive: true })
-            .select('name totalPoints');
+            .select('name totalPoints')
+            .lean();
 
         if (!user) return next(createError.BadRequest('redeem.invalidQr'));
+
+        let userSpecificP = await userPoint.findOne({
+            user: userId,
+            vendor: vendor,
+        });
+
+        user.totalPoints = userSpecificP ? userSpecificP.totalPoints : 0;
 
         res.status(200).json({
             success: true,
@@ -370,7 +380,6 @@ exports.checkDiscount = async (req, res, next) => {
 
         if (redemptionResult) {
             finalAmount = redemptionResult.finalAmount;
-            finalAmount = finalAmount - discountAmount; // Apply discount to the final amount for preview
             spentPoints = redemptionResult.spentPoints;
         }
 
@@ -472,6 +481,7 @@ exports.checkout = async (req, res, next) => {
                 finalAmount,
                 req.staff.vendor
             );
+
             if (redemptionResult) {
                 finalAmount = redemptionResult.finalAmount;
                 spentPoints = redemptionResult.spentPoints;
@@ -545,7 +555,7 @@ exports.checkout = async (req, res, next) => {
 //? For USER call this every 10 sec to show the user then user can accept or reject the order
 exports.getCurrentTransaction = async (req, res, next) => {
     try {
-        const transactions = await transactionModel
+        let transactions = await transactionModel
             .findOne({ user: req.user.id, status: 'pending' })
             .populate('items.menuItem', 'name price')
             .populate(
@@ -569,7 +579,8 @@ exports.getCurrentTransaction = async (req, res, next) => {
             .sort({
                 createdAt: -1,
             })
-            .select('-__v -updatedAt');
+            .select('-__v -updatedAt')
+            .lean();
         if (!transactions)
             return next(
                 createError.BadRequest(
@@ -581,12 +592,24 @@ exports.getCurrentTransaction = async (req, res, next) => {
 
         const points = transactions?.discount?.discountValue;
 
+        let userSpecificP = await userPoint.findOne({
+            user: transactions.user,
+            vendor: transactions.staff.vendor,
+        });
+
+        if (transactions) {
+            transactions.totalPoints = userSpecificP
+                ? userSpecificP.totalPoints
+                : 0;
+        }
+
         res.status(200).json({
             success: true,
             // message: `You can receive ${points} points on this purchase.`,
             transactions,
         });
     } catch (error) {
+        console.log('error: ', error);
         next(error);
     }
 };
@@ -604,7 +627,7 @@ exports.updateOrderStatus = async (req, res, next) => {
                 )
             );
 
-        const order = await transactionModel
+        let order = await transactionModel
             .findOne({
                 _id: req.body.orderId,
                 user: req.user.id,
@@ -624,7 +647,7 @@ exports.updateOrderStatus = async (req, res, next) => {
                     },
                     {
                         path: 'vendor',
-                        select: 'businessName businessLogo',
+                        select: 'businessName businessLogo adminCommission',
                     },
                 ],
             })
@@ -651,8 +674,15 @@ exports.updateOrderStatus = async (req, res, next) => {
 
         if (status === 'accepted') {
             order.status = 'accepted';
+            // order.earnedPoints = (order.earnedPoints || 0) + points;
             order.earnedPoints = points;
             order.finalAmount = finalAmount; // Save actual final amount user paid
+
+            const adminCommissionPercent =
+                order.staff?.vendor?.adminCommission || 0;
+            const adminCommissionAmount =
+                (order.billAmount * adminCommissionPercent) / 100;
+            order.adminCommission = adminCommissionAmount;
 
             user.totalPoints =
                 (user.totalPoints || 0) - order.spentPoints + points;
@@ -661,7 +691,7 @@ exports.updateOrderStatus = async (req, res, next) => {
 
             let userSpecificP = await userPoint.findOne({
                 user: user._id,
-                vendor: order.vendor,
+                vendor: order.staff.vendor,
             });
 
             if (!userSpecificP) {
@@ -731,6 +761,9 @@ exports.updateOrderStatus = async (req, res, next) => {
             });
         }
 
+        order = order.toObject(); 
+        order.totalPoints = userSpecificP.totalPoints;
+
         res.status(200).json({
             success: true,
             message: `Order has been ${status}`,
@@ -744,7 +777,7 @@ exports.updateOrderStatus = async (req, res, next) => {
 //? For Staff call this every 10 sec to show the user action
 exports.getCurrentTransactionStaff = async (req, res, next) => {
     try {
-        const transactions = await transactionModel
+        let transactions = await transactionModel
             .findOne({
                 staff: req.staff.id,
                 _id: req.body.transactionsid,
@@ -773,7 +806,8 @@ exports.getCurrentTransactionStaff = async (req, res, next) => {
             .sort({
                 createdAt: -1,
             })
-            .select('-__v -updatedAt');
+            .select('-__v -updatedAt')
+            .lean();
         if (!transactions)
             return next(
                 createError.BadRequest(
@@ -784,6 +818,20 @@ exports.getCurrentTransactionStaff = async (req, res, next) => {
         if (transactions?.earnedPoints) {
             discountAmount = transactions?.earnedPoints;
         }
+
+        let userSpecificP = await userPoint.findOne({
+            user: transactions.user._id,
+            vendor: transactions.staff.vendor,
+        });
+            console.log('userSpecificP: ', userSpecificP);
+
+        if (transactions) {
+            transactions.totalPoints = userSpecificP
+                ? userSpecificP.totalPoints
+                : 0;
+        }
+
+            console.log('transactions: ', transactions);
 
         res.status(200).json({
             success: true,
@@ -796,14 +844,13 @@ exports.getCurrentTransactionStaff = async (req, res, next) => {
 };
 
 const handlePointsRedemption = async (userId, subtotal, vendor) => {
-    // console.log('userId, subtotal, vendor: ', userId, subtotal, vendor);
     const user = await userPoint
         .findOne({
             user: userId,
             vendor: vendor.toString(),
         })
         .select('totalPoints');
-    // console.log('useruserPoint: ', user);
+    console.log('useruserPoint: ', user);
 
     let finalAmount = subtotal;
     let spentPoints = 0; // to track how many points are used by the user to pay bill amount
@@ -822,9 +869,107 @@ const handlePointsRedemption = async (userId, subtotal, vendor) => {
     }
 
     // await user.save();
+    console.log('finalAmount, spentPoints: ', finalAmount, spentPoints);
 
     return { finalAmount, spentPoints };
 };
+
+exports.getReports = async (req, res, next) => {
+    try {
+        const { startDate, endDate } = req.query;
+        const user = req.user;
+
+        const start = startDate
+            ? new Date(startDate)
+            : moment().startOf('month').toDate();
+        const end = endDate
+            ? new Date(endDate)
+            : moment().endOf('month').toDate();
+
+        // Filter transactions within date range for the user
+        const transactions = await transactionModel.find({
+            user: user._id,
+            status: 'accepted',
+            createdAt: { $gte: start, $lte: end },
+        });
+
+        const totalPointsRedeemed = transactions.reduce(
+            (sum, tx) => sum + (tx.spentPoints || 0),
+            0
+        );
+        const totalDiscount = transactions.reduce(
+            (sum, tx) => sum + (tx.discountAmount || 0),
+            0
+        );
+        const totalTransactions = transactions.length;
+        const adminCommission = transactions.reduce(
+            (sum, tx) => sum + (tx.adminCommission || 0),
+            0
+        );
+
+        // Points redemption history (latest 10)
+        const redemptionHistory = await PointsHistory.find({
+            user: user._id,
+            type: 'spend',
+            createdAt: { $gte: start, $lte: end },
+        })
+            .sort({ createdAt: -1 })
+            .limit(100)
+            .select('points transaction createdAt')
+            .populate({
+                path: 'transaction',
+                select: 'discountAmount',
+            });
+
+        // Points summary (total, earned, spent)
+        const [earnedTotal, spentTotal] = await Promise.all([
+            PointsHistory.aggregate([
+                {
+                    $match: {
+                        user: user._id,
+                        type: 'earn',
+                        createdAt: { $gte: start, $lte: end },
+                    },
+                },
+                { $group: { _id: null, total: { $sum: '$points' } } },
+            ]),
+            PointsHistory.aggregate([
+                {
+                    $match: {
+                        user: user._id,
+                        type: 'spend',
+                        createdAt: { $gte: start, $lte: end },
+                    },
+                },
+                { $group: { _id: null, total: { $sum: '$points' } } },
+            ]),
+        ]);
+
+        res.status(200).json({
+            success: true,
+            data: {
+                totalPointsRedeemed,
+                totalDiscount,
+                totalTransactions,
+                adminCommission,
+                pointsRedemption: redemptionHistory.map(item => ({
+                    date: item.createdAt,
+                    points: item.points,
+                    discount: item.transaction?.discountAmount || 0,
+                })),
+                customerActivity: {
+                    totalPoints: user.totalPoints || 0,
+                    pointsGiven: earnedTotal[0]?.total || 0,
+                    pointsRedeemed: spentTotal[0]?.total || 0,
+                },
+            },
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// GET /api/reports?startDate=2024-11-01&endDate=2024-11-30
 
 /* If user can not do accept/reject he lost his points
    to solve this updateOrderStatus API in this deduct user.totalPoints

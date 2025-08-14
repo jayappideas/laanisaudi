@@ -7,6 +7,7 @@ const { path } = require('../../app');
 const VendorActivityLog = require('../../models/vendorActivityLog');
 const PointsHistory = require('../../models/PointsHistory');
 const menuItemModel = require('../../models/menuItemModel');
+const userPoint = require('../../models/userPoint');
 
 exports.scanQr = async (req, res, next) => {
     try {
@@ -55,7 +56,6 @@ exports.getTransactionHistory = async (req, res, next) => {
         next(error);
     }
 };
-
 
 exports.getPointsHistory = async (req, res, next) => {
     try {
@@ -251,6 +251,22 @@ exports.getCart = async (req, res, next) => {
             success: true,
             message: 'Cart details',
             data: cart,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.meet = async (req, res, next) => {
+    try {
+        const transactions = await userPoint.find({
+            user: req.body.user,
+            vendor: req.body.vendor,
+        });
+
+        res.status(200).json({
+            success: true,
+            transactions,
         });
     } catch (error) {
         next(error);
