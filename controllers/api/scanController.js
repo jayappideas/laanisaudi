@@ -672,6 +672,7 @@ exports.updateOrderStatus = async (req, res, next) => {
 
         points = Math.floor(points);
 
+        let userSpecificP = null;
         if (status === 'accepted') {
             order.status = 'accepted';
             // order.earnedPoints = (order.earnedPoints || 0) + points;
@@ -689,7 +690,7 @@ exports.updateOrderStatus = async (req, res, next) => {
             // user.totalPoints -= order.spentPoints; // Deduct the spent points from the user's account
             // user.totalPoints += points; // earned points from the current order
 
-            let userSpecificP = await userPoint.findOne({
+            userSpecificP = await userPoint.findOne({
                 user: user._id,
                 vendor: order.staff.vendor,
             });
@@ -761,8 +762,8 @@ exports.updateOrderStatus = async (req, res, next) => {
             });
         }
 
-        order = order.toObject(); 
-        order.totalPoints = userSpecificP.totalPoints;
+        order = order.toObject();
+        order.totalPoints = userSpecificP?.totalPoints || 0;
 
         res.status(200).json({
             success: true,
@@ -823,7 +824,7 @@ exports.getCurrentTransactionStaff = async (req, res, next) => {
             user: transactions.user._id,
             vendor: transactions.staff.vendor,
         });
-            console.log('userSpecificP: ', userSpecificP);
+        console.log('userSpecificP: ', userSpecificP);
 
         if (transactions) {
             transactions.totalPoints = userSpecificP
@@ -831,7 +832,7 @@ exports.getCurrentTransactionStaff = async (req, res, next) => {
                 : 0;
         }
 
-            console.log('transactions: ', transactions);
+        console.log('transactions: ', transactions);
 
         res.status(200).json({
             success: true,
