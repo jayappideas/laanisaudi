@@ -21,6 +21,7 @@ router.post(
     upload.none(),
     scanController.decreaseCart
 );
+router.post('/cart/clear', checkStaff, upload.none(), scanController.clearCart);
 router.post(
     '/apply-discount',
     checkStaff,

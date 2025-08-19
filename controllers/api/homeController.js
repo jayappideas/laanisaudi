@@ -416,6 +416,12 @@ exports.getRestaurantList = async (req, res, next) => {
                 },
             },
             {
+                $match: {
+                    businessName: { $ne: null },
+                    businessLogo: { $ne: null },
+                },
+            },
+            {
                 $sort: sortCondition,
             },
         ]);

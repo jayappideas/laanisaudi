@@ -33,6 +33,8 @@ exports.checkStaff = async (req, res, next) => {
             return next(createError.Unauthorized('auth.blocked'));
         if (staff.isDelete)
             return next(createError.Unauthorized('auth.deleted'));
+        if (staff.vendorApproved === 'pending')
+            return next(createError.Unauthorized('auth.pendingVendorApproved'));
 
         req.staff = staff;
         next();
@@ -52,11 +54,13 @@ exports.registerStatus = async (req, res, next) => {
 
         if (req.body.status === 'approved') {
             title = 'Welcome! Your Account is Now Approved';
-            body = 'Congratulations! Your account has been successfully approved. You can now access all features.';
+            body =
+                'Congratulations! Your account has been successfully approved. You can now access all features.';
             data = { type: 'account_approved' };
         } else {
             title = 'Account Approval Status';
-            body = 'We regret to inform you that your account has not been approved at this time.';
+            body =
+                'We regret to inform you that your account has not been approved at this time.';
             data = { type: 'account_rejected' };
         }
 
@@ -65,7 +69,7 @@ exports.registerStatus = async (req, res, next) => {
                 title,
                 body,
                 [user.fcmToken],
-                data,
+                data
             );
             await staffNotificationModel.create({
                 sentTo: [user?._id],
@@ -76,7 +80,6 @@ exports.registerStatus = async (req, res, next) => {
 
         await user.save();
 
-
         res.status(200).json({
             success: true,
             message: req.t('staff.status'),
@@ -86,8 +89,6 @@ exports.registerStatus = async (req, res, next) => {
         next(error);
     }
 };
-
-
 
 exports.addStaff = async (req, res, next) => {
     try {
@@ -116,7 +117,7 @@ exports.addStaff = async (req, res, next) => {
             occupation: req.body.occupation,
             password: req.body.password,
             photo,
-            vendorApproved: 'approved'
+            vendorApproved: 'approved',
         });
 
         // Define the file path
@@ -181,7 +182,6 @@ exports.getStaffList = async (req, res, next) => {
         next(error);
     }
 };
-
 
 exports.getStaffDetail = async (req, res, next) => {
     try {
@@ -266,8 +266,9 @@ exports.deleteStaffByStaff = async (req, res, next) => {
         const user = await Staff.findById(req.staff.id);
 
         const modifiedEmail = `${user.email}_deleted_${Date.now()}`;
-        const modifiedMobileNumber = `${user.mobileNumber
-            }_deleted_${Date.now()}`;
+        const modifiedMobileNumber = `${
+            user.mobileNumber
+        }_deleted_${Date.now()}`;
 
         user.isDelete = true;
         user.token = '';
@@ -322,8 +323,8 @@ exports.login = async (req, res, next) => {
         if (user.isActive == false)
             return next(createError.BadRequest('auth.blocked'));
 
-        if (user.vendorApproved == false)
-            return next(createError.BadRequest('auth.pendingVendorApproved'));
+        if (user.vendorApproved === 'pending')
+            return next(createError.Unauthorized('auth.pendingVendorApproved'));
         if (user.password != password)
             return next(createError.BadRequest('staff.credentials'));
 
@@ -356,7 +357,6 @@ exports.login = async (req, res, next) => {
         next(error);
     }
 };
-
 
 exports.forgotPasswordVendor = async (req, res, next) => {
     try {
@@ -407,8 +407,6 @@ exports.changePasswordVendor = async (req, res, next) => {
         const { oldPassword, newPassword } = req.body;
         const user = await Staff.findById(req.staff.id).select('+password');
 
-
-
         if (oldPassword !== user.password)
             return next(createError.BadRequest('changePass.wrongPass'));
 
@@ -436,10 +434,11 @@ exports.getStaffDiscountList = async (req, res, next) => {
                 vendor: req.staff.vendor,
                 adminApprovedStatus: { $nin: ['Pending', 'Rejected'] },
                 status: { $nin: ['Inactive', 'Expired'] },
-                isDelete: false
-            }).populate({
+                isDelete: false,
+            })
+            .populate({
                 path: 'customerType',
-                select: 'name'
+                select: 'name',
             })
             .select(
                 'title description status totalUserCount redeemUserCount expiryDate'
@@ -459,9 +458,10 @@ exports.getStaffDiscountList = async (req, res, next) => {
 exports.getDiscountDetail = async (req, res, next) => {
     try {
         let discount = await discountModel
-            .findById(req.params.id).populate({
+            .findById(req.params.id)
+            .populate({
                 path: 'customerType',
-                select: 'name'
+                select: 'name',
             })
             .select('-updatedAt -__v -createdAt');
 
@@ -480,8 +480,9 @@ exports.deleteStaff = async (req, res, next) => {
         const user = await Staff.findById(req.params.id);
 
         const modifiedEmail = `${user.email}_deleted_${Date.now()}`;
-        const modifiedMobileNumber = `${user.mobileNumber
-            }_deleted_${Date.now()}`;
+        const modifiedMobileNumber = `${
+            user.mobileNumber
+        }_deleted_${Date.now()}`;
 
         user.isDelete = true;
         user.token = '';
@@ -516,7 +517,7 @@ exports.changeStaffStatus = async (req, res, next) => {
         if (!user) return next(createError.BadRequest('Staff not found.'));
 
         user.isActive = req.body.status;
-        user.token = ""
+        user.token = '';
 
         await user.save();
 
@@ -525,6 +526,6 @@ exports.changeStaffStatus = async (req, res, next) => {
             message: req.t('staff.status'),
         });
     } catch (error) {
-        next(error)
+        next(error);
     }
 };

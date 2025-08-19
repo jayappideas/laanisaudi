@@ -81,7 +81,7 @@ exports.getPointsHistory = async (req, res, next) => {
                 },
             })
             .sort({ createdAt: -1 })
-            .select('-__v -updatedAt');
+            .select('-__v');
 
         res.status(200).json({
             success: true,
@@ -100,6 +100,10 @@ exports.getPointsHistoryS = async (req, res, next) => {
             .populate({
                 path: 'transaction',
                 select: 'billAmount discountAmount spentPoints earnedPoints finalAmount status staff tID',
+                populate: {
+                    path:'user',
+                    select: 'name',
+                }
                 // populate: {
                 //     path: 'staff',
                 //     select: 'branch vendor',
@@ -116,7 +120,7 @@ exports.getPointsHistoryS = async (req, res, next) => {
                 // },
             })
             .sort({ createdAt: -1 })
-            .select('-__v -updatedAt');
+            .select('-__v');
 
         res.status(200).json({
             success: true,

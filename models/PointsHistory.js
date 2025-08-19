@@ -28,6 +28,10 @@ const pointsHistorySchema = new mongoose.Schema(
         note: {
             type: String,
         },
+        transactionTime:{
+            type: Date,
+            default: Date.now,
+        },
     },
     { timestamps: true }
 );

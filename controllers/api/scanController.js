@@ -133,6 +133,7 @@ exports.addCart = async (req, res, next) => {
         }
 
         await cart.save();
+        console.log('cart: ', cart);
 
         res.status(200).json({
             success: true,
@@ -174,6 +175,29 @@ exports.decreaseCart = async (req, res, next) => {
         next(error);
     }
 };
+
+exports.clearCart = async (req, res, next) => {
+    try {
+        const { userId } = req.body;
+
+        const deletedCart = await cartModel.findOneAndDelete({ user: userId });
+
+        if (!deletedCart) {
+            return res.status(404).json({
+                success: false,
+                message: 'Cart not found',
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: 'Cart has been cleared',
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
 
 exports.getCart = async (req, res, next) => {
     try {
@@ -382,6 +406,7 @@ exports.checkDiscount = async (req, res, next) => {
             finalAmount = redemptionResult.finalAmount;
             spentPoints = redemptionResult.spentPoints;
         }
+        console.log('cart: check disc', cart);
 
         res.json({
             success: true,
@@ -406,11 +431,13 @@ exports.checkout = async (req, res, next) => {
     try {
         const cart = await cartModel
             .findOne({ user: req.body.userId })
-            .populate('items.menuItem', 'name price');
+            .populate('items.menuItem', 'name price')
+            .populate('user', 'name');
         if (!cart || !cart.items.length)
             return next(
                 createError.BadRequest('Cart is empty, can not checkout.')
             );
+        console.log('cart: ', cart);
 
         const subtotal = cart.items.reduce((total, item) => {
             return total + item.menuItem.price * item.quantity;
@@ -518,7 +545,11 @@ exports.checkout = async (req, res, next) => {
             .findById(req.body.userId)
             .select('fcmToken');
         let title = 'Transaction Details';
-        const body = 'Your order is being processed.';
+        // const body = 'Your order is being processed.';
+        const userName = cart.user?.name || 'Customer';
+        const bill = order.finalAmount?.toFixed(2) || '0.00';
+
+        const body = `Hello ${userName}, your order is being processed. Total bill: ${bill}.`;
         const data = {
             order_id: order.id.toString(),
             type: 'checkout',
@@ -579,7 +610,7 @@ exports.getCurrentTransaction = async (req, res, next) => {
             .sort({
                 createdAt: -1,
             })
-            .select('-__v -updatedAt')
+            .select('-__v')
             .lean();
         if (!transactions)
             return next(
@@ -617,7 +648,7 @@ exports.getCurrentTransaction = async (req, res, next) => {
 //? Accept or Reject an order by USER
 exports.updateOrderStatus = async (req, res, next) => {
     try {
-        const { status } = req.body;
+        const { status, transactionTime } = req.body;
         const user = req.user;
 
         if (!status || !['accepted', 'rejected'].includes(status))
@@ -626,6 +657,8 @@ exports.updateOrderStatus = async (req, res, next) => {
                     'Invalid status. Must be "accepted" or "rejected"'
                 )
             );
+        // if (!transactionTime)
+        //     return next(createError.BadRequest('transactionTime is required'));
 
         let order = await transactionModel
             .findOne({
@@ -719,6 +752,7 @@ exports.updateOrderStatus = async (req, res, next) => {
                     transaction: order._id,
                     type: 'spend',
                     points: order.spentPoints,
+                    transactionTime,
                 });
             }
 
@@ -730,6 +764,7 @@ exports.updateOrderStatus = async (req, res, next) => {
                     transaction: order._id,
                     type: 'earn',
                     points: points,
+                    transactionTime,
                 });
             }
         } else {
@@ -742,7 +777,10 @@ exports.updateOrderStatus = async (req, res, next) => {
         await user.save();
 
         let title = 'Order Status Update';
-        const body = `User order status ${status}.`;
+        const userName = order.user?.name || 'User';
+        const bill = order.finalAmount?.toFixed(2) || '0.00';
+
+        const body = `Order status for ${userName} is ${status}. Bill amount: ${bill}.`;
         const data = {
             order_id: order.id.toString(),
             type: 'order',
@@ -807,7 +845,7 @@ exports.getCurrentTransactionStaff = async (req, res, next) => {
             .sort({
                 createdAt: -1,
             })
-            .select('-__v -updatedAt')
+            .select('-__v')
             .lean();
         if (!transactions)
             return next(
@@ -824,7 +862,7 @@ exports.getCurrentTransactionStaff = async (req, res, next) => {
             user: transactions.user._id,
             vendor: transactions.staff.vendor,
         });
-        console.log('userSpecificP: ', userSpecificP);
+        // console.log('userSpecificP: ', userSpecificP);
 
         if (transactions) {
             transactions.totalPoints = userSpecificP
@@ -832,7 +870,7 @@ exports.getCurrentTransactionStaff = async (req, res, next) => {
                 : 0;
         }
 
-        console.log('transactions: ', transactions);
+        // console.log('transactions: ', transactions);
 
         res.status(200).json({
             success: true,

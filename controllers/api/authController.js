@@ -1145,9 +1145,10 @@ exports.notificationListUser = async (req, res, next) => {
 
 exports.notificationListVendor = async (req, res, next) => {
     try {
-        const notifications = await vendorNotificationModel.find({
-            sentTo: req.user._id,
-        })
+        const notifications = await vendorNotificationModel
+            .find({
+                sentTo: req.vendor._id,
+            })
             .sort({ createdAt: -1 })
             .select('-expireAt -__v -sentTo')
             .lean();
@@ -1156,6 +1157,7 @@ exports.notificationListVendor = async (req, res, next) => {
 
         res.json({
             success: true,
+            notifications,
             message: 'Notifications retrieved successfully.',
         });
     } catch (error) {
@@ -1166,7 +1168,7 @@ exports.notificationListVendor = async (req, res, next) => {
 exports.notificationListStaff = async (req, res, next) => {
     try {
         const notifications = await staffNotificationModel.find({
-            sentTo: req.user._id,
+            sentTo: req.staff._id,
         })
             .sort({ createdAt: -1 })
             .select('-expireAt -__v -sentTo')
@@ -1176,6 +1178,7 @@ exports.notificationListStaff = async (req, res, next) => {
 
         res.json({
             success: true,
+            notifications,
             message: 'Notifications retrieved successfully.',
         });
     } catch (error) {
