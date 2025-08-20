@@ -289,6 +289,27 @@ exports.getRestaurantList = async (req, res, next) => {
             rating,
             sortBy,
         } = req.body;
+        let categoryIds = [];
+
+        if (categoryId) {
+            if (typeof categoryId === 'string') {
+                try {
+                    const parsed = JSON.parse(categoryId);
+                    if (Array.isArray(parsed)) {
+                        categoryIds = parsed;
+                    } else {
+                        categoryIds = [categoryId];
+                    }
+                } catch (err) {
+                    // Not a JSON string, treat it as a single value
+                    categoryIds = [categoryId];
+                }
+            } else if (Array.isArray(categoryId)) {
+                categoryIds = categoryId;
+            } else {
+                categoryIds = [categoryId];
+            }
+        }
 
         let sortCondition = {};
 
@@ -366,9 +387,16 @@ exports.getRestaurantList = async (req, res, next) => {
                     'vendorDetails.isDelete': false,
                     'vendorDetails.isActive': true,
                     'vendorDetails.adminApproved': true,
-                    ...(categoryId && {
-                        'vendorDetails.businessType':
-                            mongoose.Types.ObjectId(categoryId),
+                    // ...(categoryId && {
+                    //     'vendorDetails.businessType':
+                    //         mongoose.Types.ObjectId(categoryId),
+                    // }),
+                    ...(categoryIds?.length && {
+                        'vendorDetails.businessType': {
+                            $in: categoryIds.map(id =>
+                                mongoose.Types.ObjectId(id)
+                            ),
+                        },
                     }),
                     ...(searchTerm && {
                         $and: [
@@ -438,7 +466,6 @@ exports.getRestaurantList = async (req, res, next) => {
     }
 };
 
-
 exports.restaurantDetail = async (req, res, next) => {
     try {
         if (!req.body.time) {
@@ -458,6 +485,11 @@ exports.restaurantDetail = async (req, res, next) => {
             user: req.user.id,
             vendor: vendorId,
         });
+
+            //   let userSpecificP = await userPoint.find({
+            //       user: req.user.id,
+            //     //   vendor: vendorId,
+            //   });
 
         const branches = await branchModel
             .find({ vendor: vendor._id, isDelete: false })
@@ -487,7 +519,7 @@ exports.restaurantDetail = async (req, res, next) => {
                 select: 'name',
             })
             .select(
-                'title description customerType totalUserCount expiryDate minBillAmount remainingUserCount adminApprovedStatus'
+                'title discountValue description customerType totalUserCount expiryDate minBillAmount remainingUserCount adminApprovedStatus'
             )
             .lean();
 
@@ -565,6 +597,7 @@ exports.restaurantDetail = async (req, res, next) => {
         vendor.menu = menu;
         vendor.isFavourite = isFavourite ? true : false;
         vendor.totalPoints = userSpecificP ? userSpecificP.totalPoints : 0;
+        console.log('userSpecificP: ', userSpecificP);
         console.log('vendor.totalPoints: ', vendor.totalPoints);
         console.log('vendor: ', vendor);
 

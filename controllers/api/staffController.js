@@ -441,7 +441,7 @@ exports.getStaffDiscountList = async (req, res, next) => {
                 select: 'name',
             })
             .select(
-                'title description status totalUserCount redeemUserCount expiryDate'
+                'status couponUsage title discountType discountValue redeemUserCount expiryDate description customerType totalUserCount expiryDate minBillAmount remainingUserCount adminApprovedStatus'
             )
             .sort({ createdAt: -1 });
 

@@ -198,7 +198,6 @@ exports.clearCart = async (req, res, next) => {
     }
 };
 
-
 exports.getCart = async (req, res, next) => {
     try {
         const userId = req.params.userId;
@@ -390,6 +389,7 @@ exports.checkDiscount = async (req, res, next) => {
         } else if (discount.discountType === 'Fixed') {
             discountAmount = discount.discountValue;
         }
+        finalAmount = totalCartAmount - discountAmount;
 
         // Ensure discount doesn't exceed total
         if (discountAmount > totalCartAmount) {
@@ -406,7 +406,10 @@ exports.checkDiscount = async (req, res, next) => {
             finalAmount = redemptionResult.finalAmount;
             spentPoints = redemptionResult.spentPoints;
         }
-        console.log('cart: check disc', cart);
+        // console.log('cart: check disc', cart);
+        // console.log('totalCartAmount: ', totalCartAmount);
+        // console.log('finalAmount: ', finalAmount);
+        // console.log('spentPoints: ', spentPoints);
 
         res.json({
             success: true,
@@ -499,10 +502,13 @@ exports.checkout = async (req, res, next) => {
             }
 
             // Deduct discount from the subtotal first
-            // finalAmount = subtotal - discountAmount;
+            finalAmount = subtotal - discountAmount;
         }
 
-        if (req.body.redeemBalancePoint) {
+        if (
+            req.body.redeemBalancePoint === true ||
+            req.body.redeemBalancePoint === 'true'
+        ) {
             const redemptionResult = await handlePointsRedemption(
                 req.body.userId,
                 finalAmount,
@@ -572,6 +578,9 @@ exports.checkout = async (req, res, next) => {
         //     title,
         //     body,
         // });
+        // console.log('----------------------------------');
+        // console.log('order: ', order);
+        // console.log('----------------------------------');
 
         res.status(201).json({
             success: true,
@@ -688,22 +697,29 @@ exports.updateOrderStatus = async (req, res, next) => {
         if (!order) return next(createError.NotFound('Order not found'));
 
         // Calculate final amount the user has to pay (bill - redeemed points)
-        const finalAmount = order.billAmount - order.spentPoints;
+        // let finalAmount = order.billAmount - order.spentPoints;
+
+        let finalAmount =
+            order.billAmount - order.discountAmount - order.spentPoints;
 
         // Calculate earned points based on billAmount (discount doesn't apply now)
         let points = 0;
 
-        if (order.discount) {
-            const { discountType, discountValue } = order.discount;
+        // if (order.discount) {
+        //     const { discountType, discountValue } = order.discount;
 
-            if (discountType === 'Percentage') {
-                points = (order.billAmount * discountValue) / 100;
-            } else if (discountType === 'Fixed') {
-                points = discountValue;
-            }
-        }
+        //     if (discountType === 'Percentage') {
+        //         points = (order.billAmount * discountValue) / 100;
+        //     } else if (discountType === 'Fixed') {
+        //         points = discountValue;
+        //     }
+        // }
 
-        points = Math.floor(points);
+        // points = Math.floor(points);
+
+        points = Math.floor(finalAmount);
+        // console.log('finalAmount: us', finalAmount);
+        // console.log('points: us', points);
 
         let userSpecificP = null;
         if (status === 'accepted') {
@@ -802,6 +818,9 @@ exports.updateOrderStatus = async (req, res, next) => {
 
         order = order.toObject();
         order.totalPoints = userSpecificP?.totalPoints || 0;
+        // console.log('----------------------------------');
+        // console.log('order: us', order);
+        // console.log('----------------------------------');
 
         res.status(200).json({
             success: true,

@@ -125,6 +125,7 @@ exports.updateDiscount = async (req, res, next) => {
             (discount.couponUsage = couponUsage),
             (discount.expiryDate = expiryDate),
             (discount.description = description);
+            discount.adminApprovedStatus = 'Pending';
 
         await discount.save();
 
