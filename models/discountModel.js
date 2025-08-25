@@ -2,22 +2,35 @@ const mongoose = require('mongoose');
 
 const discountSchema = new mongoose.Schema(
     {
-        vendor : {
+        vendor: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Vendor',
         },
         title: {
             type: String,
-            required: true
+            required: true,
         },
         totalUserCount: {
             type: Number,
-            required: true
+            required: true,
         },
         redeemUserCount: {
             type: Number,
-            default: 0
+            default: 0,
         },
+        userUsages: [
+            {
+                user: {
+                    type: mongoose.Schema.Types.ObjectId,
+                    ref: 'User',
+                    required: true,
+                },
+                count: {
+                    type: Number,
+                    default: 1,
+                },
+            },
+        ],
         remainingUserCount: {
             type: Number,
             // default: 50
@@ -27,17 +40,19 @@ const discountSchema = new mongoose.Schema(
             enum: ['Active', 'Inactive', 'Expired'],
             required: true,
         },
-        customerType: [{
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'Customer',
-        }],
+        customerType: [
+            {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'Customer',
+            },
+        ],
         minBillAmount: {
             type: Number,
             required: true,
         },
         discountType: {
             type: String,
-            enum: ['Percentage', 'Fixed']
+            enum: ['Percentage', 'Fixed'],
         },
         discountValue: {
             type: Number,
@@ -46,7 +61,7 @@ const discountSchema = new mongoose.Schema(
             type: Number,
         },
         expiryDate: {
-            type: String
+            type: String,
         },
         description: {
             type: String,
@@ -58,8 +73,8 @@ const discountSchema = new mongoose.Schema(
         adminApprovedStatus: {
             type: String,
             enum: ['Pending', 'Approved', 'Rejected'],
-            default: 'Pending'
-        }
+            default: 'Pending',
+        },
     },
     { timestamps: true }
 );

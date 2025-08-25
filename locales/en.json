@@ -55,7 +55,9 @@
     "signup_pending": "Please first complete signup process.",
     "pendingApproved": "Admin hasn't approved your account yet! Please contact to admin.",
     "pendingVendorApproved": "Vendor hasn't approved your account yet! Please contact to vendor.",
-    "language_updated": "Language updated successfully."
+    "language_updated": "Language updated successfully.",
+    "user_usage_limit": "This offer has reached its maximum redemption limit",
+    "user_usage_limit_reached": "You have already used this coupon the maximum number of times."
   },
   "changePass": {
     "pass": "Please provide a password.",
@@ -95,7 +97,7 @@
     "update": "Staff member updated successfully.",
     "delete": "Staff member deleted successfully.",
     "credentials": "Invalid email address or password!",
-    "status":"Status changed successfully."
+    "status": "Status changed successfully."
   },
   "branch": {
     "add": "Branch added successfully.",

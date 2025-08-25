@@ -17,15 +17,15 @@ const branchSchema = new mongoose.Schema(
     },
     buildingNo: {
       type: String,
-      required: true
+      // required: true
     },
     buildingName: {
       type: String,
-      required: true,
+      // required: true,
     },
     roadName: {
       type: String,
-      required: true
+      // required: true
     },
     city: {
       type: String,

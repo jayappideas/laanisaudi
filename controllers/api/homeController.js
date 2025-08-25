@@ -326,30 +326,30 @@ exports.getRestaurantList = async (req, res, next) => {
         // Start building the pipeline
         let pipeline = [];
 
-        // const includeGeo = sortBy !== 'all';
+        const includeGeo = sortBy !== 'all';
 
-        // if (includeGeo) {
-        //     if (!latitude || !longitude) {
-        //         return res.status(400).json({
-        //             error: 'Latitude and longitude are required for this sortBy option',
-        //         });
-        //     }
+        if (includeGeo) {
+            if (!latitude || !longitude) {
+                return res.status(400).json({
+                    error: 'Latitude and longitude are required for this sortBy option',
+                });
+            }
 
-        //     pipeline.push({
-        //         $geoNear: {
-        //             near: {
-        //                 type: 'Point',
-        //                 coordinates: [
-        //                     parseFloat(longitude),
-        //                     parseFloat(latitude),
-        //                 ],
-        //             },
-        //             distanceField: 'distance',
-        //             maxDistance: location ? location * 1000 : 50000, // default 50KM
-        //             spherical: true,
-        //         },
-        //     });
-        // }
+            pipeline.push({
+                $geoNear: {
+                    near: {
+                        type: 'Point',
+                        coordinates: [
+                            parseFloat(longitude),
+                            parseFloat(latitude),
+                        ],
+                    },
+                    distanceField: 'distance',
+                    maxDistance: location ? location * 1000 : 50000, // default 50KM
+                    spherical: true,
+                },
+            });
+        }
 
         pipeline = pipeline.concat([
             {
@@ -597,9 +597,9 @@ exports.restaurantDetail = async (req, res, next) => {
         vendor.menu = menu;
         vendor.isFavourite = isFavourite ? true : false;
         vendor.totalPoints = userSpecificP ? userSpecificP.totalPoints : 0;
-        console.log('userSpecificP: ', userSpecificP);
-        console.log('vendor.totalPoints: ', vendor.totalPoints);
-        console.log('vendor: ', vendor);
+        // console.log('userSpecificP: ', userSpecificP);
+        // console.log('vendor.totalPoints: ', vendor.totalPoints);
+        // console.log('vendor: ', vendor);
 
         res.status(200).json({
             success: true,

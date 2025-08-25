@@ -171,7 +171,7 @@ exports.login = async (req, res, next) => {
             '+password -__v -createdAt -updatedAt'
         );
 
-        if (!user) return next(createError.BadRequest('staff.credentials'));
+          if (!user) return next(createError.BadRequest('staff.credentials'));
 
         if (user.password != password)
             return next(createError.BadRequest('staff.credentials'));

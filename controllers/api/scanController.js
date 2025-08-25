@@ -109,6 +109,7 @@ exports.calculateDiscount = async (req, res, next) => {
 exports.addCart = async (req, res, next) => {
     try {
         const { userId, menuItemId, quantity } = req.body;
+        console.log('quantity: ', quantity);
 
         const menuItem = await menuItemModel.findById(menuItemId);
         if (!menuItem)
@@ -356,7 +357,20 @@ exports.checkDiscount = async (req, res, next) => {
             discount.totalUserCount &&
             discount.redeemUserCount >= discount.totalUserCount
         ) {
-            return next(createError.BadRequest('discount.expired'));
+            return next(createError.BadRequest('discount.user_usage_limit'));
+        }
+
+        const userUsage = discount.userUsages?.find(
+            u => u.user.toString() === req.body.userId
+        );
+        if (
+            userUsage &&
+            discount.couponUsage &&
+            userUsage.count >= discount.couponUsage
+        ) {
+            return next(
+                createError.BadRequest('auth.user_usage_limit_reached')
+            );
         }
 
         // Get user's cart
@@ -396,20 +410,147 @@ exports.checkDiscount = async (req, res, next) => {
             discountAmount = totalCartAmount;
         }
 
-        const redemptionResult = await handlePointsRedemption(
-            req.body.userId,
-            finalAmount,
-            req.staff.vendor
-        );
+        if (
+            req.body.redeemBalancePoint === true ||
+            req.body.redeemBalancePoint === 'true'
+        ) {
+            const redemptionResult = await handlePointsRedemption(
+                req.body.userId,
+                finalAmount,
+                req.staff.vendor
+            );
 
-        if (redemptionResult) {
-            finalAmount = redemptionResult.finalAmount;
-            spentPoints = redemptionResult.spentPoints;
+            if (redemptionResult) {
+                finalAmount = redemptionResult.finalAmount;
+                spentPoints = redemptionResult.spentPoints;
+            }
         }
         // console.log('cart: check disc', cart);
         // console.log('totalCartAmount: ', totalCartAmount);
         // console.log('finalAmount: ', finalAmount);
         // console.log('spentPoints: ', spentPoints);
+
+        res.json({
+            success: true,
+            message: req.t('discount.applied'),
+            discountAmount,
+            data: {
+                ...cart,
+                billAmount: totalCartAmount,
+                discountAmount,
+                finalAmount,
+                spentPoints,
+            },
+        });
+    } catch (error) {
+        console.error(error);
+        next(error);
+    }
+};
+
+exports.checkDiscount2 = async (req, res, next) => {
+    try {
+        const discount = await discountModel
+            .findById(req.body.discountId)
+            .select('-__v -updatedAt')
+            .lean();
+
+        if (!discount) {
+            return next(createError.BadRequest('discount.invalid'));
+        }
+
+        // // Parse expiry date
+        // const expiryStr = discount.expiryDate?.trim(); // e.g., "02/07/2025 10:44 AM"
+        // let expiryDate;
+
+        // if (!expiryStr) {
+        //     return next(createError.BadRequest('discount.expiry_date_missing'));
+        // }
+
+        // if (/am|pm/i.test(expiryStr)) {
+        //     // Format: dd/mm/yyyy hh:mm AM/PM
+        //     const [datePart, timePart, meridian] = expiryStr.split(' ');
+        //     const [day, month, year] = datePart.split('/').map(Number);
+        //     const [hourStr, minuteStr] = timePart.split(':');
+        //     let hour = parseInt(hourStr, 10);
+        //     const minute = parseInt(minuteStr, 10);
+
+        //     if (meridian.toUpperCase() === 'PM' && hour !== 12) hour += 12;
+        //     if (meridian.toUpperCase() === 'AM' && hour === 12) hour = 0;
+
+        //     expiryDate = new Date(year, month - 1, day, hour, minute);
+        // } else {
+        //     // Format: dd/mm/yyyy
+        //     const [day, month, year] = expiryStr.split('/').map(Number);
+        //     expiryDate = new Date(year, month - 1, day, 23, 59, 59); // End of the day
+        // }
+
+        // const now = new Date(req.body.time);
+
+        // if (expiryDate < now) {
+        //     return next(createError.BadRequest('discount.expired'));
+        // }
+
+        // // Check total max usage
+        // if (
+        //     discount.totalUserCount &&
+        //     discount.redeemUserCount >= discount.totalUserCount
+        // ) {
+        //     return next(createError.BadRequest('discount.expired'));
+        // }
+
+        // Get user's cart
+        const cart = await cartModel
+            .findOne({ user: req.body.userId })
+            .populate('items.menuItem', 'name price')
+            .select('-__v -updatedAt -user')
+            .lean();
+
+        if (!cart) {
+            return next(createError.BadRequest('cart.not_found'));
+        }
+
+        // Calculate total cart amount
+        let totalCartAmount = 0;
+        cart.items.forEach(item => {
+            totalCartAmount += item.menuItem.price * item.quantity;
+        });
+
+        if (totalCartAmount < discount.minBillAmount) {
+            return next(createError.BadRequest('discount.min_bill_not_met'));
+        }
+
+        // Apply discount
+        let discountAmount = 0;
+        let finalAmount = totalCartAmount;
+        let spentPoints = 0;
+        if (discount.discountType === 'Percentage') {
+            discountAmount = (totalCartAmount * discount.discountValue) / 100;
+        } else if (discount.discountType === 'Fixed') {
+            discountAmount = discount.discountValue;
+        }
+        finalAmount = totalCartAmount - discountAmount;
+
+        // Ensure discount doesn't exceed total
+        if (discountAmount > totalCartAmount) {
+            discountAmount = totalCartAmount;
+        }
+
+        if (
+            req.body.redeemBalancePoint === true ||
+            req.body.redeemBalancePoint === 'true'
+        ) {
+            const redemptionResult = await handlePointsRedemption(
+                req.body.userId,
+                finalAmount,
+                req.staff.vendor
+            );
+
+            if (redemptionResult) {
+                finalAmount = redemptionResult.finalAmount;
+                spentPoints = redemptionResult.spentPoints;
+            }
+        }
 
         res.json({
             success: true,
@@ -560,7 +701,7 @@ exports.checkout = async (req, res, next) => {
             order_id: order.id.toString(),
             type: 'checkout',
         };
-        if (fcmTokens.fcmToken) {
+        if (fcmTokens?.fcmToken) {
             await sendNotificationsToTokenscheckout(
                 title,
                 body,
@@ -743,6 +884,25 @@ exports.updateOrderStatus = async (req, res, next) => {
                 user: user._id,
                 vendor: order.staff.vendor,
             });
+
+            const discount = await discountModel.findById(order.discount.id);
+
+            const usageIndex = discount.userUsages.findIndex(
+                u => u.user.toString() === user._id.toString()
+            );
+
+            if (usageIndex > -1) {
+                discount.userUsages[usageIndex].count += 1;
+            } else {
+                discount.userUsages.push({
+                    user: user._id.toString(),
+                    count: 1,
+                });
+            }
+
+            discount.redeemUserCount += 1;
+
+            await discount.save();
 
             if (!userSpecificP) {
                 // Create a new userPoint record if it doesn't exist

@@ -28,6 +28,12 @@ router.post(
     upload.none(),
     scanController.checkDiscount
 );
+router.post(
+    '/redeem-discount',
+    checkStaff,
+    upload.none(),
+    scanController.checkDiscount2
+);
 router.post('/checkout', upload.none(), checkStaff, scanController.checkout);
 
 //? For USER call this every 10 sec to show the user then user can accept or reject the order
