@@ -129,7 +129,7 @@ exports.addCart = async (req, res, next) => {
                 item => item.menuItem.toString() === menuItemId
             );
 
-            if (itemIndex > -1) cart.items[itemIndex].quantity += 1;
+            if (itemIndex > -1) cart.items[itemIndex].quantity = quantity;
             else cart.items.push({ menuItem: menuItemId, quantity: quantity });
         }
 
@@ -149,7 +149,7 @@ exports.addCart = async (req, res, next) => {
 // Decrease quantity or remove item
 exports.decreaseCart = async (req, res, next) => {
     try {
-        const { userId, menuItemId } = req.body;
+        const { userId, menuItemId, quantity } = req.body;
 
         let cart = await cartModel.findOne({ user: userId });
         if (!cart)
@@ -160,10 +160,20 @@ exports.decreaseCart = async (req, res, next) => {
         const itemIndex = cart.items.findIndex(
             item => item.menuItem.toString() === menuItemId
         );
-        if (itemIndex > -1)
-            if (cart.items[itemIndex].quantity > 1)
-                cart.items[itemIndex].quantity -= 1;
-            else cart.items.splice(itemIndex, 1);
+        // if (itemIndex > -1)
+        //     if (cart.items[itemIndex].quantity > 1)
+        //         cart.items[itemIndex].quantity = quantity;
+        //     else cart.items.splice(itemIndex, 1);
+
+        if (itemIndex > -1) {
+            if (quantity === 0) {
+                // remove item if quantity = 0
+                cart.items.splice(itemIndex, 1);
+            } else {
+                // directly set new quantity
+                cart.items[itemIndex].quantity = quantity;
+            }
+        }
 
         await cart.save();
 
