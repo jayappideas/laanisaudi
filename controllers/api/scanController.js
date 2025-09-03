@@ -367,7 +367,7 @@ exports.checkDiscount = async (req, res, next) => {
             discount.totalUserCount &&
             discount.redeemUserCount >= discount.totalUserCount
         ) {
-            return next(createError.BadRequest('discount.user_usage_limit'));
+            return next(createError.BadRequest('auth.user_usage_limit'));
         }
 
         const userUsage = discount.userUsages?.find(
