@@ -441,6 +441,19 @@ exports.getRestaurantList = async (req, res, next) => {
                     // distance_in_mt: { $min: '$distance' }, // May be undefined if no geoNear
                     distance_in_mt: { $min: { $ifNull: ['$distance', 0] } },
                     branchId: { $first: '$_id' },
+                    branches: {
+                        $addToSet: {
+                            _id: '$_id',
+                            buildingName: '$buildingName',
+                            roadName: '$roadName',
+                            city: '$city',
+                            country: '$country',
+                            state: '$state',
+                            location: '$location',
+                            buildingNo: '$buildingNo',
+                            isSelected: '$isSelected',
+                        },
+                    },
                 },
             },
             {
