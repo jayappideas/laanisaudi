@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html class="loading" lang="en" data-textdirection="ltr">
+
+<head>
+  <%- include('_layouts/head') %>
+  <title>Splash Screen | <%= title %></title>
+
+  <style>
+    /* Small video size */
+    .video-preview {
+      width: 100%;
+      height: 150px;
+      object-fit: cover;
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+
+    /* Make container compact */
+    .video-slot {
+      border: 2px dashed #ddd;
+      border-radius: 8px;
+      padding: 15px;
+      background-color: #f9f9f9;
+      width: 250px;
+      transition: all 0.3s ease;
+    }
+
+    .video-slot.has-video {
+      border-color: #4caf50;
+      background-color: #f1f8f4;
+    }
+
+    .video-slot.selected {
+      border-color: #2196F3;
+      background-color: #e3f2fd;
+      box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
+    }
+
+    .video-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .video-title {
+      font-size: 16px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    .selected-badge {
+      background-color: #2196F3;
+      color: white;
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 10px;
+      font-weight: bold;
+    }
+
+    .upload-area {
+      border: 2px dashed #ccc;
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .upload-area:hover {
+      border-color: #2196F3;
+      background-color: #f5f5f5;
+    }
+
+    .upload-icon {
+      font-size: 40px;
+      color: #ccc;
+      margin-bottom: 10px;
+    }
+
+    .btn-delete-video {
+      background-color: #f44336;
+      color: white;
+      padding: 6px 12px;
+      border-radius: 4px;
+      text-decoration: none;
+      display: inline-block;
+      margin-top: 10px;
+      font-size: 13px;
+    }
+
+    .btn-delete-video:hover {
+      background-color: #d32f2f;
+    }
+
+    .radio-container {
+      margin-top: 10px;
+    }
+
+    /* ★ Display all videos side-by-side ★ */
+    .video-row {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+  </style>
+</head>
+
+<body class="vertical-layout page-header-light vertical-menu-collapsible vertical-dark-menu preload-transitions 2-columns">
+
+  <%- include('_layouts/sidenavbar') %>
+
+  <div id="main">
+    <div class="row">
+      <div class="pt-1 pb-0" id="breadcrumbs-wrapper">
+        <div class="container">
+          <div class="row">
+            <%- include('messages', { messages: messages }) %>
+            <div class="col s12 m6 l6">
+              <h6 class="breadcrumbs-title"><span>Manage Splash Screen</span></h6>
+            </div>
+            <div class="col s12 m6 l6 right-align-md" style="margin-top: -10px;">
+              <ol class="breadcrumbs mb-0">
+                <li class="breadcrumb-item"><a href="/admin">Dashboard</a></li>
+                <li class="breadcrumb-item active">Splash Screen</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container mt-2">
+      <form action="/admin/splash-screen/update" method="POST" enctype="multipart/form-data">
+
+        <div class="row">
+          <div class="col s12">
+            <h6><b>Upload Videos (Up to 3)</b></h6>
+            <p>You can upload up to 3 videos. Select one video to display as the splash screen.</p>
+          </div>
+        </div>
+
+        <!-- ★ All 3 videos side-by-side ★ -->
+        <div class="video-row">
+
+          <!-- Video 1 -->
+          <div class="video-slot <%= splashScreen.video1 ? 'has-video' : '' %> <%= splashScreen.selectedVideo === 'video1' ? 'selected' : '' %>">
+            <div class="video-header">
+              <span class="video-title">Video 1</span>
+              <% if (splashScreen.selectedVideo === 'video1') { %>
+              <span class="selected-badge">SELECTED</span>
+              <% } %>
+            </div>
+
+            <% if (splashScreen.video1) { %>
+            <video class="video-preview" controls>
+              <source src="<%= process.env.IMAGE_URL %><%= splashScreen.video1 %>" type="video/mp4">
+            </video>
+            <a href="/admin/splash-screen/delete-video/video1" class="btn-delete-video" onclick="return confirm('Are you sure you want to delete this video?');">
+              Delete Video 1
+            </a>
+
+            <div class="radio-container">
+              <label>
+                <input type="radio" name="selectedVideo" value="video1" <%= splashScreen.selectedVideo === 'video1' ? 'checked' : '' %>>
+                <span>Select this video</span>
+              </label>
+            </div>
+
+            <% } else { %>
+            <div class="upload-area" onclick="document.getElementById('video1').click()">
+              <i class="material-icons upload-icon">cloud_upload</i>
+              <p>Click to upload Video 1</p>
+              <small>Supported formats: MP4, AVI, MOV</small>
+            </div>
+            <% } %>
+
+            <input type="file" id="video1" name="video1" accept="video/*" style="display:none;">
+          </div>
+
+          <!-- Video 2 -->
+          <div class="video-slot <%= splashScreen.video2 ? 'has-video' : '' %> <%= splashScreen.selectedVideo === 'video2' ? 'selected' : '' %>">
+            <div class="video-header">
+              <span class="video-title">Video 2</span>
+              <% if (splashScreen.selectedVideo === 'video2') { %>
+              <span class="selected-badge">SELECTED</span>
+              <% } %>
+            </div>
+
+            <% if (splashScreen.video2) { %>
+            <video class="video-preview" controls>
+              <source src="<%= process.env.IMAGE_URL %><%= splashScreen.video2 %>" type="video/mp4">
+            </video>
+            <a href="/admin/splash-screen/delete-video/video2" class="btn-delete-video" onclick="return confirm('Are you sure you want to delete this video?');">
+              Delete Video 2
+            </a>
+
+            <div class="radio-container">
+              <label>
+                <input type="radio" name="selectedVideo" value="video2" <%= splashScreen.selectedVideo === 'video2' ? 'checked' : '' %>>
+                <span>Select this video</span>
+              </label>
+            </div>
+
+            <% } else { %>
+            <div class="upload-area" onclick="document.getElementById('video2').click()">
+              <i class="material-icons upload-icon">cloud_upload</i>
+              <p>Click to upload Video 2</p>
+              <small>Supported formats: MP4, AVI, MOV</small>
+            </div>
+            <% } %>
+
+            <input type="file" id="video2" name="video2" accept="video/*" style="display:none;">
+          </div>
+
+          <!-- Video 3 -->
+          <div class="video-slot <%= splashScreen.video3 ? 'has-video' : '' %> <%= splashScreen.selectedVideo === 'video3' ? 'selected' : '' %>">
+            <div class="video-header">
+              <span class="video-title">Video 3</span>
+              <% if (splashScreen.selectedVideo === 'video3') { %>
+              <span class="selected-badge">SELECTED</span>
+              <% } %>
+            </div>
+
+            <% if (splashScreen.video3) { %>
+            <video class="video-preview" controls>
+              <source src="<%= process.env.IMAGE_URL %><%= splashScreen.video3 %>" type="video/mp4">
+            </video>
+            <a href="/admin/splash-screen/delete-video/video3" class="btn-delete-video" onclick="return confirm('Are you sure you want to delete this video?');">
+              Delete Video 3
+            </a>
+
+            <div class="radio-container">
+              <label>
+                <input type="radio" name="selectedVideo" value="video3" <%= splashScreen.selectedVideo === 'video3' ? 'checked' : '' %>>
+                <span>Select this video</span>
+              </label>
+            </div>
+
+            <% } else { %>
+            <div class="upload-area" onclick="document.getElementById('video3').click()">
+              <i class="material-icons upload-icon">cloud_upload</i>
+              <p>Click to upload Video 3</p>
+              <small>Supported formats: MP4, AVI, MOV</small>
+            </div>
+            <% } %>
+
+            <input type="file" id="video3" name="video3" accept="video/*" style="display:none;">
+          </div>
+
+        </div>
+
+        <button type="submit" class="btn waves-effect waves-light" style="margin-top:20px;">
+          <i class="material-icons left">save</i>
+          Save Changes
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <%- include('_layouts/commonJs') %>
+
+  <script>
+    document.querySelectorAll('input[type="file"]').forEach(input => {
+      input.addEventListener('change', function() {
+        if (this.files && this.files[0]) {
+          const fileName = this.files[0].name;
+          const uploadArea = this.previousElementSibling;
+          if (uploadArea && uploadArea.classList.contains('upload-area')) {
+            uploadArea.querySelector('p').textContent = 'Selected: ' + fileName;
+          }
+        }
+      });
+    });
+  </script>
+
+</body>
+
+</html>

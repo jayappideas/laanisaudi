@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html class="loading" lang="en" data-textdirection="ltr">
+<!-- BEGIN: Head-->
+
+<head>
+    <%- include('_layouts/head') %>
+    <title> Intro Screen Edit | <%= title %></title>
+
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/Dropify/0.2.2/css/dropify.min.css">
+</head>
+<!-- END: Head-->
+
+<body class="vertical-layout page-header-light vertical-menu-collapsible vertical-dark-menu preload-transitions 2-columns" data-open="click" data-menu="vertical-dark-menu" data-col="2-columns">
+
+    <%- include('_layouts/sidenavbar') %>
+
+    <!-- BEGIN: Page Main-->
+    <div id="main">
+        <div class="row">
+            <div class="pt-1 pb-0" id="breadcrumbs-wrapper">
+                <!-- Search for small screen-->
+                <div class="container">
+                    <div class="row">
+                        <div class="col s12 m6 l6">
+                            <h6 class="breadcrumbs-title"><span>Edit Intro Screen</span></h6>
+                        </div>
+                        <div class="col s12 m6 l6 right-align-md" style="margin-top: -10px;">
+                            <ol class="breadcrumbs mb-0">
+                                <li class="breadcrumb-item"><a href="/admin">Dashboard</a>
+                                </li>
+                                <li class="breadcrumb-item"><a href="/admin/intro-screen">Intro Screen</a>
+                                </li>
+                                <li class="breadcrumb-item active">Edit Intro Screen
+                                </li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="container pl-2 pr-2">
+            <div class="card">
+                <div class="row">
+                    <div class="col s12">
+                        <div id="basic-form" class=" card-default scrollspy">
+                            <div class="card-content">
+                                <form method="POST" action="/admin/intro-screen/update-intro-screen/<%= introScreen._id %>" enctype="multipart/form-data" class="formValidate0" id="formValidate0">
+                                    <div id="file-upload" class="section" style="margin: 0px 10px -20px 10px;">
+                                        <div class="row section">
+                                            <div class="input-field col s12">
+                                                <p>Upload an image</p>
+                                                <input type="file" id="input-file-events" name="image" accept=".jpeg, .jpg, .png" class="dropify-event" data-default-file="<%= process.env.IMAGE_URL %><%= introScreen.image %>" />
+                                                <span class="error-message" id="imageError"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="input-field col s12">
+                                        <input id="title" name="title" type="text" class="validate" value="<%= introScreen.title %>">
+                                        <label for="title" class="active">Title</label>
+                                        <div class="error-message" id="titleError"></div>
+                                    </div>
+
+                                    <div class="input-field col s12">
+                                        <textarea id="description" name="description" class="materialize-textarea validate"><%= introScreen.description %></textarea>
+                                        <label for="description" class="active">Description</label>
+                                        <div class="error-message" id="descriptionError"></div>
+                                    </div>
+
+                                    <div class="input-field col s12">
+                                        <label for="sort" class="active">Sort Order</label>
+                                        <input class="validate" id="sort" name="sort" type="number" value="<%= introScreen.sort %>">
+                                        <div class="error-message" id="sortError"></div>
+                                    </div>
+
+                                    <div class="input-field col s12">
+                                        <p>
+                                            <label>
+                                                <input type="checkbox" id="isActive" name="isActive" <%= introScreen.isActive ? 'checked' : '' %> />
+                                                <span>Active</span>
+                                            </label>
+                                        </p>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col s12 display-flex justify-content-end">
+                                            <button class="btn btn-edit" type="submit" name="action">Update</button>
+                                            &nbsp;&nbsp;&nbsp;
+                                            <a type="button" class="btn btn-delete" href="/admin/intro-screen">Cancel</a>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <!-- END: Page Main-->
+
+    <%- include('_layouts/commonJs') %>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Dropify/0.2.2/js/dropify.min.js"></script>
+    <script src="/app-assets/js/scripts/form-file-uploads.min.js"></script>
+
+
+    <script>
+        $(document).ready(function() {
+
+            function validateTitle() {
+                const value = $('#title').val().trim();
+                if (!value) {
+                    $('#title').addClass('error-field');
+                    $('#titleError').text('Please enter a title.');
+                    return false;
+                } else {
+                    $('#title').removeClass('error-field');
+                    $('#titleError').text('');
+                    return true;
+                }
+            }
+
+            function validateDescription() {
+                const value = $('#description').val().trim();
+                if (!value) {
+                    $('#description').addClass('error-field');
+                    $('#descriptionError').text('Please enter a description.');
+                    return false;
+                } else {
+                    $('#description').removeClass('error-field');
+                    $('#descriptionError').text('');
+                    return true;
+                }
+            }
+
+            function validateSort() {
+                const value = $('#sort').val().trim();
+                if (value === '') {
+                    $('#sort').addClass('error-field');
+                    $('#sortError').text('Please enter a sort order.');
+                    return false;
+                } else {
+                    $('#sort').removeClass('error-field');
+                    $('#sortError').text('');
+                    return true;
+                }
+            }
+
+            $('#title').on('input', function() {
+                validateTitle();
+            });
+
+            $('#description').on('input', function() {
+                validateDescription();
+            });
+
+            $('#sort').on('input', function() {
+                validateSort();
+            });
+
+
+            // Form Submission Validation
+            $('#formValidate0').on('submit', function(e) {
+                let valid = true;
+                valid &= validateTitle();
+                valid &= validateDescription();
+                valid &= validateSort();
+
+                if (!valid) {
+                    e.preventDefault();
+                    $('html, body').animate({ scrollTop: $('.error-message:contains("Please")').first().offset().top }, 500);
+                }
+            });
+
+        });
+    </script>
+
+</body>
+
+</html>

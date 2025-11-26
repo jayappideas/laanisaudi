@@ -96,6 +96,9 @@ app.use('/api/review', require('./routes/api/homeRoutes'));
 app.use('/api/discount', require('./routes/api/discountRoutes'));
 app.use('/api/redeem', require('./routes/api/scanRoutes'));
 app.use('/api/transaction', require('./routes/api/transactionRoutes'));
+app.use('/api/vendor/reports', require('./routes/api/vendorReportsRoutes'));
+app.use('/api/intro-screen', require('./routes/api/introScreenRoutes'));
+app.use('/api/splash-screen', require('./routes/api/splashScreenRoutes'));
 
 // 404 api
 app.use('/api', (req, res, next) => {
@@ -127,6 +130,9 @@ app.use('/admin/cms', require('./routes/admin/cmsRoutes'));
 app.use('/admin/discount', require('./routes/admin/discountRoutes'));
 app.use('/admin/sub-admin', require('./routes/admin/authRoutes'));
 app.use('/admin/customer', require('./routes/admin/customerRoutes'));
+app.use('/admin/reports', require('./routes/admin/reportsRoutes'));
+app.use('/admin/intro-screen', require('./routes/admin/introScreenRoutes'));
+app.use('/admin/splash-screen', require('./routes/admin/splashScreenRoutes'));
 
 // 404 admin
 app.all('/admin/*', (req, res) => res.status(404).render('404'));
