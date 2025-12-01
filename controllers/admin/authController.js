@@ -11,6 +11,7 @@ const Vendor = require('../../models/vendorModel');
 const moduleModel = require('../../models/moduleModel');
 const adminModel = require('../../models/adminModel');
 const staffNotificationModel = require('../../models/staffNotificationModel');
+const Transaction = require('../../models/transactionModel');
 const {
     sendNotificationsToTokens,
 } = require('../../utils/sendNotificationStaff');
@@ -101,6 +102,21 @@ exports.getDashboard = async (req, res) => {
     var data = {};
     data.user = await User.find({ isDelete: false }).count();
     data.vendor = await Vendor.find({ isDelete: false }).count();
+
+    // Calculate Total Earn Points (sum of all earnedPoints from accepted transactions)
+    const earnPointsResult = await Transaction.aggregate([
+        { $match: { status: 'accepted' } },
+        { $group: { _id: null, total: { $sum: '$earnedPoints' } } }
+    ]);
+    data.totalEarnPoints = earnPointsResult.length > 0 ? earnPointsResult[0].total : 0;
+
+    // Calculate Total Redeem Points (sum of all spentPoints from accepted transactions)
+    const redeemPointsResult = await Transaction.aggregate([
+        { $match: { status: 'accepted' } },
+        { $group: { _id: null, total: { $sum: '$spentPoints' } } }
+    ]);
+    data.totalRedeemPoints = redeemPointsResult.length > 0 ? redeemPointsResult[0].total : 0;
+
     res.render('index', { data });
 };
 
