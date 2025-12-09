@@ -33,6 +33,8 @@ app.use(i18nMiddleware.handle(i18n, { removeLngFromUrl: false }));
 
 // Serving static files
 app.use(express.static(path.join(__dirname, 'public')));
+// Serve PDF files publicly
+app.use('/pdf', express.static(path.join(__dirname, 'pdf')));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
