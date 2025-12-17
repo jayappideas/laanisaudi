@@ -9,14 +9,11 @@ const i18nFsBackend = require('i18next-fs-backend');
 const i18nMiddleware = require('i18next-http-middleware');
 const globalErrorHandler = require('./controllers/errorController');
 
-// Start express app
 const app = express();
 
-// View engine
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
-// Multilingal
 i18n.use(i18nFsBackend)
     .use(i18nMiddleware.LanguageDetector)
     .init({
@@ -29,9 +26,7 @@ i18n.use(i18nFsBackend)
 
 app.use(i18nMiddleware.handle(i18n, { removeLngFromUrl: false }));
 
-// 1) GLOBAL MIDDLEWARES
 
-// Serving static files
 app.use(express.static(path.join(__dirname, 'public')));
 // Serve PDF files publicly
 app.use('/pdf', express.static(path.join(__dirname, 'pdf')));
@@ -51,7 +46,6 @@ app.use(
 
 // Express Messages middleware
 app.use(flash());
-// Make flash messages accessible in all views
 app.use((req, res, next) => {
     res.locals.messages = req.flash();
     res.locals.dateOptions = {
@@ -63,7 +57,6 @@ app.use((req, res, next) => {
     next();
 });
 
-// CORS middleware
 app.use(cors());
 const corsOptions = {
     origin: '*',
@@ -71,7 +64,6 @@ const corsOptions = {
 };
 app.options('*', cors(corsOptions));
 
-// caching disabled for every route
 app.use(function (req, res, next) {
     res.set(
         'Cache-Control',
@@ -80,13 +72,10 @@ app.use(function (req, res, next) {
     next();
 });
 
-// end app-assets
 app.use('/app-assets/*', (req, res) => res.status(404).end());
 
-// 404 uploads
 app.use('/uploads/*', (req, res) => res.status(404).end());
 
-// 2) API ROUTES
 app.use('/api/auth', require('./routes/api/authRoutes'));
 app.use('/api/staff', require('./routes/api/staffRoutes'));
 app.use('/api/staff-self', require('./routes/api/selfStaff'));
@@ -101,7 +90,8 @@ app.use('/api/transaction', require('./routes/api/transactionRoutes'));
 app.use('/api/intro-screen', require('./routes/api/introScreenRoutes'));
 app.use('/api/splash-screen', require('./routes/api/splashScreenRoutes'));
 
-// 404 api
+app.use("/api/vendor", require('./routes/api/vendorRoutes'))
+
 app.use('/api', (req, res, next) => {
     next(createError.NotFound(`Can't find ${req.originalUrl} on this server!`));
 });
@@ -113,16 +103,15 @@ app.use(function (req, res, next) {
     res.locals.dateOptions = {
         hour: '2-digit',
         minute: '2-digit',
-        hour12: true,
+        hour12: true,   
     };
     next();
 });
 
-//ADMIN ROUTES
 app.get('/admin/receipt', async (req, res) => {
     res.render('receipt', { receiptData });
 });
-app.use('/admin/', require('./routes/admin/authRoutes'));
+app.use('/admin/', require('./routes/admin/authRoutes')); 
 app.use('/admin/user', require('./routes/admin/userRoutes'));
 app.use('/admin/vendor', require('./routes/admin/vendorRoutes'));
 app.use('/admin/banner', require('./routes/admin/bannerRoutes'));
@@ -133,18 +122,18 @@ app.use('/admin/sub-admin', require('./routes/admin/authRoutes'));
 app.use('/admin/customer', require('./routes/admin/customerRoutes'));
 app.use('/admin/intro-screen', require('./routes/admin/introScreenRoutes'));
 app.use('/admin/splash-screen', require('./routes/admin/splashScreenRoutes'));
+app.use("/admin/reports", require("./routes/admin/reportsRoutes"))
 
 // 404 admin
 app.all('/admin/*', (req, res) => res.status(404).render('404'));
 
 app.get('/request-delete', (req, res) => {
-    res.render('request-delete'); // views/request-delete.ejs
+    res.render('request-delete');
 });
 
 app.post('/request-delete', (req, res) => {
     const { email, reason } = req.body;
 
-    // Add your logic to handle deletion request here (e.g., database flag, send email, etc.)
     if (!email) {
         return res.render('request-delete', { errorMessage: "Email is required." });
     }
@@ -197,6 +186,5 @@ const receiptData = {
     totalBalance: 100,
 };
 
-// Route to render EJS
 
 module.exports = app;

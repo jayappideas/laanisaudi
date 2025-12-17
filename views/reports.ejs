@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html class="loading" lang="en" data-textdirection="ltr">
+<head>
+  <%- include('_layouts/head') %>
+  <title>Reports & Analytics | <%= title %></title>
+
+  <!-- DataTables CSS -->
+  <link rel="stylesheet" type="text/css" href="/app-assets/vendors/data-tables/css/jquery.dataTables.min.css">
+  <link rel="stylesheet" type="text/css" href="/app-assets/vendors/data-tables/css/select.dataTables.min.css">
+  <link rel="stylesheet" type="text/css" href="/app-assets/css/pages/data-tables.css">
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    table tr td, th { text-align: center; vertical-align: middle; }
+    /* .card { border-radius: 16px; box-shadow: 0 6px 25px rgba(0,0,0,0.1); margin-bottom: 30px; overflow: hidden; } */
+    
+    .metric-card {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border-radius: 16px;
+      padding: 20px;
+      text-align: center;
+      height: 120px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .top-vendor {
+      padding: 15px;
+      background: #f8f9fc;
+      border-radius: 12px;
+      margin-bottom: 12px;
+      border-left: 5px solid #667eea;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .chip { border-radius: 30px; padding: 6px 16px; font-weight: 600; font-size: 13px; }
+    code { background: #f5f5f5; padding: 4px 10px; border-radius: 8px; font-size: 13px; font-family: 'Courier New', monospace; }
+
+    /* Vendor list jaisa scroll */
+    .dataTables_wrapper .dataTables_scrollBody { -webkit-overflow-scrolling: touch; }
+    #page-length-option_wrapper { overflow-x: auto; }
+  </style>
+</head>
+
+<body class="vertical-layout page-header-light vertical-menu-collapsible vertical-dark-menu preload-transitions 2-columns">
+  <%- include('_layouts/sidenavbar') %>
+
+  <div id="main">
+    <div class="row">
+      <div id="breadcrumbs-wrapper" style="background:white;">
+        <div class="container">
+          <div class="row">
+            <%- include('messages', { messages: messages }) %>
+            <div class="col s12"><h5>Reports & Analytics</h5></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col s12">
+        <div class="container">
+
+          <!-- KEY METRICS -->
+          <div class="row">
+
+          <!-- FILTER FORM -->
+          <div class="card">
+            <div class="card-content">
+              <h5 class="purple-text">Filter Reports</h5>
+              <form action="/admin/reports" method="GET">
+                <div class="row">
+                  <div class="input-field col s12 m4">
+                    <input type="text" name="startDate" class="datepicker" value="<%= filters.startDate || '' %>">
+                    <label>Start Date</label>
+                  </div>
+                  <div class="input-field col s12 m4">
+                    <input type="text" name="endDate" class="datepicker" value="<%= filters.endDate || '' %>">
+                    <label>End Date</label>
+                  </div>
+                  <div class="input-field col s12 m4">
+                    <select name="vendorId">
+                      <option value="">All Vendors</option>
+                      <% allVendors.forEach(v => { %>
+                        <option value="<%= v._id %>" <%= filters.vendorId === v._id.toString() ? 'selected' : '' %>><%= v.businessName %></option>
+                      <% }) %>
+                    </select>
+                    <label>Vendor</label>
+                  </div>
+                </div>
+                <button type="submit" class="btn gradient-45deg-purple-deep-orange">Apply</button>
+                <a href="/admin/reports" class="btn grey">Reset</a>
+              </form>
+            </div>
+          </div>
+
+          <!-- TOP 5 VENDORS -->
+          <% if(topVendors.length > 0) { %>
+            <div class="card">
+              <div class="card-content">
+                <h5 class="purple-text">Top 5 Vendors (by Discount Given)</h5>
+                <% topVendors.forEach((v, i) => { %>
+                  <div class="top-vendor">
+                    <div style="display:flex;align-items:center;">
+                      <div style="width:40px;height:40px;border-radius:50%;background:<%= i===0?'#FFD700':i===1?'#C0C0C0':i===2?'#CD7F32':'#667eea' %>;color:white;font-weight:bold;display:flex;align-items:center;justify-content:center;margin-right:15px;">
+                        <%= i+1 %>
+                      </div>
+                      <div>
+                        <strong><%= v.vendorName %></strong><br>
+                        <small><%= v.redemptions %> redemptions • <%= v.totalOrders %> orders</small>
+                      </div>
+                    </div>
+                    <div class="right-align">
+                      <strong style="font-size:20px;color:#2e7d32;"><%= v.totalDiscountBHD %> BHD</strong>
+                    </div>
+                  </div>
+                <% }) %>
+              </div>
+            </div>
+          <% } %>
+
+          <!-- REDEMPTION TREND CHART -->
+          <div class="card">
+            <div class="card-content">
+              <h5 class="purple-text">Point Redemption Trend</h5>
+              <canvas id="redemptionChart" height="100"></canvas>
+            </div>
+          </div>
+
+          <!-- RECENT REDEMPTIONS TABLE -->
+          <div class="card">
+            <div class="card-content">
+              <h5>Recent Redemptions</h5>
+              <div class="section section-data-tables">
+                <div class="row">
+                  <div class="col s12">
+                    <table id="page-length-option" class="display" style="width:100%">
+                      <thead>
+                        <tr>
+                          <th>Sr</th>
+                          <th>Date & Time</th>
+                          <th>Customer</th>
+                          <th>Vendor</th>
+                          <th>Points Used</th>
+                          <th>Discount (BHD)</th>
+                          <th>View</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <% recentRedemptions.forEach((r, i) => { %>
+                          <tr>
+                            <td><%= i + 1 %></td>
+                            <td>
+                              <% const d = new Date(r.date); %>
+                              <%= `${String(d.getDate()).padStart(2,'0')}-${String(d.getMonth()+1).padStart(2,'0')}-${d.getFullYear()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}` %>
+                            </td>
+                            <td><%= r.customer || 'Guest' %></td>
+                            <td><span class="chip teal lighten-4"><%= r.vendor %></span></td>
+                            <td><span class="new badge red" data-badge-caption="pts"><%= r.points %></span></td>
+                            <td><strong class="green-text"><%= r.discount %> BHD</strong></td>
+                            <td>
+                              <a href="/admin/reports/view/<%= r._id %>">
+                                <i class="material-icons">visibility</i>
+                              </a>
+                            </td>
+                          </tr>
+                        <% }) %>
+                        <% if(recentRedemptions.length === 0) { %>
+                          <tr><td colspan="7" class="center grey-text">No redemptions found</td></tr>
+                        <% } %>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <%- include('_layouts/commonJs') %>
+
+  <!-- DataTables + Chart.js -->
+  <script src="/app-assets/vendors/data-tables/js/jquery.dataTables.min.js"></script>
+  <script src="/app-assets/js/scripts/data-tables.js"></script>
+
+  <script>
+    $(document).ready(function() {
+      // Chart
+      const ctx = document.getElementById('redemptionChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: [<%- redemptionTrend.map(d => `'${d._id}'`).join(',') %>],
+          datasets: [{
+            label: 'Points Redeemed',
+            data: [<%- redemptionTrend.map(d => d.points || 0).join(',') %>],
+            borderColor: '#667eea',
+            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+            tension: 0.4,
+            fill: true,
+            pointRadius: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { position: 'top' },
+            title: { display: false }
+          },
+          scales: {
+            y: { beginAtZero: true }
+          }
+        }
+      });
+    });
+  </script>
+</body>
+</html>

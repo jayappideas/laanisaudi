@@ -110,8 +110,55 @@ const sendError = async (error) => {
     }
 };
 
+// ========== SEND CUSTOM EMAIL (Vendor Approval, etc.) ==========
+// const sendEmail = async (to, subject, htmlBody) => {
+//     try {
+//         const request = await mailjet.post('send', { version: 'v3.1' }).request({
+//             Messages: [
+//                 {
+//                     From: {
+//                         Email: process.env.MJ_FROM,
+//                         Name: process.env.MJ_NAME || "Laani Saudi Admin",
+//                     },
+//                     To: Array.isArray(to) 
+//                         ? to.map(email => ({ Email: email.trim() }))
+//                         : [{ Email: to }],
+//                     Subject: subject,
+//                     HTMLPart: htmlBody,
+//                 },
+//             ],
+//         });
+//         console.log(`Email sent successfully to: ${to}`);
+//         return request.body;
+//     } catch (error) {
+//         console.error('Error sending email:', error.statusCode, error.message);
+//         throw error; 
+//     }
+// };
+
+const sendEmail = async (to, subject, htmlBody) => {
+    try {
+        await mailjet.post("send", { version: 'v3.1' }).request({
+            Messages: [
+                {
+                    From: {
+                        Email:process.env.MJ_FROM,
+                        Name: "Laani Saudi"
+                    },
+                    To: [{ Email: to }],
+                    Subject: subject,
+                    HTMLPart: htmlBody,
+                }
+            ]
+        });
+        console.log("Email sent successfully to:", to);
+    } catch (error) {
+        console.error("Mailjet Error:", error.message);
+    }
+};
 module.exports = {
     sendOtp,
     sendOtpRegister,
     sendError,
+    sendEmail
 };

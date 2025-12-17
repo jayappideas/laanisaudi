@@ -75,6 +75,12 @@ const vendorSchema = new mongoose.Schema(
             type: Number,
             default: 0,
         },
+        adminCommissionPercent: {
+            type: Number,
+            default: 0,
+            min: 0,
+            max: 50
+        },
         isDelete: {
             type: Boolean,
             default: false,
@@ -104,17 +110,17 @@ vendorSchema.methods.generateAuthToken = async function () {
 
 // Converting password into hash
 vendorSchema.post('validate', async function (doc) {
-  if (doc.isModified('password')) {
-      if (doc.password) doc.password = await bcrypt.hash(doc.password, 10);
-  }
+    if (doc.isModified('password')) {
+        if (doc.password) doc.password = await bcrypt.hash(doc.password, 10);
+    }
 });
 
 // check password
 vendorSchema.methods.correctPassword = async function (
-  candidatePassword,
-  userPassword
+    candidatePassword,
+    userPassword
 ) {
-  return await bcrypt.compare(candidatePassword, userPassword);
+    return await bcrypt.compare(candidatePassword, userPassword);
 };
 
 module.exports = new mongoose.model('Vendor', vendorSchema);

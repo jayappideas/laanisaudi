@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html class="loading" lang="en" data-textdirection="ltr">
+<head>
+    <%- include('_layouts/head') %>
+    <title>Order Details | <%= title %></title>
+
+    <!-- Aapki puri old CSS same rakhi hai -->
+    <link rel="stylesheet" type="text/css" href="/app-assets/vendors/data-tables/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" type="text/css" href="/app-assets/vendors/data-tables/css/select.dataTables.min.css">
+    <link rel="stylesheet" type="text/css" href="/app-assets/css/pages/data-tables.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <style>
+        table tr td, th {
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .divider { background-color: #e0e0e0; }
+
+        .vendor-logo {
+            width: 90px; height: 90px; border-radius: 12px; object-fit: cover; border: 4px solid white;
+        }
+
+        .status-chip {
+            padding: 6px 16px; border-radius: 30px; font-weight: bold; font-size: 0.9rem;
+        }
+        .status-paid { background: #e8f5e8; color: #2e7d32; }
+        .status-pending { background: #ffebee; color: #c62828; }
+        .status-rejected { background: #ffebee; color: #c62828; }
+        .status-expired { background: #f5f5f5; color: #757575; }
+
+        .valign-wrapper .material-icons.left { margin-right: 6px !important; top: 2px; }
+
+        @media (max-width: 992px) {
+            .hide-on-med-and-down { display: none !important; }
+            .hide-on-large-only { display: block !important; }
+        }
+        @media (min-width: 993px) {
+            .hide-on-large-only { display: none !important; }
+        }
+
+        /* YEHI 3 LINES — SIRF SCROLLBAR ADD KIYA, STYLE 100% SAME */
+        .ordered-items-scroll {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            margin: 15px 0;
+        }
+        #ordered-items-table {
+            min-width: 650px;
+            width: 100%;
+        }
+        #ordered-items-table th,
+        #ordered-items-table td {
+            white-space: nowrap;
+        }
+    </style>
+</head>
+
+<body class="vertical-layout page-header-light vertical-menu-collapsible vertical-dark-menu preload-transitions 2-columns">
+    <%- include('_layouts/sidenavbar') %>
+
+    <div id="main">
+        <div class="row">
+            <!-- Breadcrumbs -->
+            <div id="breadcrumbs-wrapper" style="background-color: white;">
+                <div class="container">
+                    <div class="row">
+                        <div class="col s12 m6 l6">
+                            <h5 class="breadcrumbs-title"><span>Order Details</span></h5>
+                        </div>
+                        <div class="col s12 m6 l6 right-align">
+                            <ol class="breadcrumbs mb-0">
+                                <li><a href="/admin/dashboard">Dashboard</a></li>
+                                <li><a href="/admin/reports">Reports</a></li>
+                                <!-- <li class="active">#<%= order.orderIdShort %></li> -->
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <%- include('messages', { messages: messages }) %>
+
+            <div class="col s12">
+                <div class="container">
+                    <div class="section users-view">
+
+                        <!-- Header Card -->
+                        <div class="card-panel" style="padding: 0;">
+                            <div class="row valign-wrapper" style="margin: 0;">
+                                <div class="col s12 m4 l3 center hide-on-small-only">
+                                    <div style="padding: 20px;">
+                                        <img src="<%= order.vendorLogo %>" alt="Vendor Logo" 
+                                             style="width: 130px; height: 130px; border-radius: 50%; object-fit: cover; 
+                                                    border: 6px solid white; box-shadow: 0 10px 30px rgba(0,0,0,0.126);"
+                                             class="vendor-logo" onerror="this.src='/img/default-vendor.jpg';">
+                                    </div>
+                                </div>
+                                <div class="col s12 m8 l9">
+                                    <div style="padding: 20px 10px;">
+                                        <h4 class="text-darken-3" style="margin: 0; font-weight: 700; font-size: 2.1rem;">
+                                            <%= order.vendorName %>
+                                        </h4>
+                                        <p style="margin: 0 0 18px 0; color: #000; font-size: 1.1rem;">
+                                            <i class="material-icons left" style="font-size: 1.3rem;">person</i>
+                                            Served by (staff): <strong style="color: #000;"><%= order.staffName %></strong>
+                                        </p>
+                                        <p style="margin: 0 0 10px 0; color: #2196f3; font-weight: 600; font-size: 1.15rem; display:flex; align-items:center; gap:6px;">
+                                            <i class="material-icons" style="font-size: 1.4rem; color:#1976d2;">event</i>
+                                            <span><%= order.date %></span>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Order Details Card -->
+                        <div class="card">
+                            <div class="card-content">
+
+                                <!-- Customer & Summary -->
+                                <div class="row">
+                                    <div class="col s12 m6">
+                                        <h5 class="text-darken-2">Customer Information</h5>
+                                        <table class="striped">
+                                            <tr><th width="140">Name</th><td><%= order.customerName %></td></tr>
+                                            <tr><th>Mobile</th><td><%= order.customerMobile %></td></tr>
+                                        </table>
+                                    </div>
+                                    <div class="col s12 m6">
+                                        <h5 class="text-darken-2">Order Summary</h5>
+                                        <table class="striped">
+                                            <tr><th width="140">Points Used</th><td><span class="red-text text-darken-2"><strong><%= order.pointsUsed %> pts</strong></span></td></tr>
+                                            <tr><th>Discount Given</th><td><span class="green-text text-darken-2"><strong><%= order.discountAmount %> BHD</strong></span></td></tr>
+                                            <tr><th>Subtotal</th><td><strong><%= order.subtotal %> BHD</strong></td></tr>
+                                            <tr><th>Total Amount</th><td><h5 class="purple-text text-darken-3"><strong><%= order.totalAmount %> BHD</strong></h5></td></tr>
+                                            <tr>
+                                                <th>Status</th>
+                                                <td>
+                                                    <span class="status-chip <%= order.paymentStatus === 'Paid' ? 'status-paid' : 
+                                                        order.paymentStatus === 'Pending' ? 'status-pending' :
+                                                        order.paymentStatus === 'Rejected' ? 'status-rejected' : 'status-expired' %>">
+                                                        <%= order.paymentStatus %>
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <div class="divider" style="margin: 30px 0;"></div>
+
+                                <h5 class="text-darken-2" style="margin-bottom: 15px;">Ordered Items</h5>
+
+                                <% if(order.items && order.items.length > 0) { %>
+                                    <div class="ordered-items-scroll">
+                                        <table id="ordered-items-table" class="striped highlight display" style="width:100%">
+                                            <thead>
+                                                <tr>
+                                                    <th style="text-align: left; font-weight: 600; color: #424242;">Sr</th>
+                                                    <th style="text-align: left; font-weight: 600; color: #424242;">Item Name</th>
+                                                    <th style="text-align: center; font-weight: 600; color: #424242;">Quantity</th>
+                                                    <th style="text-align: right; font-weight: 600; color: #424242;">Price (BHD)</th>
+                                                    <th style="text-align: right; font-weight: 600; color: #424242;">Total (BHD)</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <% order.items.forEach((item, index) => { %>
+                                                    <tr>
+                                                        <td style="text-align: left;"><%= index + 1 %></td>
+                                                        <td style="text-align: left; font-weight: 600; color: #212121;"><%= item.name %></td>
+                                                        <td style="text-align: center;">
+                                                            <!-- <span class="new badge blue white-text"><%= item.quantity %></span> -->
+                                                            <span class="blue-text"><%= item.quantity %></span>
+                                                        </td>
+                                                        <td style="text-align: right; color: #1976d2;"><%= item.price %></td>
+                                                        <td style="text-align: right; font-weight: bold; color: #1976d2;"><%= item.total %></td>
+                                                    </tr>
+                                                <% }) %>
+                                                <tr style="font-weight: bold;">
+                                                    <td colspan="4" class="right-align" style="color: #2e7d32; font-size: 1.1rem;">
+                                                        <strong>Subtotal</strong>
+                                                    </td>
+                                                    <td style="text-align: right; color: #1b5e20; font-weight: bold; font-size: 1.1rem;">
+                                                        <strong><%= order.subtotal %> BHD</strong>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                <% } else { %>
+                                    <div class="card-panel center red lighten-4" style="border-radius: 8px;">
+                                        <i class="material-icons medium red-text">warning</i>
+                                        <p style="font-weight: 600; margin-top: 10px;">No items found in this order.</p>
+                                    </div>
+                                <% } %>
+
+                                <!-- Back Button -->
+                                <div class="center" style="margin-top: 40px;">
+                                    <a href="/admin/reports" class="btn-large waves-effect waves-light gradient-45deg-purple-deep-orange">
+                                        <i class="material-icons left">arrow_back</i>
+                                        Back to Reports
+                                    </a>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="content-overlay"></div>
+            </div>
+        </div>
+    </div>
+
+    <%- include('_layouts/commonJs') %>
+
+    <!-- Scripts — YEHI 2 LINES RAKHO -->
+    <script src="/app-assets/vendors/data-tables/js/jquery.dataTables.min.js"></script>
+    <script src="/app-assets/js/scripts/data-tables.js"></script>
+</body>
+</html>

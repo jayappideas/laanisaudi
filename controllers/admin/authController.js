@@ -12,9 +12,9 @@ const moduleModel = require('../../models/moduleModel');
 const adminModel = require('../../models/adminModel');
 const staffNotificationModel = require('../../models/staffNotificationModel');
 const Transaction = require('../../models/transactionModel');
-const {
-    sendNotificationsToTokens,
-} = require('../../utils/sendNotificationStaff');
+const { sendNotificationsToTokens,} = require('../../utils/sendNotificationStaff');
+
+
 exports.checkAdmin = async (req, res, next) => {
     try {
         const token = req.cookies['jwtAdmin'];

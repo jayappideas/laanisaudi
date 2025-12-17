@@ -806,19 +806,671 @@ exports.getCurrentTransaction = async (req, res, next) => {
 };
 
 //? Accept or Reject an order by USER
+// exports.updateOrderStatus = async (req, res, next) => {
+//     try {
+//         const { status, transactionTime } = req.body;
+//         const user = req.user;
+
+//         if (!status || !['accepted', 'rejected'].includes(status))
+//             return next(
+//                 createError.BadRequest(
+//                     'Invalid status. Must be "accepted" or "rejected"'
+//                 )
+//             );
+//         // if (!transactionTime)
+//         //     return next(createError.BadRequest('transactionTime is required'));
+
+//         let order = await transactionModel
+//             .findOne({
+//                 _id: req.body.orderId,
+//                 user: req.user.id,
+//                 status: 'pending',
+//             })
+//             .populate(
+//                 'discount',
+//                 'discountType discountValue title description'
+//             )
+//             .populate({
+//                 path: 'staff',
+//                 select: 'branch vendor fcmToken',
+//                 populate: [
+//                     {
+//                         path: 'branch',
+//                         select: 'city state name country buildingName buildingNo roadName',
+//                     },
+//                     {
+//                         path: 'vendor',
+//                         select: 'businessName businessLogo adminCommission',
+//                     },
+//                 ],
+//             })
+//             .select('-__v -updatedAt');
+//         if (!order) return next(createError.NotFound('Order not found'));
+
+//         // Calculate final amount the user has to pay (bill - redeemed points)
+//         // let finalAmount = order.billAmount - order.spentPoints;
+
+//         let finalAmount =
+//             order.billAmount - order.discountAmount - order.spentPoints;
+
+//         // Calculate earned points based on billAmount (discount doesn't apply now)
+//         let points = 0;
+
+//         // if (order.discount) {
+//         //     const { discountType, discountValue } = order.discount;
+
+//         //     if (discountType === 'Percentage') {
+//         //         points = (order.billAmount * discountValue) / 100;
+//         //     } else if (discountType === 'Fixed') {
+//         //         points = discountValue;
+//         //     }
+//         // }
+
+//         // points = Math.floor(points);
+
+//         points = Math.floor(finalAmount);
+//         // console.log('finalAmount: us', finalAmount);
+//         // console.log('points: us', points);
+
+//         let userSpecificP = null;
+//         if (status === 'accepted') {
+//             order.status = 'accepted';
+//             // order.earnedPoints = (order.earnedPoints || 0) + points;
+//             order.earnedPoints = points;
+//             order.finalAmount = finalAmount; // Save actual final amount user paid
+
+//             const adminCommissionPercent =
+//                 order.staff?.vendor?.adminCommission || 0;
+//             const adminCommissionAmount =
+//                 (order.billAmount * adminCommissionPercent) / 100;
+//             order.adminCommission = adminCommissionAmount;
+
+//             user.totalPoints =
+//                 (user.totalPoints || 0) - order.spentPoints + points;
+//             // user.totalPoints -= order.spentPoints; // Deduct the spent points from the user's account
+//             // user.totalPoints += points; // earned points from the current order
+
+//             userSpecificP = await userPoint.findOne({
+//                 user: user._id,
+//                 vendor: order.staff.vendor,
+//             });
+
+//             const discount = await discountModel.findById(order.discount.id);
+
+//             const usageIndex = discount.userUsages.findIndex(
+//                 u => u.user.toString() === user._id.toString()
+//             );
+
+//             if (usageIndex > -1) {
+//                 discount.userUsages[usageIndex].count += 1;
+//             } else {
+//                 discount.userUsages.push({
+//                     user: user._id.toString(),
+//                     count: 1,
+//                 });
+//             }
+
+//             discount.redeemUserCount += 1;
+
+//             await discount.save();
+
+//             if (!userSpecificP) {
+//                 // Create a new userPoint record if it doesn't exist
+//                 userSpecificP = new userPoint({
+//                     user: user._id,
+//                     vendor: order.staff.vendor,
+//                     totalPoints: 0,
+//                 });
+//             }
+
+//             // Update the totalPoints
+//             userSpecificP.totalPoints =
+//                 (userSpecificP.totalPoints || 0) - order.spentPoints + points;
+
+//             await userSpecificP.save();
+
+//             let dataa;
+//             // 1. Record spent points (if any)
+//             if (order.spentPoints > 0) {
+//                 dataa = await PointsHistory.create({
+//                     user: user._id,
+//                     staff: order.staff.id,
+//                     transaction: order._id,
+//                     type: 'spend',
+//                     points: order.spentPoints,
+//                     transactionTime,
+//                 });
+//             }
+
+//             // 2. Record earned points
+//             if (points > 0) {
+//                 dataa = await PointsHistory.create({
+//                     staff: order.staff.id,
+//                     user: user._id,
+//                     transaction: order._id,
+//                     type: 'earn',
+//                     points: points,
+//                     transactionTime,
+//                 });
+//             }
+//         } else {
+//             order.status = 'rejected';
+//             // user.totalPoints += order.spentPoints; // Restore the spent points back to the user
+//             // now we are not deducting points in checkout API
+//         }
+
+//         await order.save();
+//         await user.save();
+
+//         let title = 'Order Status Update';
+//         const userName = order.user?.name || 'User';
+//         const bill = order.finalAmount?.toFixed(2) || '0.00';
+
+//         const body = `Order status for ${userName} is ${status}. Bill amount: ${bill}.`;
+//         const data = {
+//             order_id: order.id.toString(),
+//             type: 'order',
+//             body,
+//         };
+//         if (order.staff?.fcmToken) {
+//             await sendNotificationsToTokenscheckout(
+//                 title,
+//                 body,
+//                 [order.staff?.fcmToken],
+//                 data
+//             );
+//             await staffNotificationModel.create({
+//                 sentTo: [order?.staff],
+//                 title,
+//                 body,
+//             });
+//         }
+
+//         order = order.toObject();
+//         order.totalPoints = userSpecificP?.totalPoints || 0;
+//         // console.log('----------------------------------');
+//         // console.log('order: us', order);
+//         // console.log('----------------------------------');
+
+//         res.status(200).json({
+//             success: true,
+//             message: `Order has been ${status}`,
+//             order,
+//         });
+//     } catch (error) {
+//         next(error);
+//     }
+// };
+
+///////with admin commission code
+// exports.updateOrderStatus = async (req, res, next) => {
+//   try {
+//     const { status } = req.body;
+
+//     console.log(`Order Update → ID: ${req.body.orderId}, Status: ${status}`);
+
+//     if (!['accepted', 'rejected'].includes(status)) {
+//       return next(createError.BadRequest('Invalid status'));
+//     }
+
+//     // Find order + populate vendor properly
+//     const order = await transactionModel
+//       .findOne({
+//         _id: req.body.orderId,
+//         user: req.user._id,
+//         status: 'pending',
+//       })
+//       .populate({
+//         path: 'staff',
+//         populate: {
+//           path: 'vendor',
+//           select: 'businessName adminCommission',
+//         },
+//       });
+
+//     if (!order) {
+//       return next(createError.NotFound('Order not found'));
+//     }
+
+//     const finalAmount = order.billAmount - order.discountAmount - order.spentPoints;
+//     const earnedPoints = Math.floor(finalAmount);
+
+//     let commissionPercent = 0;
+
+//     if (status === 'accepted') {
+//       order.status = 'accepted';
+//       order.finalAmount = finalAmount;
+//       order.earnedPoints = earnedPoints;
+
+//       commissionPercent = order.staff?.vendor?.adminCommission || 0;
+
+//       order.adminCommission = commissionPercent;
+
+//       console.log(`COMMISSION SAVED → ${commissionPercent}% (from vendor: ${order.staff?.vendor?.businessName || 'N/A'})`);
+
+//       // Update user points
+//       await userModel.findByIdAndUpdate(req.user._id, {
+//         $inc: { totalPoints: earnedPoints - order.spentPoints },
+//       });
+
+//       // Vendor-specific points
+//       await userPoint.findOneAndUpdate(
+//         { user: req.user._id, vendor: order.staff?.vendor?._id },
+//         { $inc: { totalPoints: earnedPoints - order.spentPoints } },
+//         { upsert: true }
+//       );
+
+//       // Discount usage (if any)
+//       if (order.discount) {
+//         await discountModel.findByIdAndUpdate(order.discount, {
+//           $inc: { redeemUserCount: 1 },
+//         });
+//       }
+
+//       // Points History
+//       if (order.spentPoints > 0) {
+//         await PointsHistory.create({
+//           user: req.user._id,
+//           staff: order.staff._id,
+//           transaction: order._id,
+//           type: 'spend',
+//           points: order.spentPoints,
+//         });
+//       }
+
+//       if (earnedPoints > 0) {
+//         await PointsHistory.create({
+//           user: req.user._id,
+//           staff: order.staff._id,
+//           transaction: order._id,
+//           type: 'earn',
+//           points: earnedPoints,
+//         });
+//       }
+
+//     } else {
+//       order.status = 'rejected';
+//       console.log('Order rejected by user');
+//     }
+
+//     await order.save();
+
+//     res.json({
+//       success: true,
+//       message: `Order ${status} successfully`,
+//       order: {
+//         ...order.toObject(),
+//         adminCommissionPercent: commissionPercent, 
+//       },
+//     });
+
+//   } catch (error) {
+//     console.error('UPDATE ORDER STATUS ERROR:', error.message);
+//     next(error);
+//   }
+// };
+
+
+//? Accept or Reject an order by USER ///notification
+// exports.updateOrderStatus = async (req, res, next) => {
+//     try {
+//         const { status, transactionTime } = req.body;
+//         const user = req.user;
+
+//         if (!status || !['accepted', 'rejected'].includes(status))
+//             return next(
+//                 createError.BadRequest(
+//                     'Invalid status. Must be "accepted" or "rejected"'
+//                 )
+//             );
+
+//         let order = await transactionModel
+//             .findOne({
+//                 _id: req.body.orderId,
+//                 user: req.user.id,
+//                 status: 'pending',
+//             })
+//             .populate(
+//                 'discount',
+//                 'discountType discountValue title description'
+//             )
+//             .populate({
+//                 path: 'staff',
+//                 select: 'branch vendor fcmToken',
+//                 populate: [
+//                     {
+//                         path: 'branch',
+//                         select: 'city state name country buildingName buildingNo roadName',
+//                     },
+//                     {
+//                         path: 'vendor',
+//                         select: 'businessName businessLogo adminCommission',
+//                     },
+//                 ],
+//             })
+//             .select('-__v -updatedAt');
+//         if (!order) return next(createError.NotFound('Order not found'));
+
+//         let finalAmount =
+//             order.billAmount - order.discountAmount - order.spentPoints;
+
+//         let points = Math.floor(finalAmount);
+
+//         let userSpecificP = null;
+//         if (status === 'accepted') {
+//             order.status = 'accepted';
+//             order.earnedPoints = points;
+//             order.finalAmount = finalAmount;
+
+//             const adminCommissionPercent =
+//                 order.staff?.vendor?.adminCommission || 0;
+//             const adminCommissionAmount =
+//                 (order.billAmount * adminCommissionPercent) / 100;
+//             order.adminCommission = adminCommissionAmount;
+
+//             user.totalPoints =
+//                 (user.totalPoints || 0) - order.spentPoints + points;
+
+//             userSpecificP = await userPoint.findOne({
+//                 user: user._id,
+//                 vendor: order.staff.vendor,
+//             });
+
+//             // Discount usage update
+//             if (order.discount) {
+//                 const discount = await discountModel.findById(order.discount._id); // _id use kiya
+//                 if (discount) {
+//                     const usageIndex = discount.userUsages.findIndex(
+//                         u => u.user.toString() === user._id.toString()
+//                     );
+//                     if (usageIndex > -1) {
+//                         discount.userUsages[usageIndex].count += 1;
+//                     } else {
+//                         discount.userUsages.push({
+//                             user: user._id,
+//                             count: 1,
+//                         });
+//                     }
+//                     discount.redeemUserCount += 1;
+//                     await discount.save();
+//                 }
+//             }
+
+//             if (!userSpecificP) {
+//                 userSpecificP = new userPoint({
+//                     user: user._id,
+//                     vendor: order.staff.vendor,
+//                     totalPoints: 0,
+//                 });
+//             }
+//             userSpecificP.totalPoints =
+//                 (userSpecificP.totalPoints || 0) - order.spentPoints + points;
+//             await userSpecificP.save();
+
+//             // Points History
+//             if (order.spentPoints > 0) {
+//                 await PointsHistory.create({
+//                     user: user._id,
+//                     staff: order.staff.id,
+//                     transaction: order._id,
+//                     type: 'spend',
+//                     points: order.spentPoints,
+//                     transactionTime,
+//                 });
+//             }
+//             if (points > 0) {
+//                 await PointsHistory.create({
+//                     staff: order.staff.id,
+//                     user: user._id,
+//                     transaction: order._id,
+//                     type: 'earn',
+//                     points: points,
+//                     transactionTime,
+//                 });
+//             }
+
+//             // NOTIFICATION TO STAFF 
+//             let title = 'Order Status Update';
+//             const userName = order.user?.name || 'User';
+//             const bill = order.finalAmount?.toFixed(2) || '0.00';
+
+//             const body = `Order status for ${userName} is ${status}. Bill amount: ${bill}.`;
+//             const data = {
+//                 order_id: order.id.toString(),
+//                 type: 'order',
+//                 body,
+//             };
+//             if (order.staff?.fcmToken) {
+//                 await sendNotificationsToTokenscheckout(
+//                     title,
+//                     body,
+//                     [order.staff?.fcmToken],
+//                     data
+//                 );
+//                 await staffNotificationModel.create({
+//                     sentTo: [order?.staff],
+//                     title,
+//                     body,
+//                 });
+//             }
+
+//         } else {
+//             order.status = 'rejected';
+
+//             if (order.staff?.fcmToken) {
+//                 const title = 'Order Rejected';
+//                 const userName = order.user?.name || 'User';
+//                 const body = `Customer ${userName} has rejected the order.`;
+
+//                 await sendNotificationsToTokenscheckout(
+//                     title,
+//                     body,
+//                     [order.staff.fcmToken],
+//                     { order_id: order._id.toString(), type: 'order' }
+//                 );
+
+//                 await staffNotificationModel.create({
+//                     sentTo: [order.staff._id],
+//                     title,
+//                     body,
+//                 });
+//             }
+//         }
+
+//         await order.save();
+//         await user.save();
+
+//         order = order.toObject();
+//         order.totalPoints = userSpecificP?.totalPoints || 0;
+
+//         res.status(200).json({
+//             success: true,
+//             message: `Order has been ${status}`,
+//             order,
+//         });
+//     } catch (error) {
+//         next(error);
+//     }
+// };
+
+//? Accept or Reject an order by USER 
+// exports.updateOrderStatus = async (req, res, next) => {
+//     try {
+//         const { status, transactionTime } = req.body;
+//         const user = req.user;
+
+//         if (!status || !['accepted', 'rejected'].includes(status))
+//             return next(createError.BadRequest('Invalid status. Must be "accepted" or "rejected"'));
+
+//         let order = await transactionModel
+//             .findOne({
+//                 _id: req.body.orderId,
+//                 user: req.user.id,
+//                 status: 'pending',
+//             })
+//             .populate('discount', 'discountType discountValue title description')
+//             .populate({
+//                 path: 'staff',
+//                 select: 'branch vendor fcmToken',
+//                 populate: [
+//                     { path: 'branch', select: 'city state name country buildingName buildingNo roadName' },
+//                     { path: 'vendor', select: 'businessName businessLogo adminCommission' },
+//                 ],
+//             })
+//             .select('-__v -updatedAt');
+
+//         if (!order) return next(createError.NotFound('Order not found'));
+
+//         let finalAmount = order.billAmount - order.discountAmount - order.spentPoints;
+//         let points = Math.floor(finalAmount);
+
+//         let userSpecificP = null;
+
+//         if (status === 'accepted') {
+//             order.status = 'accepted';
+//             order.earnedPoints = points;
+//             order.finalAmount = finalAmount;
+
+//             const adminCommissionPercent = order.staff?.vendor?.adminCommission || 0;
+//             order.adminCommission = adminCommissionPercent;
+
+
+//             console.log(`COMMISSION SAVED → ${adminCommissionPercent}%`);
+
+//             user.totalPoints = (user.totalPoints || 0) - order.spentPoints + points;
+
+//             userSpecificP = await userPoint.findOne({
+//                 user: user._id,
+//                 vendor: order.staff.vendor,
+//             });
+
+//             if (order.discount?._id) {
+//                 const discount = await discountModel.findById(order.discount._id);
+//                 if (discount) {
+//                     const usageIndex = discount.userUsages.findIndex(
+//                         u => u.user.toString() === user._id.toString()
+//                     );
+//                     if (usageIndex > -1) {
+//                         discount.userUsages[usageIndex].count += 1;
+//                     } else {
+//                         discount.userUsages.push({ user: user._id, count: 1 });
+//                     }
+//                     discount.redeemUserCount += 1;
+//                     await discount.save();
+//                 }
+//             }
+
+//             if (!userSpecificP) {
+//                 userSpecificP = new userPoint({
+//                     user: user._id,
+//                     vendor: order.staff.vendor,
+//                     totalPoints: 0,
+//                 });
+//             }
+//             userSpecificP.totalPoints = (userSpecificP.totalPoints || 0) - order.spentPoints + points;
+//             await userSpecificP.save();
+
+//             // Points History
+//             if (order.spentPoints > 0) {
+//                 await PointsHistory.create({
+//                     user: user._id,
+//                     staff: order.staff.id,
+//                     transaction: order._id,
+//                     type: 'spend',
+//                     points: order.spentPoints,
+//                     transactionTime,
+//                 });
+//             }
+//             if (points > 0) {
+//                 await PointsHistory.create({
+//                     staff: order.staff.id,
+//                     user: user._id,
+//                     transaction: order._id,
+//                     type: 'earn',
+//                     points: points,
+//                     transactionTime,
+//                 });
+//             }
+
+//             // NOTIFICATION TO STAFF — ACCEPT 
+//             if (order.staff?.fcmToken) {
+//                 const title = 'Order Accepted';
+//                 const userName = user.name || 'Customer';
+//                 const bill = finalAmount.toFixed(3);
+//                 const body = `Great news! ${userName} has accepted your order of ${bill} BHD.`;
+
+//                 await sendNotificationsToTokenscheckout(
+//                     title,
+//                     body,
+//                     [order.staff.fcmToken],
+//                     {
+//                         order_id: order._id.toString(),
+//                         type: 'order_status',
+//                         status: 'accepted'
+//                     }
+//                 );
+
+//                 await staffNotificationModel.create({
+//                     sentTo: [order.staff._id],
+//                     title,
+//                     body,
+//                 });
+//             }
+
+//         } else {
+//             order.status = 'rejected';
+
+//             // NOTIFICATION TO STAFF — REJECT
+//             if (order.staff?.fcmToken) {
+//                 const title = 'Order Rejected';
+//                 const userName = user.name || 'Customer';
+//                 const body = `${userName} has rejected the order.`;
+
+//                 await sendNotificationsToTokenscheckout(
+//                     title,
+//                     body,
+//                     [order.staff.fcmToken],
+//                     {
+//                         order_id: order._id.toString(),
+//                         type: 'order_status',
+//                         status: 'rejected'
+//                     }
+//                 );
+
+//                 await staffNotificationModel.create({
+//                     sentTo: [order.staff._id],
+//                     title,
+//                     body,
+//                 });
+//             }
+//         }
+
+//         await order.save();
+//         await user.save();
+
+//         order = order.toObject();
+//         order.totalPoints = userSpecificP?.totalPoints || 0;
+
+//         res.status(200).json({
+//             success: true,
+//             message: `Order has been ${status}`,
+//             order,
+//         });
+
+//     } catch (error) {
+//         console.error('updateOrderStatus error:', error.message);
+//         next(error);
+//     }
+// };
+
+//? Accept or Reject an order by USER 
 exports.updateOrderStatus = async (req, res, next) => {
     try {
         const { status, transactionTime } = req.body;
         const user = req.user;
 
         if (!status || !['accepted', 'rejected'].includes(status))
-            return next(
-                createError.BadRequest(
-                    'Invalid status. Must be "accepted" or "rejected"'
-                )
-            );
-        // if (!transactionTime)
-        //     return next(createError.BadRequest('transactionTime is required'));
+            return next(createError.BadRequest('Invalid status. Must be "accepted" or "rejected"'));
 
         let order = await transactionModel
             .findOne({
@@ -826,113 +1478,74 @@ exports.updateOrderStatus = async (req, res, next) => {
                 user: req.user.id,
                 status: 'pending',
             })
-            .populate(
-                'discount',
-                'discountType discountValue title description'
-            )
+            .populate('discount', 'discountType discountValue title description')
             .populate({
                 path: 'staff',
                 select: 'branch vendor fcmToken',
                 populate: [
-                    {
-                        path: 'branch',
-                        select: 'city state name country buildingName buildingNo roadName',
-                    },
-                    {
-                        path: 'vendor',
-                        select: 'businessName businessLogo adminCommission',
-                    },
+                    { path: 'branch', select: 'city state name country buildingName buildingNo roadName' },
+                    { path: 'vendor', select: 'businessName businessLogo adminCommission' },
                 ],
             })
             .select('-__v -updatedAt');
+
         if (!order) return next(createError.NotFound('Order not found'));
 
-        // Calculate final amount the user has to pay (bill - redeemed points)
-        // let finalAmount = order.billAmount - order.spentPoints;
-
-        let finalAmount =
-            order.billAmount - order.discountAmount - order.spentPoints;
-
-        // Calculate earned points based on billAmount (discount doesn't apply now)
-        let points = 0;
-
-        // if (order.discount) {
-        //     const { discountType, discountValue } = order.discount;
-
-        //     if (discountType === 'Percentage') {
-        //         points = (order.billAmount * discountValue) / 100;
-        //     } else if (discountType === 'Fixed') {
-        //         points = discountValue;
-        //     }
-        // }
-
-        // points = Math.floor(points);
-
-        points = Math.floor(finalAmount);
-        // console.log('finalAmount: us', finalAmount);
-        // console.log('points: us', points);
+        let finalAmount = order.billAmount - order.discountAmount - order.spentPoints;
+        let points = Math.floor(finalAmount);
+        // let points = Math.floor(order.billAmount);
 
         let userSpecificP = null;
+
         if (status === 'accepted') {
             order.status = 'accepted';
-            // order.earnedPoints = (order.earnedPoints || 0) + points;
             order.earnedPoints = points;
-            order.finalAmount = finalAmount; // Save actual final amount user paid
+            order.finalAmount = finalAmount;
 
-            const adminCommissionPercent =
-                order.staff?.vendor?.adminCommission || 0;
-            const adminCommissionAmount =
-                (order.billAmount * adminCommissionPercent) / 100;
+            // Proper admin commission calculation 
+            const adminCommissionPercent = order.staff?.vendor?.adminCommission || 0;
+            const adminCommissionAmount = (order.billAmount * adminCommissionPercent) / 100;
             order.adminCommission = adminCommissionAmount;
 
-            user.totalPoints =
-                (user.totalPoints || 0) - order.spentPoints + points;
-            // user.totalPoints -= order.spentPoints; // Deduct the spent points from the user's account
-            // user.totalPoints += points; // earned points from the current order
+            console.log(`COMMISSION SAVED → ${adminCommissionAmount} (from ${adminCommissionPercent}%)`);
+
+            user.totalPoints = (user.totalPoints || 0) - order.spentPoints + points;
 
             userSpecificP = await userPoint.findOne({
                 user: user._id,
                 vendor: order.staff.vendor,
             });
 
-            const discount = await discountModel.findById(order.discount.id);
-
-            const usageIndex = discount.userUsages.findIndex(
-                u => u.user.toString() === user._id.toString()
-            );
-
-            if (usageIndex > -1) {
-                discount.userUsages[usageIndex].count += 1;
-            } else {
-                discount.userUsages.push({
-                    user: user._id.toString(),
-                    count: 1,
-                });
+            // Discount usage tracking 
+            if (order.discount?._id) {
+                const discount = await discountModel.findById(order.discount._id);
+                if (discount) {
+                    const usageIndex = discount.userUsages.findIndex(
+                        u => u.user.toString() === user._id.toString()
+                    );
+                    if (usageIndex > -1) {
+                        discount.userUsages[usageIndex].count += 1;
+                    } else {
+                        discount.userUsages.push({ user: user._id, count: 1 });
+                    }
+                    discount.redeemUserCount += 1;
+                    await discount.save();
+                }
             }
 
-            discount.redeemUserCount += 1;
-
-            await discount.save();
-
             if (!userSpecificP) {
-                // Create a new userPoint record if it doesn't exist
                 userSpecificP = new userPoint({
                     user: user._id,
                     vendor: order.staff.vendor,
                     totalPoints: 0,
                 });
             }
-
-            // Update the totalPoints
-            userSpecificP.totalPoints =
-                (userSpecificP.totalPoints || 0) - order.spentPoints + points;
-
+            userSpecificP.totalPoints = (userSpecificP.totalPoints || 0) - order.spentPoints + points;
             await userSpecificP.save();
 
-            let dataa;
-            // 1. Record spent points (if any)
+            // Points History
             if (order.spentPoints > 0) {
-                dataa = await PointsHistory.create({
+                await PointsHistory.create({
                     user: user._id,
                     staff: order.staff.id,
                     transaction: order._id,
@@ -941,10 +1554,8 @@ exports.updateOrderStatus = async (req, res, next) => {
                     transactionTime,
                 });
             }
-
-            // 2. Record earned points
             if (points > 0) {
-                dataa = await PointsHistory.create({
+                await PointsHistory.create({
                     staff: order.staff.id,
                     user: user._id,
                     transaction: order._id,
@@ -953,54 +1564,78 @@ exports.updateOrderStatus = async (req, res, next) => {
                     transactionTime,
                 });
             }
+
+            // NOTIFICATION TO STAFF — ACCEPT 
+            if (order.staff?.fcmToken) {
+                const title = 'Order Accepted';
+                const userName = user.name || 'Customer';
+                const bill = finalAmount.toFixed(3);
+                const body = `Great news! ${userName} has accepted your order of ${bill} BHD.`;
+
+                await sendNotificationsToTokenscheckout(
+                    title,
+                    body,
+                    [order.staff.fcmToken],
+                    {
+                        order_id: order._id.toString(),
+                        type: 'order_status',
+                        status: 'accepted'
+                    }
+                );
+
+                await staffNotificationModel.create({
+                    sentTo: [order.staff._id],
+                    title,
+                    body,
+                });
+            }
+
         } else {
             order.status = 'rejected';
-            // user.totalPoints += order.spentPoints; // Restore the spent points back to the user
-            // now we are not deducting points in checkout API
+
+            // NOTIFICATION TO STAFF — REJECT
+            if (order.staff?.fcmToken) {
+                const title = 'Order Rejected';
+                const userName = user.name || 'Customer';
+                const body = `${userName} has rejected the order.`;
+
+                await sendNotificationsToTokenscheckout(
+                    title,
+                    body,
+                    [order.staff.fcmToken],
+                    {
+                        order_id: order._id.toString(),
+                        type: 'order_status',
+                        status: 'rejected'
+                    }
+                );
+
+                await staffNotificationModel.create({
+                    sentTo: [order.staff._id],
+                    title,
+                    body,
+                });
+            }
         }
 
         await order.save();
         await user.save();
 
-        let title = 'Order Status Update';
-        const userName = order.user?.name || 'User';
-        const bill = order.finalAmount?.toFixed(2) || '0.00';
-
-        const body = `Order status for ${userName} is ${status}. Bill amount: ${bill}.`;
-        const data = {
-            order_id: order.id.toString(),
-            type: 'order',
-            body,
-        };
-        if (order.staff?.fcmToken) {
-            await sendNotificationsToTokenscheckout(
-                title,
-                body,
-                [order.staff?.fcmToken],
-                data
-            );
-            await staffNotificationModel.create({
-                sentTo: [order?.staff],
-                title,
-                body,
-            });
-        }
-
         order = order.toObject();
         order.totalPoints = userSpecificP?.totalPoints || 0;
-        // console.log('----------------------------------');
-        // console.log('order: us', order);
-        // console.log('----------------------------------');
 
         res.status(200).json({
             success: true,
             message: `Order has been ${status}`,
             order,
         });
+
     } catch (error) {
+        console.error('updateOrderStatus error:', error.message);
         next(error);
     }
 };
+
 
 //? For Staff call this every 10 sec to show the user action
 exports.getCurrentTransactionStaff = async (req, res, next) => {

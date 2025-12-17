@@ -46,7 +46,7 @@ const adminSchema = new mongoose.Schema(
         }
     },
     { timestamps: true }
-);
+); 
 
 // Generate auth token
 adminSchema.methods.generateAuthToken = async function () {

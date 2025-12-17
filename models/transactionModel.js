@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const Vendor = require("./vendorModel")
 
 const transactionSchema = new mongoose.Schema(
     {
@@ -14,6 +15,11 @@ const transactionSchema = new mongoose.Schema(
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Discount',
             default: null,
+        },
+        vendor: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Vendor', 
+            // required: true,
         },
         items: [
             {
@@ -55,14 +61,14 @@ const transactionSchema = new mongoose.Schema(
             type: Number,
             default: 0,
         },
-        tID:{
+        tID: {
             type: String, // Transaction ID for payment gateway
         },
         status: {
             type: String,
             enum: ['pending', 'accepted', 'rejected', 'expired'],
             required: true,
-        },
+        }, 
     },
     { timestamps: true }
 );
@@ -73,6 +79,52 @@ const transactionSchema = new mongoose.Schema(
 //       this.adminCommission = parseFloat((this.finalAmount * 0.10).toFixed(2));
 //     }
 //     next();
-//   });
+//   }); 
+
+// transactionSchema.pre('save', async function (next) {
+//     if (this.finalAmount > 0 && this.status === 'accepted') {
+//         try {
+//             // Fetch vendor's adminCommissionPercent from DB
+//             const vendor = await Vendor.findById(this.vendor).select('adminCommissionPercent');
+//             if (!vendor) {
+//                 console.error('Vendor not found for transaction:', this._id);
+//                 return next(new Error('Vendor not found'));
+//             }
+
+//             const percent = vendor.adminCommissionPercent || 0; // Default to 0 if not set
+//             this.adminCommission = parseFloat((this.finalAmount * (percent / 100)).toFixed(2));
+//             console.log(`Admin commission calculated: ${this.adminCommission}% for vendor ${vendorId}`);
+//         } catch (error) {
+//             console.error('Error calculating admin commission:', error);
+//             return next(error);
+//         }
+//     }
+//     next();
+// });
+
+transactionSchema.pre('save', async function (next) {
+  try {
+    if (!this.vendor && this.staff) {
+      const staff = await mongoose.model('Staff').findById(this.staff).select('vendor').lean();
+      if (staff && staff.vendor) {
+        this.vendor = staff.vendor;
+        console.log(`AUTO-FILLED VENDOR: ${staff.vendor} from staff ${this.staff}`);
+      } else {
+        console.log(`STAFF ${this.staff} has NO VENDOR!`);
+      }
+    }
+
+    if (this.vendor) {
+      console.log(`TRANSACTION VENDOR ID: ${this.vendor}`);
+    } else {
+      console.log(`WARNING: Transaction has NO VENDOR!`);
+    }
+
+    next();
+  } catch (err) {
+    console.error('AUTO-FILL VENDOR ERROR:', err.message);
+    next();
+  }
+});
 
 module.exports = mongoose.model('Transaction', transactionSchema);
