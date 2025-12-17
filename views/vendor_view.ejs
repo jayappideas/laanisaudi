@@ -1,13 +1,11 @@
 <!DOCTYPE html>
 <html class="loading" lang="en" data-textdirection="ltr">
-<!-- BEGIN: Head-->
 
 <head>
   <%- include('_layouts/head') %>
     <title>Vendor View | <%= title %>
     </title>
     <link rel="stylesheet" type="text/css" href="/app-assets/css/pages/page-users.css">
-
     <link rel="stylesheet" type="text/css" href="/app-assets/vendors/data-tables/css/jquery.dataTables.min.css">
     <link rel="stylesheet" type="text/css"
       href="/app-assets/vendors/data-tables/extensions/responsive/css/responsive.dataTables.min.css">
@@ -34,39 +32,70 @@
 
       .switch label input[type=checkbox]:not(:checked)+.lever {
         background-color: #f3374a;
-        /* Light red track */
       }
 
       .switch label input[type=checkbox]:not(:checked)+.lever::before {
         background-color: #ffaba5;
-        /* Dark red thumb */
       }
 
-      /* Toggle ON (switch track and thumb) */
       .switch label input[type=checkbox]:checked+.lever {
         background-color: #31db37;
-        /* Light green track */
       }
 
       .switch label input[type=checkbox]:checked+.lever::before {
         background-color: #4CAF50;
-        /* Dark green thumb */
+      }
+
+      #commissionInput {
+        width: 65%;
+        height: 40px;
+        text-align: center;
+        font-size: 1.4rem;
+        font-weight: bold;
+        border: 3px solid #6a6a6ac0;
+        border-radius: 8px;
+        background: white;
+      }
+
+      #commissionInput:disabled {
+        background: #f5f5f5;
+        color: #999;
+        border-color: #ccc;
+      }
+
+      /* RESPONSIVE FIXES */
+      @media (max-width: 768px) {
+        .commission-section {
+          flex-direction: column !important;
+          align-items: flex-end !important;
+          gap: 15px !important;
+        }
+
+        .commission-input-wrapper {
+          width: 100%;
+          justify-content: flex-end !important;
+        }
+
+        #commissionInput {
+          width: 100px;
+        }
+
+        .switch {
+          margin-top: 10px;
+        }
       }
     </style>
 </head>
-<!-- END: Head-->
 
 <body
-  class="vertical-layout page-header-light vertical-menu-collapsible vertical-dark-menu preload-transitions 2-columns   "
+  class="vertical-layout page-header-light vertical-menu-collapsible vertical-dark-menu preload-transitions 2-columns"
   data-open="click" data-menu="vertical-dark-menu" data-col="2-columns">
 
   <%- include('_layouts/sidenavbar') %>
 
-    <!-- BEGIN: Page Main-->
     <div id="main">
       <div class="row">
         <div id="breadcrumbs-wrapper" style="background-color: white;">
-          <!-- Search for small screen-->
           <div class="container">
             <div class="row">
               <div class="col s12 m6 l6">
@@ -79,118 +108,120 @@
             </div>
           </div>
         </div>
+
         <%- include('messages', { messages: messages }) %>
 
           <div class="col s12">
             <div class="container">
-              <!-- users view start -->
               <div class="section users-view">
-                <!-- users view media object start -->
+
+                <!-- HEADER CARD -->
                 <div class="card-panel">
                   <div class="row">
                     <div class="col s12 m7">
                       <div class="display-flex media">
-                        <img src="<%= process.env.IMAGE_URL %><%= vendor.qrCode %>" alt="users view avatar" height="64"
-                          width="64">
+                        <img src="<%= process.env.IMAGE_URL %><%= vendor.qrCode %>" alt="QR" height="64" width="64">
                         <div class="media-body" style="margin-left: 10px;">
-
+                          <h5>
+                            <%= vendor.businessName || 'Vendor' %>
+                          </h5>
                           <span>Email:</span>
                           <span class="users-view-id"><a href="mailto:<%= vendor.email %>">
                               <%= vendor.email %>
                             </a></span>
+                        </div>
+                      </div>
+                    </div>
 
-                          <!-- <div style="margin-top: 10px;">
+                    <!-- RIGHT SIDE: COMMISSION + TOGGLE (NO GAP, FULLY RESPONSIVE) -->
+                    <div class="col s12 m5" style="text-align: right;">
+                      <!-- COMMISSION + TOGGLE IN ONE LINE -->
+                      <div class="commission-section"
+                        style="display: flex; align-items: center; justify-content: flex-end; gap: 20px; flex-wrap: wrap;">
+
+                        <!-- ADMIN COMMISSION -->
+                        <div class="commission-input-wrapper" style="display: flex; align-items: center; gap: 10px;">
+                          <div>
+                            <label
+                              style="display: block; font-weight: bold; color: #444; font-size: 1rem; margin-bottom: 4px;">
+                              Admin Commission
+                            </label>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                              <!-- <input type="number" id="commissionInput" name="commission"
+                                value="<%= vendor.adminCommissionPercent || 15 %>" min="0" max="50" step="1"
+                                style="font-weight: bold;"> -->
+                              <input type="number" id="commissionInput" name="commission"
+                                value="<%= vendor.adminCommissionPercent != null ? vendor.adminCommissionPercent : 15 %>"
+                                min="0" max="50" step="1">
+                              <span style="font-size: 1.2rem; font-weight: bold; color: #333;">%</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <!-- APPROVAL TOGGLE -->
+                        <div class="switch">
+                          <label>
+                            <span style="color: red; font-weight: bold;">Pending</span>
+                            <input type="checkbox" <%=vendor.adminApproved ? 'checked' : '' %>
+                            onchange="toggleApprovalWithCommission('<%= vendor._id %>', this.checked)"
+                              >
+                              <span class="lever"></span>
+                              <span style="color: green; font-weight: bold;">Approved</span>
+                          </label>
+                        </div>
+                      </div>
+
+                      <!-- UPDATE COMMISSION BUTTON (Only if approved) -->
+                      <!-- <% if (vendor.adminApproved) { %>
+                        <div style="margin-top: 15px; text-align: right;">
+                          <button onclick="updateCommissionNow('<%= vendor._id %>')"
+                           class="btn-small waves-effect purple waves-light"
+                            >
+                            Update Commission
+                          </button>
+                        </div>
+                        <% } %> -->
+
+                      <!-- ACTION BUTTONS -->
+                      <div
+                        style="margin-top: 25px; display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap;">
+
+                        <% if (vendor.adminApproved) { %>
+
+                          <button onclick="updateCommissionNow('<%= vendor._id %>')"
+                            class="btn-small waves-effect purple waves-light">
+                            Update Commission
+                          </button>
+
+                          <% } %>
+
                             <a href="/admin/vendor/logs/<%= vendor._id %>"
                               class="btn-small indigo waves-effect waves-light">
                               View Activity
                             </a>
-
-                            <a href="/admin/vendor/edit-vendor/<%= vendor._id %>" class="btn-small blue waves-effect waves-light"
-                              style="margin-left: 5px;">
-                              <i class="material-icons left">edit</i>Edit
+                            <a href="/admin/vendor/edit-vendor/<%= vendor._id %>"
+                              class="btn-small blue waves-effect waves-light">
+                              Edit
                             </a>
-
-                            <a href="/admin/vendor/delete/<%= vendor._id %>" class="btn-small red waves-effect waves-light"
-                              style="margin-left: 5px;"
-                              onclick="return confirm('Are you sure you want to delete this vendor? This action cannot be undone.');">
-                              <i class="material-icons left">delete</i>Delete
+                            <a href="/admin/vendor/delete/<%= vendor._id %>"
+                              class="btn-small red waves-effect waves-light"
+                              onclick="return confirm('Delete this vendor?');">
+                              Delete
                             </a>
-                          </div> -->
-                        </div>
                       </div>
                     </div>
-                    <!-- <div class="col s12 m5" style="text-align: right;">
-                  <% if (vendor.adminApproved) { %>
-                      <a class="waves-effect waves-light btn green mr-1 mb-2" href="/admin/vendor/disapproved/<%= vendor._id %>" onclick="return confirm('Are you sure want to disapproved this vendor?');">Approved</a>
-                  <% } else { %>
-                      <a href="/admin/vendor/approved/<%= vendor._id %>" class="waves-effect waves-light btn red mr-1 mb-2"  style="padding: 0px 16px 0px 16px;" onclick="return confirm('Are you sure want to approved this vendor?');">Pending</a>
-                  <% } %>
-                </div> -->
-                    <div class="col s12 m5" style="text-align: right;">
-                      <div class="switch">
-                        <label>
-                          <span style="color: red; font-weight: bold;">Pending / Blocked</span>
-                          <input type="checkbox" <%=vendor.adminApproved ? 'checked' : '' %>
-                          onchange="toggleApproval('<%= vendor._id %>', this.checked)">
-                            <span class="lever"></span>
-                            <span style="color: green; font-weight: bold;">Approved</span>
-                        </label>
-                      </div>
-
-                        <div style="margin-top: 20px;">
-                          <a href="/admin/vendor/logs/<%= vendor._id %>" class="btn-small indigo waves-effect waves-light">
-                            View Activity
-                          </a>
-
-                          <a href="/admin/vendor/edit-vendor/<%= vendor._id %>" class="btn-small blue waves-effect waves-light"
-                            style="margin-left: 5px;">
-                            <i class="material-icons left">edit</i>Edit
-                          </a>
-
-                          <a href="/admin/vendor/delete/<%= vendor._id %>" class="btn-small red waves-effect waves-light"
-                            style="margin-left: 5px;"
-                            onclick="return confirm('Are you sure you want to delete this vendor? This action cannot be undone.');">
-                            <i class="material-icons left">delete</i>Delete
-                          </a>
-                        </div>
-                    </div>
-
-                    <!-- Below code is working but toggle color is not in green and red -->
-                    <!-- <div class="col s12 m5" style="text-align: right;">
-                  <div class="switch">
-                    <label>
-                      <span style="color: red; font-weight: bold;">Pending / Blocked</span>
-                      <input type="checkbox" <%=vendor.adminApproved ? 'checked' : '' %> onchange="toggleApproval('<%= vendor._id %>',
-                        this.checked)">
-                        <span class="lever"></span>
-                        <span style="color: green; font-weight: bold;">Approved</span>
-                    </label>
-                  </div>
-                </div> -->
-
                   </div>
                 </div>
-                <!-- users view media object ends -->
+                <!-- Header End -->
 
-                <!-- users view card details start -->
+                <!-- Business Information -->
                 <div class="card">
                   <div class="card-content">
+                    <h5>Business Information</h5>
                     <div class="row">
-                      <div class="col s12">
-                        <h5>Business Information</h5>
-
-
-                        <table class="striped col s12 m6">
+                      <div class="col s12 m6">
+                        <table class="striped">
                           <tbody>
-                               <!-- <form action="/admin/vendor/update-commission/<%= vendor._id %>" method="POST">
-                                 <tr>
-                                   <th style="width: 200px;">Admin Commission</th>
-                                   <td>
-                                     <input type="number" name="adminCommission" value="<%= vendor.adminCommission || '' %>" step="0.01" min="0" max="100" style="width: 100px; text-align: center;" required /> %
-                                     <button type="submit" class="btn-small green" style="margin-left: 10px;">Save</button>
-                                   </td>
-                                 </tr>
-                               </form> -->
                             <tr>
                               <th style="width: 200px;">Business Type</th>
                               <td>
@@ -198,357 +229,280 @@
                               </td>
                             </tr>
                             <tr>
-                              <th style="width: 200px;">Business Name</th>
+                              <th>Business Name</th>
                               <td>
-                                <%= vendor.businessName ? vendor.businessName : '-' %>
+                                <%= vendor.businessName || '-' %>
                               </td>
                             </tr>
                             <tr>
-                              <th style="width: 200px;">Business Mobile</th>
+                              <th>Business Mobile</th>
                               <td>
-                                <%= vendor.businessMobile ? vendor.businessMobile : '-' %>
+                                <%= vendor.businessMobile || '-' %>
                               </td>
                             </tr>
                             <tr>
                               <th>Registered Date</th>
-                              <!-- <td><%= vendor.createdAt.toISOString().split('T')[0] %> <%=
-                            vendor.createdAt.toLocaleString('en-US', {
-                                timeZone: 'UTC',
-                                hour: '2-digit',
-                                minute: '2-digit',
-                                hour12: true
-                              }).replace(',', ''); %></td> -->
-                              <% const createdAt=new Date(vendor.createdAt); const
-                                day=String(createdAt.getUTCDate()).padStart(2, '0' ); const
-                                month=String(createdAt.getUTCMonth() + 1).padStart(2, '0' ); const
-                                year=createdAt.getUTCFullYear(); const formattedDate=`${day}-${month}-${year}`; %>
-                                <td>
-                                  <%= formattedDate %>
-                                </td>
+                              <td>
+                                <%= new Date(vendor.createdAt).toLocaleDateString('en-IN') %>
+                              </td>
+                            </tr>
+                            <tr>
+                              <th>Admin Commission</th>
+                              <td><strong style="color: red; font-size: 1.2rem;">
+                                  <%= vendor.adminCommissionPercent || 0 %>% on every bill
+                                </strong></td>
                             </tr>
                           </tbody>
                         </table>
-
-                        <div class="col s12 m6">
-                          <div class="col s12 m4">
+                      </div>
+                      <div class="col s12 m6">
+                        <div class="row">
+                          <div class="col s6">
                             <h6>Business Logo</h6>
-                            <img src="<%= process.env.IMAGE_URL%><%= vendor.businessLogo %>" style="width: 50%;" />
+                            <img src="<%= process.env.IMAGE_URL %><%= vendor.businessLogo %>"
+                              style="width: 100%; border-radius: 8px;" />
                           </div>
-                          <div class="col s12 m8" style="text-align: right;">
+                          <div class="col s6">
                             <h6>Business License</h6>
-                            <img src="<%= process.env.IMAGE_URL%><%= vendor.businessLicense %>" style="width: 70%;" />
+                            <img src="<%= process.env.IMAGE_URL %><%= vendor.businessLicense %>"
+                              style="width: 100%; border-radius: 8px;" />
                           </div>
                         </div>
                       </div>
                     </div>
-
-                    <div class="row">
-                      <div class="col s12">
-                        <h5>Branches Information</h5>
-                      </div>
-                      <div class="col s12" style="padding: 0%;">
-                        <div class="section section-data-tables">
-                          <div class="col s12">
-                            <div class="card">
-                              <div class="card-content">
-                                <div class="row">
-                                  <div class="col s12 overflow">
-                                    <table id="branches-table" class="display">
-                                      <thead>
-                                        <tr>
-                                          <th>Sr</th>
-                                          <th>Branch Name</th>
-                                          <th>
-                                            Email
-                                          </th>
-                                          <th>Phone</th>
-
-                                          <th>Building Name</th>
-                                          <th>Building No.</th>
-                                          <th>Road Name</th>
-                                          <th>City</th>
-                                          <th>State</th>
-                                          <th>Country</th>
-                                        </tr>
-                                      </thead>
-                                      <tbody>
-                                        <% for( let i=0; i < branch.length; i++ ) { %>
-                                          <tr>
-                                            <td>
-                                              <%= i+1 %>
-                                            </td>
-                                            <td>
-                                              <%= branch[i].name %>
-                                            </td>
-                                            <td>
-                                              <%= branch[i].email %>
-                                            </td>
-                                            <td>
-                                              <%= branch[i].phone %>
-                                            </td>
-                                            <td>
-                                              <%= branch[i].buildingName %>
-                                            </td>
-                                            <td>
-                                              <%= branch[i].buildingNo %>
-                                            </td>
-                                            <td>
-                                              <%= branch[i].roadName %>
-                                            </td>
-                                            <td>
-                                              <%= branch[i].city %>
-                                            </td>
-                                            <td>
-                                              <%= branch[i].state %>
-                                            </td>
-                                            <td>
-                                              <%= branch[i].country %>
-                                            </td>
-                                          </tr>
-                                          <% } %>
-                                      </tbody>
-                                    </table>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div class="row">
-                      <div class="col s12">
-                        <h5>Staff Members Information</h5>
-                      </div>
-                      <div class="col s12" style="padding: 0%;">
-                        <div class="section section-data-tables">
-                          <div class="col s12">
-                            <div class="card">
-                              <div class="card-content">
-                                <div class="row">
-                                  <div class="col s12 overflow">
-                                    <table id="staff-table" class="display">
-                                      <thead>
-                                        <tr>
-                                          <th>Sr</th>
-                                          <th style="width: 60px; text-align: center;">
-                                            <label
-                                              style="margin: 0; display: flex; align-items: center; justify-content: center;">
-                                              <input type="checkbox" id="selectAll" />
-                                              <span style="margin-left: 4px;">All</span>
-                                            </label>
-                                          </th>
-                                          <th>QR Code</th>
-                                          <th>Building Name</th>
-                                          <th>Branch Name</th>
-                                          <th>Staff Name</th>
-                                          <th>Email</th>
-                                          <th>Mobile Number</th>
-                                          <th>Occupation</th>
-                                        </tr>
-                                      </thead>
-                                      <tbody>
-                                        <% for(let i=0; i < staff.length; i++ ) { %>
-                                          <tr>
-                                            <td>
-                                              <%= i+1 %>
-                                            </td>
-                                            <td>
-                                              <label>
-                                                <input type="checkbox" name="selectedUsers[]"
-                                                  value="<%= staff[i].id %>" />
-                                                <span></span>
-                                              </label>
-                                            </td>
-                                            <td width="100px"><img
-                                                src="<%= process.env.IMAGE_URL%><%= staff[i].qrCode %>"
-                                                style="width: 60%;" /></td>
-                                            <td>
-                                              <%= staff[i].branch?.buildingName %>
-                                            </td>
-                                            <td>
-                                              <%= staff[i].branch?.name %>
-                                            </td>
-                                            <td>
-                                              <%= staff[i].name %>
-                                            </td>
-                                            <td>
-                                              <%= staff[i].email %>
-                                            </td>
-                                            <td>
-                                              <%= staff[i].mobileNumber %>
-                                            </td>
-                                            <td>
-                                              <%= staff[i].occupation %>
-                                            </td>
-                                          </tr>
-                                          <% } %>
-                                      </tbody>
-                                    </table>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div id="modal" class="modal">
-                        <div class="modal-content">
-                          <h5>Send Notification</h5>
-                          <form id="form" class="image-form" method="POST" action="/admin/user/notify"
-                            enctype="multipart/form-data">
-                            <div class="input-field col s12">
-                              <input placeholder="Title" id="title" name="title" type="text">
-                              <label for="title">Title</label>
-                              <small>
-                                <div id="error1" class="error"></div>
-                              </small>
-                            </div>
-                            <div class="input-field col s12 mt-0 mb-0">
-                              <input placeholder="Body" id="body" name="body" type="text">
-                              <label for="body">Body</label>
-                              <small>
-                                <div id="error2" class="error"></div>
-                              </small>
-                            </div>
-
-                            <input type="hidden" name="selectedUserIds" id="selectedUserIds" />
-                            <button type="submit" class="btn purple mr-40" id="submitBtn">Send</button>
-                          </form>
-                        </div>
-                      </div>
-                    </div>
-
                   </div>
                 </div>
-                <!-- users view card details ends -->
+
+                <div class="row">
+                  <div class="col s12">
+                    <h5>Branches Information</h5>
+                  </div>
+                  <div class="col s12" style="padding: 0%;">
+                    <div class="section section-data-tables">
+                      <div class="col s12">
+                        <div class="card">
+                          <div class="card-content">
+                            <div class="row">
+                              <div class="col s12 overflow">
+                                <table id="branches-table" class="display">
+                                  <thead>
+                                    <tr>
+                                      <th>Sr</th>
+                                      <th>Branch Name</th>
+                                      <th>
+                                        Email
+                                      </th>
+                                      <th>Phone</th>
+
+                                      <th>Building Name</th>
+                                      <th>Building No.</th>
+                                      <th>Road Name</th>
+                                      <th>City</th>
+                                      <th>State</th>
+                                      <th>Country</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    <% for( let i=0; i < branch.length; i++ ) { %>
+                                      <tr>
+                                        <td>
+                                          <%= i+1 %>
+                                        </td>
+                                        <td>
+                                          <%= branch[i].name %>
+                                        </td>
+                                        <td>
+                                          <%= branch[i].email %>
+                                        </td>
+                                        <td>
+                                          <%= branch[i].phone %>
+                                        </td>
+                                        <td>
+                                          <%= branch[i].buildingName %>
+                                        </td>
+                                        <td>
+                                          <%= branch[i].buildingNo %>
+                                        </td>
+                                        <td>
+                                          <%= branch[i].roadName %>
+                                        </td>
+                                        <td>
+                                          <%= branch[i].city %>
+                                        </td>
+                                        <td>
+                                          <%= branch[i].state %>
+                                        </td>
+                                        <td>
+                                          <%= branch[i].country %>
+                                        </td>
+                                      </tr>
+                                      <% } %>
+                                  </tbody>
+                                </table>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="col s12">
+                    <h5>Staff Members Information</h5>
+                  </div>
+                  <div class="col s12" style="padding: 0%;">
+                    <div class="section section-data-tables">
+                      <div class="col s12">
+                        <div class="card">
+                          <div class="card-content">
+                            <div class="row">
+                              <div class="col s12 overflow">
+                                <table id="staff-table" class="display">
+                                  <thead>
+                                    <tr>
+                                      <th>Sr</th>
+                                      <th style="width: 60px; text-align: center;">
+                                        <label
+                                          style="margin: 0; display: flex; align-items: center; justify-content: center;">
+                                          <input type="checkbox" id="selectAll" />
+                                          <span style="margin-left: 4px;">All</span>
+                                        </label>
+                                      </th>
+                                      <th>QR Code</th>
+                                      <th>Building Name</th>
+                                      <th>Branch Name</th>
+                                      <th>Staff Name</th>
+                                      <th>Email</th>
+                                      <th>Mobile Number</th>
+                                      <th>Occupation</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    <% for(let i=0; i < staff.length; i++ ) { %>
+                                      <tr>
+                                        <td>
+                                          <%= i+1 %>
+                                        </td>
+                                        <td>
+                                          <label>
+                                            <input type="checkbox" name="selectedUsers[]" value="<%= staff[i].id %>" />
+                                            <span></span>
+                                          </label>
+                                        </td>
+                                        <td width="100px"><img src="<%= process.env.IMAGE_URL%><%= staff[i].qrCode %>"
+                                            style="width: 60%;" /></td>
+                                        <td>
+                                          <%= staff[i].branch?.buildingName %>
+                                        </td>
+                                        <td>
+                                          <%= staff[i].branch?.name %>
+                                        </td>
+                                        <td>
+                                          <%= staff[i].name %>
+                                        </td>
+                                        <td>
+                                          <%= staff[i].email %>
+                                        </td>
+                                        <td>
+                                          <%= staff[i].mobileNumber %>
+                                        </td>
+                                        <td>
+                                          <%= staff[i].occupation %>
+                                        </td>
+                                      </tr>
+                                      <% } %>
+                                  </tbody>
+                                </table>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div id="modal" class="modal">
+                    <div class="modal-content">
+                      <h5>Send Notification</h5>
+                      <form id="form" class="image-form" method="POST" action="/admin/user/notify"
+                        enctype="multipart/form-data">
+                        <div class="input-field col s12">
+                          <input placeholder="Title" id="title" name="title" type="text">
+                          <label for="title">Title</label>
+                          <small>
+                            <div id="error1" class="error"></div>
+                          </small>
+                        </div>
+                        <div class="input-field col s12 mt-0 mb-0">
+                          <input placeholder="Body" id="body" name="body" type="text">
+                          <label for="body">Body</label>
+                          <small>
+                            <div id="error2" class="error"></div>
+                          </small>
+                        </div>
+
+                        <input type="hidden" name="selectedUserIds" id="selectedUserIds" />
+                        <button type="submit" class="btn purple mr-40" id="submitBtn">Send</button>
+                      </form>
+                    </div>
+                  </div>
+                </div>
 
               </div>
-              <!-- users view ends -->
             </div>
-            <div class="content-overlay"></div>
           </div>
       </div>
     </div>
-    <!-- END: Page Main-->
 
     <%- include('_layouts/commonJs') %>
       <script src="/app-assets/vendors/data-tables/js/jquery.dataTables.min.js"></script>
       <script src="/app-assets/js/scripts/data-tables.js"></script>
       <script src="https://cdnjs.cloudflare.com/ajax/libs/Dropify/0.2.2/js/dropify.min.js"></script>
       <script src="/app-assets/js/scripts/form-file-uploads.min.js"></script>
-
       <script>
-        // Modal
+
         $(document).ready(function () {
           $('.modal').modal();
+          $('#branches-table, #staff-table').DataTable({
+            responsive: true
+          });
         });
 
-        // Validation
-        // const form = document.getElementById('form');
-        // form.addEventListener('submit', (e) => {
-        //   e.preventDefault();
-        // });
-
-        // Validate Image upload
-        const forms = document.querySelectorAll(".image-form");
-        forms.forEach((elem) => {
-          elem.addEventListener('submit', (e) => {
-            e.preventDefault();
-            validate(e.target);
-          })
-        });
-
-        // Validation
-        function validate(formElement) {
-          let returnVal = true;
-
-          const titleValue = formElement.querySelector('#title').value.trim();
-          const bodyValue = formElement.querySelector('#body').value.trim();
-          const selectedUserIds = formElement.querySelector('#selectedUserIds').value.trim();
-          console.log("Selected Users:", selectedUserIds);
-
-          if (titleValue === '') {
-            document.getElementById('error1').innerText = 'Please enter notification title.';
-            returnVal = false;
+        function toggleApprovalWithCommission(vendorId, isApproved) {
+          if (isApproved) {
+            const commission = document.getElementById('commissionInput').value.trim();
+            if (!commission || commission < 0 || commission > 50) {
+              alert('Commission must be between 0% and 50%');
+              setTimeout(() => location.reload(), 100);
+              return;
+            }
+            if (confirm(`Approve vendor with ${commission}% commission?`)) {
+              window.location.href = `/admin/vendor/approved/${vendorId}?commission=${commission}`;
+            } else {
+              setTimeout(() => location.reload(), 100);
+            }
           } else {
-            document.getElementById('error1').innerText = '';
-          }
-
-          if (selectedUserIds === '') {
-            document.getElementById('error2').innerText = 'Please select some users.';
-            returnVal = false;
-          } else if (bodyValue === '') {
-            document.getElementById('error2').innerText = 'Please enter notification body.';
-            returnVal = false;
-          } else {
-            document.getElementById('error2').innerText = '';
-          }
-
-          if (returnVal) {
-            formElement.querySelector('#submitBtn').disabled = true;
-            formElement.submit();
+            if (confirm('Block / Disapprove this vendor?')) {
+              window.location.href = `/admin/vendor/disapproved/${vendorId}`;
+            } else {
+              setTimeout(() => location.reload(), 100);
+            }
           }
         }
 
-
-        document.addEventListener('DOMContentLoaded', function () {
-          const selectAllCheckbox = document.getElementById('selectAll');
-          const userCheckboxes = document.querySelectorAll('[name="selectedUsers[]"]');
-          const selectedUserIdsInput = document.getElementById('selectedUserIds');
-
-          selectAllCheckbox.addEventListener('change', function () {
-            userCheckboxes.forEach(function (checkbox) {
-              checkbox.checked = selectAllCheckbox.checked;
-            });
-
-            updateSelectedUserIds();
-          });
-
-          userCheckboxes.forEach(function (checkbox) {
-            checkbox.addEventListener('change', function () {
-              updateSelectedUserIds();
-            });
-          });
-
-          function updateSelectedUserIds() {
-            const selectedUserIds = Array.from(userCheckboxes)
-              .filter(function (checkbox) {
-                return checkbox.checked;
-              })
-              .map(function (checkbox) {
-                return checkbox.value;
-              });
-
-            selectedUserIdsInput.value = selectedUserIds.join(',');
+        function updateCommissionNow(vendorId) {
+          const value = document.getElementById('commissionInput').value.trim();
+          if (!value || value < 0 || value > 50) {
+            alert('Please enter valid commission (0-50%)');
+            return;
           }
-        });
-      </script>
-      <script>
-        function toggleApproval(vendorId, isApproved) {
-          const action = isApproved ? 'approve' : 'disapprove';
-          const confirmation = confirm(`Are you sure you want to ${action} this vendor?`);
-
-          if (confirmation) {
-            const url = `/admin/vendor/${isApproved ? 'approved' : 'disapproved'}/${vendorId}`;
-            window.location.href = url;
-          } else {
-            // Prevent toggle change on cancel
-            setTimeout(() => {
-              location.reload(); // Revert UI if cancelled
-            }, 100);
+          if (confirm(`Change commission to ${value}%?`)) {
+            window.location.href = `/admin/vendor/commission/${vendorId}?value=${value}`;
           }
         }
       </script>
 </body>
-<script>
-  $(document).ready(function() {
-    $('#branches-table').DataTable();
-    $('#staff-table').DataTable();
-  });
-</script>
-
 
 </html>

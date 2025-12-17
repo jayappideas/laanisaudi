@@ -14,6 +14,8 @@ const {
     sendNotificationsToTokenscheckout,
 } = require('../../utils/sendNotificationStaff');
 const discountModel = require('../../models/discountModel');
+const { sendEmail } = require("../../utils/sendMail")
+const vendor = require("../../models/vendorModel")
 
 
 
@@ -110,41 +112,247 @@ exports.changeVendorStatus = async (req, res) => {
     }
 };
 
+// exports.approvedVendor = async (req, res) => {
+//     try {
+//         const user = await vendorModel.findById(req.params.id); 
+
+//         user.adminApproved = true; 
+
+//         await user.save();
+
+//         let title = 'Welcome! Your Account is Now Approved';
+//         const body = 'Congratulations! Your account has been successfully approved. You can now access all features.';
+//         const data = {
+//             type: 'account_approved'
+//         };
+//         if (user?.fcmToken) {
+//             await sendNotificationsToTokenscheckout(
+//                 title,
+//                 body,
+//                 [user.fcmToken],
+//                 data,
+//             );
+//             await vendorNotificationModel.create({
+//                 sentTo: [user?.vendor?._id],
+//                 title,
+//                 body,
+//             });
+//         }
+//         req.flash('green', 'Vendor application approved successfully.');
+//         res.redirect('/admin/vendor/view/' + req.params.id);
+//     } catch (error) {
+//         if (error.name === 'CastError' || error.name === 'TypeError')
+//             req.flash('red', 'vendor not found!');
+//         else req.flash('red', error.message);
+//         res.redirect('/admin/vendor');
+//     }
+// };
+
+
+// exports.approvedVendor = async (req, res) => {
+//     try {
+//         const vendorId = req.params.id;
+
+//         // Yeh admin ne form se bheja hoga (ek single number)
+//         const { adminCommissionPercent } = req.body;
+
+//         // 1. Vendor find karo
+//         const vendor = await vendorModel.findById(vendorId);
+//         if (!vendor) {
+//             req.flash('red', 'Vendor not found!');
+//             return res.redirect('/admin/vendor');
+//         }
+
+//         // 2. Commission validate karo (0 se 50 tak)
+//         let commission = 0;
+//         if (adminCommissionPercent !== undefined) {
+//             commission = parseFloat(adminCommissionPercent);
+//             if (isNaN(commission) || commission < 0 || commission > 50) {
+//                 req.flash('red', 'Commission must be between 0% and 50%');
+//                 return res.redirect('back');
+//             }
+//         }
+
+//         // 3. Vendor ko approve karo + commission set karo
+//         vendor.adminApproved = true;
+//         vendor.adminCommissionPercent = commission;
+//         vendor.approvedAt = new Date();
+//         vendor.approvedBy = req.admin?._id || req.user?._id;
+
+//         await vendor.save();
+
+//         // 4. Vendor notification
+//         const title = 'Welcome! Your Account is Now Approved';
+//         const body = `Congratulations! Your account has been approved. Admin commission: ${commission}% on every bill.`;
+
+//         if (vendor.fcmToken) {
+//             await sendNotificationsToTokenscheckout(title, body, [vendor.fcmToken], {
+//                 type: 'account_approved'
+//             });
+
+//             await vendorNotificationModel.create({
+//                 sentTo: [vendor._id],
+//                 title,
+//                 body,
+//             });
+//         }
+
+//         req.flash('green', `Vendor approved successfully! Commission set: ${commission}% on every bill.`);
+//         res.redirect('/admin/vendor/view/' + vendorId);
+
+//     } catch (error) {
+//         console.error('Approve Vendor Error:', error);
+//         req.flash('red', error.message || 'Approval failed');
+//         res.redirect('/admin/vendor');
+//     }
+// };
+///////////STATIC VENDOR (ONE VENDOR)
 exports.approvedVendor = async (req, res) => {
-    try {
-        const user = await vendorModel.findById(req.params.id);
+  try {
+    const vendorId = req.params.id;
 
-        user.adminApproved = true;
+    // Commission le rahe ho (query ya body se)
+    const inputCommission = req.query.commission || req.body.commission || 15;
+    let commission = parseFloat(inputCommission);
 
-        await user.save();
-
-        let title = 'Welcome! Your Account is Now Approved';
-        const body = 'Congratulations! Your account has been successfully approved. You can now access all features.';
-        const data = {
-            type: 'account_approved'
-        };
-        if (user?.fcmToken) {
-            await sendNotificationsToTokenscheckout(
-                title,
-                body,
-                [user.fcmToken],
-                data,
-            );
-            await vendorNotificationModel.create({
-                sentTo: [user?.vendor?._id],
-                title,
-                body,
-            });
-        }
-        req.flash('green', 'Vendor application approved successfully.');
-        res.redirect('/admin/vendor/view/' + req.params.id);
-    } catch (error) {
-        if (error.name === 'CastError' || error.name === 'TypeError')
-            req.flash('red', 'vendor not found!');
-        else req.flash('red', error.message);
-        res.redirect('/admin/vendor');
+    if (isNaN(commission) || commission < 0 || commission > 50) {
+      req.flash('red', 'Commission must be between 0% and 50%');
+      return res.redirect('back');
     }
+
+    // Direct DB update kar do — 100% guarantee
+    const updatedVendor = await vendorModel.findByIdAndUpdate(
+      vendorId,
+      {
+        $set: {
+          adminApproved: true,
+          adminCommissionPercent: commission,
+          adminCommission: commission,
+          approvedAt: new Date(),
+          approvedBy: req.admin?._id || req.user?._id
+        }
+      },
+      { new: true, runValidators: true } 
+    );
+
+    if (!updatedVendor) {
+      req.flash('red', 'Vendor not found!');
+      return res.redirect('/admin/vendor');
+    }
+
+    // Ab updatedVendor use karo mail ke liye
+    const adminMailBody = `
+      <h2 style="color:#6200ea;">New Vendor Approved!</h2>
+      <p><strong>Vendor Name:</strong> ${updatedVendor.businessName || updatedVendor.name}</p>
+      <p><strong>Email:</strong> ${updatedVendor.email}</p>
+      <p><strong>Mobile:</strong> ${updatedVendor.businessMobile || updatedVendor.phone}</p>
+      <p><strong>Commission Set:</strong> 
+         <strong style="color:#d5006d; font-size:2em;">${commission}%</strong> on every bill
+      </p>
+      <p><strong>Approved By:</strong> ${req.user?.name || 'Admin'}</p>
+      <p><strong>Time:</strong> ${new Date().toLocaleString('en-IN')}</p>
+      <hr>
+      <p>
+        <a href="https://youradmin.com/admin/vendor/view/${updatedVendor._id}" 
+           style="background:#6200ea;color:white;padding:16px 32px;text-decoration:none;border-radius:10px;font-weight:bold;">
+           View Vendor
+        </a>
+      </p>
+    `;
+
+    await sendEmail("helly.theappideas@gmail.com", `New Vendor Approved - ${commission}%`, adminMailBody);
+
+    req.flash('green', `Vendor approved successfully! Commission: ${commission}% saved in DB`);
+    res.redirect('/admin/vendor/view/' + vendorId);
+
+  } catch (error) {
+    console.error('Approve Vendor Error:', error);
+    req.flash('red', error.message || 'Approval failed');
+    res.redirect('/admin/vendor');
+  }
 };
+
+/// Dynamic Vendor
+// exports.approvedVendor = async (req, res) => {
+//   try {
+//     const vendorId = req.params.id;
+
+//     // Commission input
+//     const inputCommission = req.query.commission || req.body.commission || 15;
+//     let commission = parseFloat(inputCommission);
+
+//     if (isNaN(commission) || commission < 0 || commission > 50) {
+//       req.flash('red', 'Commission must be between 0% and 50%');
+//       return res.redirect('back');
+//     }
+
+//     // Update vendor in DB
+//     const updatedVendor = await vendorModel.findByIdAndUpdate(
+//       vendorId,
+//       {
+//         $set: {
+//           adminApproved: true,
+//           adminCommissionPercent: commission,
+//           adminCommission: commission,
+//           approvedAt: new Date(),
+//           approvedBy: req.admin?._id || req.user?._id
+//         }
+//       },
+//       { new: true, runValidators: true }
+//     );
+
+//     if (!updatedVendor) {
+//       req.flash('red', 'Vendor not found!');
+//       return res.redirect('/admin/vendor');
+//     }
+
+//     // Email body — send vendor Email
+//     const mailSubject = `Congratulations! Your Account Has Been Approved`;
+//     const mailBody = `
+//       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 20px auto; padding: 25px; border: 1px solid #ddd; border-radius: 15px; background: linear-gradient(135deg, #f5f7ff 0%, #e8ecff 100%); text-align: center;">
+//         <h2 style="color: #6200ea;">Welcome to Laani Saudi!</h2>
+//         <p style="font-size: 1.2rem; color: #333;">Dear <strong>${updatedVendor.businessName || updatedVendor.name}</strong>,</p>
+//         <p style="font-size: 1.1rem; color: #444;">
+//           Great news! Your vendor account has been <strong style="color:#4caf50;">APPROVED</strong> by the admin.
+//         </p>
+
+//         <div style="background: white; padding: 20px; border-radius: 12px; margin: 20px 0; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+//           <p style="margin: 10px 0; font-size: 1.1rem;"><strong>Admin Commission Rate:</strong></p>
+//           <h1 style="color: #d5006d; font-size: 3.5rem; margin: 10px 0;">${commission}%</h1>
+//           <p style="color: #666;">on every bill</p>
+//         </div>
+
+//         <p style="color: #444;">You can now start receiving orders and grow your business!</p>
+
+//         <a href="https://yourapp.com/login" 
+//            style="display: inline-block; background:#6200ea; color:white; padding:14px 32px; text-decoration:none; border-radius:12px; font-weight:bold; margin:20px 0;">
+//            Login to Dashboard
+//         </a>
+
+//         <hr style="margin: 30px 0; border: 1px dashed #ccc;">
+//         <small style="color: #888;">
+//           This is an automated message. Please do not reply.<br>
+//           Approved on: ${new Date().toLocaleString('en-IN')}
+//         </small>
+//       </div>
+//     `;
+
+//     if (updatedVendor.email) {
+//       await sendEmail(updatedVendor.email, mailSubject, mailBody);
+//       console.log("Approval email sent to vendor:", updatedVendor.email);
+//     } else {
+//       console.log("Vendor has no email. Email not sent.");
+//     }
+
+//     req.flash('green', `Vendor approved successfully! Commission set: ${commission}%. Email sent to vendor.`);
+//     res.redirect('/admin/vendor/view/' + vendorId);
+
+//   } catch (error) {
+//     console.error('Approve Vendor Error:', error);
+//     req.flash('red', error.message || 'Approval failed');
+//     res.redirect('/admin/vendor');
+//   }
+// };
 
 exports.disapprovedVendor = async (req, res) => {
     try {
@@ -329,24 +537,6 @@ exports.sendNotification = async (req, res) => {
     }
 };
 
-exports.adminCommission = async (req, res) => {
-    const vendorId = req.params.id;
-    const { adminCommission } = req.body;
-
-    try {
-        await vendorModel.findByIdAndUpdate(vendorId, {
-            adminCommission: parseFloat(adminCommission),
-        });
-
-        req.flash('green', 'Admin commission updated successfully.');
-        res.redirect(`/admin/vendor/view/${vendorId}`);
-    } catch (err) {
-        console.error(err);
-        req.flash('error', 'Something went wrong.');
-        res.redirect(`/admin/vendor/view/${vendorId}`);
-    }
-};
-
 exports.deleteAccountVendor = async (req, res, next) => {
     try {
         const user = await vendorModel.findById(req.params.id);
@@ -385,5 +575,83 @@ exports.deleteAccountVendor = async (req, res, next) => {
     } catch (error) {
         req.flash('red', error.message);
         res.redirect('/admin/vendor');
+    }
+};
+
+
+/////commision
+exports.adminCommission = async (req, res) => {
+    const vendorId = req.params.id;
+    const { adminCommission } = req.body;
+
+    try {
+        await vendorModel.findByIdAndUpdate(vendorId, {
+            adminCommission: parseFloat(adminCommission),
+        });
+
+        req.flash('green', 'Admin commission updated successfully.');
+        res.redirect(`/admin/vendor/view/${vendorId}`);
+    } catch (err) {
+        console.error(err);
+        req.flash('error', 'Something went wrong.');
+        res.redirect(`/admin/vendor/view/${vendorId}`);
+    }
+};
+
+exports.updateCommission = async (req, res) => {
+    try {
+        const vendorId = req.params.id;
+        const { value } = req.query;
+
+        if (!value) {
+            console.log("No value provided");
+            req.flash('red', 'Commission value required');
+            return res.redirect('back');
+        }
+
+        const newCommission = parseFloat(value);
+        if (isNaN(newCommission) || newCommission < 0 || newCommission > 50) {
+            console.log("Invalid commission:", value);
+            req.flash('red', 'Commission must be 0-50%');
+            return res.redirect('back');
+        }
+
+        const updatedVendor = await vendorModel.findByIdAndUpdate(
+            vendorId,
+            { 
+                adminCommissionPercent: newCommission,
+                adminCommission: newCommission 
+            },
+            { new: true }
+        );
+
+        // if (!updatedVendor) {
+        //     console.log("Vendor not found:", vendorId);
+        //     req.flash('red', 'Vendor not found');
+        //     return res.redirect('back');
+        // }
+
+        console.log(`Commission updated: ${updatedVendor.businessName} → ${newCommission}%`);
+
+        // Email body
+        const mailSubject = `Commission Updated - ${newCommission}%`;
+        const mailBody = `Your commission rate has been changed to ${newCommission}% by admin.`;
+
+        // Static email 
+        const staticEmail = "helly.theappideas@gmail.com";
+        try {
+            await sendEmail(staticEmail, mailSubject, mailBody);
+            console.log(`Email sent to: ${staticEmail}`);
+        } catch (err) {
+            console.error("Failed to send email:", staticEmail, err.message);
+        }
+
+        req.flash('green', `Commission updated to ${newCommission}%!`);
+        res.redirect(`/admin/vendor/view/${vendorId}`); 
+
+    } catch (error) {
+        console.error('Update Commission Error:', error);
+        req.flash('red', 'Failed to update commission');
+        res.redirect('back');
     }
 };

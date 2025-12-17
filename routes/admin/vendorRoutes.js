@@ -39,11 +39,15 @@ router
         vendorController.editVendor
     );
 router.post('/notify', fileUpload(), vendorController.sendNotification);
-router.post(
-    '/update-commission/:id',
-    fileUpload(),
-    vendorController.adminCommission
-);
+// router.post(
+//     '/update-commission/:id',
+//     fileUpload(),
+//     vendorController.adminCommission
+// );
 
+router.get(
+    '/commission/:id',
+    vendorController.updateCommission
+)
 
 module.exports = router;
