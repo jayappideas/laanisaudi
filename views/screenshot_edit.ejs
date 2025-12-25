@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html class="loading" lang="en" data-textdirection="ltr">
+
+<head>
+  <%- include('_layouts/head') %>
+  <title>Edit Website Section | <%= title %></title>
+  <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/Dropify/0.2.2/css/dropify.min.css">
+
+  <!-- CKEditor CDN -->
+  <script src="https://cdn.ckeditor.com/4.20.1/standard/ckeditor.js"></script>
+
+  <style>
+    .section-card {
+      border-left: 4px solid #667eea;
+      background: #f8f9fc;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 25px;
+    }
+
+    .section-title {
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: #667eea;
+      margin-bottom: 15px;
+    }
+
+    .dropify-wrapper {
+      height: 200px;
+    }
+
+    .language-tab {
+      border-bottom: 3px solid #667eea;
+      padding-bottom: 10px;
+      margin-bottom: 20px;
+    }
+
+    .screenshot-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 15px;
+      margin-top: 15px;
+    }
+
+    .screenshot-item {
+      position: relative;
+      border: 2px solid #e0e0e0;
+      border-radius: 12px;
+      overflow: hidden;
+      background: white;
+      padding: 8px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+    }
+
+    .screenshot-item img {
+      width: 100%;
+      height: auto;
+      max-height: 420px;
+      object-fit: contain;
+      border-radius: 8px;
+      background: #fafafa;
+    }
+
+
+    .screenshot-item:hover {
+      border-color: #667eea;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+
+    .screenshot-item .delete-btn {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      background: rgba(244, 67, 54, 0.9);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s;
+    }
+
+    .screenshot-item .delete-btn:hover {
+      background: rgba(244, 67, 54, 1);
+      transform: scale(1.1);
+    }
+
+    .screenshot-item .sort-badge {
+      position: absolute;
+      bottom: 5px;
+      left: 5px;
+      background: rgba(102, 126, 234, 0.9);
+      color: white;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .ckeditor-wrapper {
+      margin-bottom: 20px;
+    }
+
+    /* 🔥 NEW FIXED FEATURE CSS */
+    .features-wrapper {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 18px;
+    }
+
+    .features-box {
+      border: 1px solid #e0e0e0;
+      padding: 15px;
+      border-radius: 8px;
+      background: #ffffff;
+    }
+
+    .features-box h6 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #667eea;
+      margin-bottom: 12px;
+    }
+
+    .features-box input {
+      height: 40px !important;
+      border-radius: 6px !important;
+    }
+
+    .features-box label {
+      font-weight: 500;
+    }
+  </style>
+</head>
+
+<body class="vertical-layout page-header-light vertical-menu-collapsible vertical-dark-menu preload-transitions 2-columns">
+
+  <%- include('_layouts/sidenavbar') %>
+
+  <div id="main">
+    <div class="row">
+      <div class="pt-1 pb-0" id="breadcrumbs-wrapper">
+        <div class="container">
+          <div class="row">
+            <%- include('messages', { messages: messages }) %>
+            <div class="col s12 m6 l6">
+              <h6 class="breadcrumbs-title"><span>Edit Website Section</span></h6>
+            </div>
+            <div class="col s12 m6 l6 right-align-md" style="margin-top: -10px;">
+              <ol class="breadcrumbs mb-0">
+                <li class="breadcrumb-item"><a href="/admin">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="/admin/screenshot">Website Section</a></li>
+                <li class="breadcrumb-item active">Edit Website Section</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container pl-2 pr-2">
+      <div class="card">
+        <div class="row">
+          <div class="col s12">
+            <div id="basic-form" class="card-default scrollspy">
+              <div class="card-content">
+                <form method="POST" action="/admin/screenshot/edit" class="formValidate0" id="formValidate0" enctype="multipart/form-data">
+
+                  <!-- 🔹 Main Page Section -->
+                  <div class="section-card">
+                    <div class="section-title"><i class="material-icons left">home</i>Main Page Content</div>
+
+                    <!-- EN -->
+                    <div class="language-tab">
+                      <h6 class="purple-text">English</h6>
+                    </div>
+                    <div class="row">
+                      <div class="input-field col s12">
+                        <label for="mainTitleEn" class="active">Main Page Title (English)</label>
+                        <input class="validate" id="mainTitleEn" name="mainTitleEn" type="text" value="<%= screenshot.mainPage.en.title %>" required>
+                        <div class="error-message" id="mainTitleEnError"></div>
+                      </div>
+                      <div class="col s12 ckeditor-wrapper">
+                        <label>Main Page Description (English)</label>
+                        <textarea name="mainDescriptionEn" id="mainDescriptionEn"><%= screenshot.mainPage.en.description %></textarea>
+                        <div class="error-message" id="mainDescriptionEnError"></div>
+                      </div>
+                    </div>
+
+                    <!-- AR -->
+                    <div class="language-tab">
+                      <h6 class="purple-text">Arabic</h6>
+                    </div>
+                    <div class="row">
+                      <div class="input-field col s12">
+                        <label for="mainTitleAr" class="active">Main Page Title (Arabic)</label>
+                        <input class="validate" id="mainTitleAr" name="mainTitleAr" type="text" value="<%= screenshot.mainPage.ar.title %>" required>
+                        <div class="error-message" id="mainTitleArError"></div>
+                      </div>
+                      <div class="col s12 ckeditor-wrapper">
+                        <label>Main Page Description (Arabic)</label>
+                        <textarea name="mainDescriptionAr" id="mainDescriptionAr"><%= screenshot.mainPage.ar.description %></textarea>
+                        <div class="error-message" id="mainDescriptionArError"></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- ⭐ Features Page Section -->
+                  <div class="section-card">
+                    <div class="section-title"><i class="material-icons left">star</i>Features Page Content</div>
+
+                    <!-- EN -->
+                    <div class="language-tab">
+                      <h6 class="purple-text">English</h6>
+                    </div>
+                    <div class="features-wrapper">
+                      <% for (let i = 0; i < 6; i++) { %>
+                      <div class="features-box">
+                        <h6>Feature <%= i+1 %></h6>
+                        <div class="input-field">
+                          <label for="featuresEnTitle<%= i %>" class="active">Title (English)</label>
+                          <input id="featuresEnTitle<%= i %>" name="featuresEnTitle[]" type="text" value="<%= screenshot.featuresPage?.en?.features?.[i]?.title || '' %>">
+                        </div>
+                        <div class="input-field">
+                          <label for="featuresEnDescription<%= i %>" class="active">Description (English)</label>
+                          <input id="featuresEnDescription<%= i %>" name="featuresEnDescription[]" type="text" value="<%= screenshot.featuresPage?.en?.features?.[i]?.description || '' %>">
+                        </div>
+                      </div>
+                      <% } %>
+                    </div>
+
+                    <!-- AR -->
+                    <div class="language-tab">
+                      <h6 class="purple-text">Arabic</h6>
+                    </div>
+                    <div class="features-wrapper">
+                      <% for (let i = 0; i < 6; i++) { %>
+                      <div class="features-box">
+                        <h6>Feature <%= i+1 %></h6>
+                        <div class="input-field">
+                          <label for="featuresArTitle<%= i %>" class="active">Title (Arabic)</label>
+                          <input id="featuresArTitle<%= i %>" name="featuresArTitle[]" type="text" value="<%= screenshot.featuresPage?.ar?.features?.[i]?.title || '' %>">
+                        </div>
+                        <div class="input-field">
+                          <label for="featuresArDescription<%= i %>" class="active">Description (Arabic)</label>
+                          <input id="featuresArDescription<%= i %>" name="featuresArDescription[]" type="text" value="<%= screenshot.featuresPage?.ar?.features?.[i]?.description || '' %>">
+                        </div>
+                      </div>
+                      <% } %>
+                    </div>
+                  </div>
+
+                  <!-- 📸 Current Screenshots -->
+                  <% if (screenshot.screenshots && screenshot.screenshots.length > 0) { %>
+                  <div class="section-card">
+                    <div class="section-title"><i class="material-icons left">photo_library</i>Current Screenshots</div>
+                   <div class="screenshot-grid" id="sortableScreens">
+                     <% screenshot.screenshots.sort((a,b)=>a.sort-b.sort).forEach((img, index) => { %>
+                     <div class="screenshot-item" data-id="<%= img._id %>">
+                       <img src="<%= process.env.IMAGE_URL %><%= img.image %>" alt="Screenshot <%= index + 1 %>">
+                       <button type="button" class="delete-btn" onclick="deleteImage('<%= img._id %>')">
+                         <i class="material-icons">close</i>
+                       </button>
+                       <span class="sort-badge">#<%= img.sort %></span>
+                     </div>
+                     <% }) %>
+                   </div>
+
+                    <p class="grey-text mt-3">
+                      <i class="material-icons tiny">info</i> To change screenshots, upload new images below.
+                    </p>
+                  </div>
+                  <% } %>
+
+                  <!-- 📥 Upload New -->
+                  <div class="section-card">
+                    <div class="section-title">
+                      <i class="material-icons left">collections</i>
+                      Replace Screenshots (Optional)
+                    </div>
+                    <div id="file-upload" class="section">
+                      <div class="row section">
+                        <div class="input-field col s12">
+                          <p class="mb-3">Upload new screenshot images to replace existing ones</p>
+                          <input type="file" id="input-file-events" name="images" accept=".jpeg, .jpg, .png" multiple />
+                          <span class="error-message" id="imageError"></span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="row">
+                    <div class="col s12 display-flex justify-content-end">
+                      <button class="btn btn-edit" type="submit">Update</button>
+                      &nbsp;&nbsp;&nbsp;
+                      <a class="btn btn-delete" href="/admin/screenshot">Cancel</a>
+                    </div>
+                  </div>
+
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <%- include('_layouts/commonJs') %>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Dropify/0.2.2/js/dropify.min.js"></script>
+
+  <script>
+    function deleteImage(imageId) {
+      if (confirm('Are you sure you want to delete this image?')) {
+        window.location.href = `/admin/screenshot/delete-image/${imageId}`;
+      }
+    }
+
+    $(document).ready(function() {
+      M.updateTextFields();
+      CKEDITOR.replace('mainDescriptionEn');
+      CKEDITOR.replace('mainDescriptionAr');
+
+      $('#input-file-events').dropify({
+        messages: {
+          'default': 'Drag and drop files here or click',
+          'replace': 'Drag and drop or click to replace',
+          'remove': 'Remove',
+          'error': 'Ooops, something went wrong.'
+        }
+      });
+    });
+  </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+<script>
+  const el = document.getElementById("sortableScreens");
+  Sortable.create(el, {
+    animation: 150,
+    onEnd: async function() {
+      let ids = [...document.querySelectorAll(".screenshot-item")]
+        .map(el => el.getAttribute("data-id"));
+
+      await fetch("/admin/screenshot/reorder", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            id: "<%= screenshot._id %>",
+            orderedIds: ids
+          })
+        }).then(r => r.json())
+        .then(res => {
+          if (res.success) {
+            M.toast({
+              html: "Order updated!",
+              classes: "green"
+            });
+          } else {
+            M.toast({
+              html: "Error updating!",
+              classes: "red"
+            });
+          }
+        });
+    }
+  });
+</script>
+
+</body>
+
+</html>

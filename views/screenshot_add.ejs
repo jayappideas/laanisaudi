@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html class="loading" lang="en" data-textdirection="ltr">
+
+<head>
+  <%- include('_layouts/head') %>
+  <title>Add Screenshot Section | <%= title %></title>
+  <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/Dropify/0.2.2/css/dropify.min.css">
+
+  <!-- CKEditor CDN -->
+  <script src="https://cdn.ckeditor.com/4.20.1/standard/ckeditor.js"></script>
+
+  <style>
+    .section-card {
+      border-left: 4px solid #667eea;
+      background: #f8f9fc;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 25px;
+    }
+
+    .section-title {
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: #667eea;
+      margin-bottom: 15px;
+    }
+
+    .dropify-wrapper {
+      height: 200px;
+    }
+
+    .language-tab {
+      border-bottom: 3px solid #667eea;
+      padding-bottom: 10px;
+      margin-bottom: 20px;
+    }
+
+    .ckeditor-wrapper {
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+
+<body class="vertical-layout page-header-light vertical-menu-collapsible vertical-dark-menu preload-transitions 2-columns">
+
+  <%- include('_layouts/sidenavbar') %>
+
+  <div id="main">
+    <div class="row">
+      <div class="pt-1 pb-0" id="breadcrumbs-wrapper">
+        <div class="container">
+          <div class="row">
+            <%- include('messages', { messages: messages }) %>
+            <div class="col s12 m6 l6">
+              <h6 class="breadcrumbs-title"><span>Add Screenshot Section</span></h6>
+            </div>
+            <div class="col s12 m6 l6 right-align-md" style="margin-top: -10px;">
+              <ol class="breadcrumbs mb-0">
+                <li class="breadcrumb-item"><a href="/admin">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="/admin/screenshot">Screenshot Section</a></li>
+                <li class="breadcrumb-item active">Add Screenshot Section</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container pl-2 pr-2">
+      <div class="card">
+        <div class="row">
+          <div class="col s12">
+            <div id="basic-form" class="card-default scrollspy">
+              <div class="card-content">
+                <form method="POST" action="/admin/screenshot/create-screenshot" class="formValidate0" id="formValidate0" enctype="multipart/form-data">
+
+                  <!-- Main Page Section -->
+                  <div class="section-card">
+                    <div class="section-title">
+                      <i class="material-icons left">home</i>
+                      Main Page Content
+                    </div>
+
+                    <!-- English Content -->
+                    <div class="language-tab">
+                      <h6 class="purple-text">English</h6>
+                    </div>
+                    <div class="row">
+                      <div class="input-field col s12">
+                        <label for="mainTitleEn">Main Page Title (English)</label>
+                        <input class="validate" id="mainTitleEn" name="mainTitleEn" type="text" required>
+                        <div class="error-message" id="mainTitleEnError"></div>
+                      </div>
+
+                      <div class="col s12 ckeditor-wrapper">
+                        <label>Main Page Description (English)</label>
+                        <textarea name="mainDescriptionEn" id="mainDescriptionEn"></textarea>
+                        <div class="error-message" id="mainDescriptionEnError"></div>
+                      </div>
+                    </div>
+
+                    <!-- Arabic Content -->
+                    <div class="language-tab">
+                      <h6 class="purple-text">Arabic</h6>
+                    </div>
+                    <div class="row">
+                      <div class="input-field col s12">
+                        <label for="mainTitleAr">Main Page Title (Arabic)</label>
+                        <input class="validate" id="mainTitleAr" name="mainTitleAr" type="text" required>
+                        <div class="error-message" id="mainTitleArError"></div>
+                      </div>
+
+                      <div class="col s12 ckeditor-wrapper">
+                        <label>Main Page Description (Arabic)</label>
+                        <textarea name="mainDescriptionAr" id="mainDescriptionAr"></textarea>
+                        <div class="error-message" id="mainDescriptionArError"></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Features Page Section -->
+                  <div class="section-card">
+                    <div class="section-title">
+                      <i class="material-icons left">star</i>
+                      Features Page Content
+                    </div>
+
+                    <!-- English Content -->
+                    <div class="language-tab">
+                      <h6 class="purple-text">English</h6>
+                    </div>
+                    <div class="row">
+                      <div class="input-field col s12">
+                        <label for="featuresTitleEn">Features Page Title (English)</label>
+                        <input class="validate" id="featuresTitleEn" name="featuresTitleEn" type="text" required>
+                        <div class="error-message" id="featuresTitleEnError"></div>
+                      </div>
+
+                      <div class="col s12 ckeditor-wrapper">
+                        <label>Features Page Description (English)</label>
+                        <textarea name="featureDescriptionEn" id="featureDescriptionEn"></textarea>
+                        <div class="error-message" id="featureDescriptionEnError"></div>
+                      </div>
+
+                      <div class="divider" style="margin:10px 0;"></div>
+                      <h6 class="purple-text">Features Items (English) — up to 6</h6>
+                      <div class="row">
+                        <% for (let i = 0; i < 6; i++) { %>
+                        <div class="input-field col s12 m6">
+                          <label for="featuresEnTitle<%= i %>">Feature <%= i+1 %> Title (English)</label>
+                          <input id="featuresEnTitle<%= i %>" name="featuresEnTitle[]" type="text">
+                        </div>
+                        <div class="col s12 m6">
+                          <label for="featuresEnDescription<%= i %>">Feature <%= i+1 %> Description (English)</label>
+                          <input id="featuresEnDescription<%= i %>" name="featuresEnDescription[]" type="text">
+                        </div>
+                        <% } %>
+                      </div>
+
+                    </div>
+
+                    <!-- Arabic Content -->
+                    <div class="language-tab">
+                      <h6 class="purple-text">Arabic</h6>
+                    </div>
+                    <div class="row">
+                      <div class="input-field col s12">
+                        <label for="featuresTitleAr">Features Page Title (Arabic)</label>
+                        <input class="validate" id="featuresTitleAr" name="featuresTitleAr" type="text" required>
+                        <div class="error-message" id="featuresTitleArError"></div>
+                      </div>
+
+                      <div class="col s12 ckeditor-wrapper">
+                        <label>Features Page Description (Arabic)</label>
+                        <textarea name="featureDescriptionAr" id="featureDescriptionAr"></textarea>
+                        <div class="error-message" id="featureDescriptionArError"></div>
+                      </div>
+
+                      <div class="divider" style="margin:10px 0;"></div>
+                      <h6 class="purple-text">Features Items (Arabic) — up to 6</h6>
+                      <div class="row">
+                        <% for (let i = 0; i < 6; i++) { %>
+                        <div class="input-field col s12 m6">
+                          <label for="featuresArTitle<%= i %>">Feature <%= i+1 %> Title (Arabic)</label>
+                          <input id="featuresArTitle<%= i %>" name="featuresArTitle[]" type="text">
+                        </div>
+                        <div class="col s12 m6">
+                          <label for="featuresArDescription<%= i %>">Feature <%= i+1 %> Description (Arabic)</label>
+                          <input id="featuresArDescription<%= i %>" name="featuresArDescription[]" type="text">
+                        </div>
+                        <% } %>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Upload Screenshots -->
+                  <div class="section-card">
+                    <div class="section-title">
+                      <i class="material-icons left">collections</i>
+                      Upload Screenshots
+                    </div>
+                    <div id="file-upload" class="section">
+                      <div class="row section">
+                        <div class="input-field col s12">
+                          <p class="mb-3">Upload multiple screenshot images (You can select multiple images at once)</p>
+                          <input type="file" id="input-file-events" name="images" accept=".jpeg, .jpg, .png" multiple required />
+                          <span class="error-message" id="imageError"></span>
+                          <p class="grey-text mt-2">
+                            <i class="material-icons tiny">info</i>
+                            Tip: Hold Ctrl (Windows) or Cmd (Mac) to select multiple images
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="row">
+                    <div class="col s12 display-flex justify-content-end">
+                      <button class="btn btn-edit" type="submit" name="action">Submit</button>
+                      &nbsp;&nbsp;&nbsp;
+                      <a type="button" class="btn btn-delete" href="/admin/screenshot">Cancel</a>
+                    </div>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <%- include('_layouts/commonJs') %>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Dropify/0.2.2/js/dropify.min.js"></script>
+
+  <script>
+    $(document).ready(function() {
+      // Initialize CKEditor for main page descriptions only
+      CKEDITOR.replace('mainDescriptionEn');
+      CKEDITOR.replace('mainDescriptionAr');
+      // Feature descriptions and items use plain textareas (no CKEditor)
+
+
+      // Initialize Dropify for multiple file uploads
+      $('#input-file-events').dropify({
+        messages: {
+          'default': 'Drag and drop files here or click',
+          'replace': 'Drag and drop or click to replace',
+          'remove': 'Remove',
+          'error': 'Ooops, something went wrong.'
+        }
+      });
+
+      // Form validation
+      function validateField(fieldId, errorId, errorMsg) {
+        const value = $('#' + fieldId).val().trim();
+        if (!value) {
+          $('#' + fieldId).addClass('error-field');
+          $('#' + errorId).text(errorMsg);
+          return false;
+        } else {
+          $('#' + fieldId).removeClass('error-field');
+          $('#' + errorId).text('');
+          return true;
+        }
+      }
+
+      function validateCKEditor(editorName, errorId, errorMsg) {
+        const editor = CKEDITOR.instances[editorName];
+        const content = editor.getData().trim();
+        if (!content) {
+          $('#' + errorId).text(errorMsg);
+          return false;
+        } else {
+          $('#' + errorId).text('');
+          return true;
+        }
+      }
+
+      function validateFileUpload() {
+        const files = $('#input-file-events')[0].files;
+        if (files.length === 0) {
+          $('#imageError').text('Please upload at least one screenshot image.');
+          return false;
+        } else {
+          $('#imageError').text('');
+          return true;
+        }
+      }
+
+      // Real-time validation
+      $('#mainTitleEn').on('input', function() {
+        validateField('mainTitleEn', 'mainTitleEnError', 'Please enter main page title (English).');
+      });
+
+      $('#mainTitleAr').on('input', function() {
+        validateField('mainTitleAr', 'mainTitleArError', 'Please enter main page title (Arabic).');
+      });
+
+      $('#featuresTitleEn').on('input', function() {
+        validateField('featuresTitleEn', 'featuresTitleEnError', 'Please enter features page title (English).');
+      });
+
+      $('#featuresTitleAr').on('input', function() {
+        validateField('featuresTitleAr', 'featuresTitleArError', 'Please enter features page title (Arabic).');
+      });
+
+      $('#input-file-events').on('change', function() {
+        validateFileUpload();
+      });
+
+      // Form submission validation
+      $('#formValidate0').on('submit', function(e) {
+        let valid = true;
+
+        valid &= validateField('mainTitleEn', 'mainTitleEnError', 'Please enter main page title (English).');
+        valid &= validateCKEditor('mainDescriptionEn', 'mainDescriptionEnError', 'Please enter main page description (English).');
+        valid &= validateField('mainTitleAr', 'mainTitleArError', 'Please enter main page title (Arabic).');
+        valid &= validateCKEditor('mainDescriptionAr', 'mainDescriptionArError', 'Please enter main page description (Arabic).');
+        valid &= validateField('featuresTitleEn', 'featuresTitleEnError', 'Please enter features page title (English).');
+        valid &= validateField('featureDescriptionEn', 'featureDescriptionEnError', 'Please enter features page description (English).');
+        valid &= validateField('featuresTitleAr', 'featuresTitleArError', 'Please enter features page title (Arabic).');
+        valid &= validateField('featureDescriptionAr', 'featureDescriptionArError', 'Please enter features page description (Arabic).');
+        valid &= validateFileUpload();
+
+        if (!valid) {
+          e.preventDefault();
+          $('html, body').animate({
+            scrollTop: $('.error-message:contains("Please")').first().offset().top - 100
+          }, 500);
+        }
+      });
+    });
+  </script>
+</body>
+
+</html>

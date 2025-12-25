@@ -16,7 +16,7 @@ const generateEmailBody = (otp, isRegister = false) => {
       <div style="font-family: Helvetica, Arial, sans-serif; min-width: 900px; overflow: auto; line-height: 2;">
         <div style="margin: 50px auto; width: 70%; padding: 20px 0;">
           <div style="text-align: center; margin-bottom: 20px;">
-            <img src="https://laanisaudi.com/img/Logo%20(1).png" alt="Laani Saudi Logo" style="height: 80px;" />
+            <img src="https://admin.laanisaudi.com/img/Logo%20(1).png" alt="Laani Saudi Logo" style="height: 80px;" />
           </div>
           <p style="font-size: 1.1em;">Hi,</p>
           <p>Thank you for registering with <strong>Laani Saudi</strong>! Use the OTP below to verify your email. This OTP is valid for 5 minutes.</p>
@@ -120,7 +120,7 @@ const sendError = async (error) => {
 //                         Email: process.env.MJ_FROM,
 //                         Name: process.env.MJ_NAME || "Laani Saudi Admin",
 //                     },
-//                     To: Array.isArray(to) 
+//                     To: Array.isArray(to)
 //                         ? to.map(email => ({ Email: email.trim() }))
 //                         : [{ Email: to }],
 //                     Subject: subject,
@@ -132,7 +132,7 @@ const sendError = async (error) => {
 //         return request.body;
 //     } catch (error) {
 //         console.error('Error sending email:', error.statusCode, error.message);
-//         throw error; 
+//         throw error;
 //     }
 // };
 

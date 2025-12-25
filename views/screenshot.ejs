@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html class="loading" lang="en" data-textdirection="ltr">
+
+<head>
+  <%- include('_layouts/head') %>
+  <title>Website Section | <%= title %></title>
+  <style>
+    .info-card {
+      border-left: 4px solid #667eea;
+      background: #f8f9fc;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+
+    .info-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: #667eea;
+      margin-bottom: 10px;
+    }
+
+    .screenshot-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 15px;
+      margin-top: 15px;
+    }
+
+    .screenshot-item {
+      position: relative;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .screenshot-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 15px;
+      margin-top: 15px;
+    }
+
+    .screenshot-item {
+      position: relative;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      overflow: hidden;
+      padding: 6px;
+      background: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+    }
+
+    .screenshot-item img {
+      width: 100%;
+      height: auto;
+      /* <--- removes cropping */
+      max-height: 440px;
+      /* limit height but keep long aspect ratio */
+      object-fit: contain;
+      /* <--- keeps full mobile screenshot visible */
+      border-radius: 8px;
+      background: #fafafa;
+    }
+
+
+
+    .sort-badge {
+      position: absolute;
+      bottom: 5px;
+      left: 5px;
+      background: rgba(102, 126, 234, 0.9);
+      color: white;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .status-active {
+      background: #4caf50;
+      color: white;
+      padding: 5px 15px;
+      border-radius: 20px;
+      font-weight: 600;
+    }
+
+    .status-inactive {
+      background: #f44336;
+      color: white;
+      padding: 5px 15px;
+      border-radius: 20px;
+      font-weight: 600;
+    }
+  </style>
+</head>
+
+<body class="vertical-layout page-header-light vertical-menu-collapsible vertical-dark-menu preload-transitions 2-columns" data-open="click" data-menu="vertical-dark-menu" data-col="2-columns">
+
+  <%- include('_layouts/sidenavbar') %>
+
+  <div id="main">
+    <div class="row">
+      <div class="pt-1 pb-0" id="breadcrumbs-wrapper">
+        <div class="container">
+          <div class="row">
+            <%- include('messages', { messages: messages }) %>
+            <div class="col s12 m6 l6">
+              <h6 class="breadcrumbs-title"><span>Website Section</span></h6>
+            </div>
+            <div class="col s12 m6 l6 right-align-md" style="margin-top: -10px;">
+              <ol class="breadcrumbs mb-0">
+                <li class="breadcrumb-item"><a href="/admin">Dashboard</a></li>
+                <li class="breadcrumb-item active">Website Section</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col s12">
+        <div class="container">
+          <div class="section">
+            <div class="card">
+              <div class="card-content">
+                <div class="row">
+                  <div class="col s12 m8">
+                    <h5>Website Management</h5>
+                    <!-- <p class="grey-text">Manage your website's screenshot section</p> -->
+                  </div>
+                  <div class="col s12 m4 right-align">
+                    <% if (screenshot && screenshot.mainPage && screenshot.mainPage.en && screenshot.mainPage.en.title) { %>
+                    <a href="/admin/screenshot/edit" class="btn btn-edit">
+                      <i class="material-icons left">edit</i>
+                      Edit Section
+                    </a>
+                    <% } else { %>
+                    <a href="/admin/screenshot/create-screenshot" class="btn btn-add">
+                      <i class="material-icons left">add</i>
+                      Create Section
+                    </a>
+                    <% } %>
+                  </div>
+                </div>
+
+                <div class="divider" style="margin: 20px 0;"></div>
+
+                <% if (screenshot && screenshot.mainPage && screenshot.mainPage.en && screenshot.mainPage.en.title) { %>
+                <!-- Status -->
+                <!-- <div class="row">
+                  <div class="col s12">
+                    <p><strong>Status:</strong>
+                      <span class="<%= screenshot.isActive ? 'status-active' : 'status-inactive' %>">
+                        <%= screenshot.isActive ? 'Active' : 'Inactive' %>
+                      </span>
+                      &nbsp;&nbsp;
+                      <% if (screenshot.isActive) { %>
+                      <a href="/admin/screenshot/update-status/0" class="btn-small red" onclick="return confirm('Are you sure you want to deactivate this section?');">
+                        Deactivate
+                      </a>
+                      <% } else { %>
+                      <a href="/admin/screenshot/update-status/1" class="btn-small green" onclick="return confirm('Are you sure you want to activate this section?');">
+                        Activate
+                      </a>
+                      <% } %>
+                    </p>
+                  </div>
+                </div> -->
+
+                <div class="divider" style="margin: 20px 0;"></div>
+
+                <!-- Main Page Content -->
+                <div class="info-card">
+                  <div class="info-title">
+                    <i class="material-icons left">home</i>
+                    Main Page Content
+                  </div>
+                  <div class="row">
+                    <div class="col s12 m6">
+                      <h6 class="purple-text">English</h6>
+                      <p><strong>Title:</strong> <%= screenshot.mainPage.en.title %></p>
+                      <p><strong>Description:</strong></p>
+                      <div class="grey lighten-4" style="padding: 10px; border-radius: 4px;">
+                        <%- screenshot.mainPage.en.description %>
+                      </div>
+                    </div>
+                    <div class="col s12 m6">
+                      <h6 class="purple-text">Arabic</h6>
+                      <p><strong>Title:</strong> <%= screenshot.mainPage.ar.title %></p>
+                      <p><strong>Description:</strong></p>
+                      <div class="grey lighten-4" style="padding: 10px; border-radius: 4px;">
+                        <%- screenshot.mainPage.ar.description %>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Features Page Content -->
+                <!-- <div class="info-card">
+                  <div class="info-title">
+                    <i class="material-icons left">star</i>
+                    Features Page Content
+                  </div>
+                  <div class="row">
+                    <div class="col s12 m6">
+                      <h6 class="purple-text">English</h6>
+                      <p><strong>Title:</strong> <%= screenshot.featuresPage.en.title %></p>
+                      <p><strong>Description:</strong></p>
+                      <div class="grey lighten-4" style="padding: 10px; border-radius: 4px;">
+                        <%- screenshot.featuresPage.en.description %>
+                      </div>
+
+                      <% if (screenshot.featuresPage && screenshot.featuresPage.en && screenshot.featuresPage.en.features && screenshot.featuresPage.en.features.length) { %>
+                      <div style="margin-top:10px;">
+                        <% screenshot.featuresPage.en.features.forEach(function(f, idx){ %>
+                        <p><strong>Feature <%= idx+1 %>: <%= f.title %></strong></p>
+                        <div class="grey lighten-4" style="padding: 10px; border-radius: 4px; margin-bottom: 10px;">
+                          <%- f.description %>
+                        </div>
+                        <% }) %>
+                      </div>
+                      <% } %>
+                    </div>
+                    <div class="col s12 m6">
+                      <h6 class="purple-text">Arabic</h6>
+                      <p><strong>Title:</strong> <%= screenshot.featuresPage.ar.title %></p>
+                      <p><strong>Description:</strong></p>
+                      <div class="grey lighten-4" style="padding: 10px; border-radius: 4px;">
+                        <%- screenshot.featuresPage.ar.description %>
+                      </div>
+
+                      <% if (screenshot.featuresPage && screenshot.featuresPage.ar && screenshot.featuresPage.ar.features && screenshot.featuresPage.ar.features.length) { %>
+                      <div style="margin-top:10px;">
+                        <% screenshot.featuresPage.ar.features.forEach(function(f, idx){ %>
+                        <p><strong>ميزة <%= idx+1 %>: <%= f.title %></strong></p>
+                        <div class="grey lighten-4" style="padding: 10px; border-radius: 4px; margin-bottom: 10px;">
+                          <%- f.description %>
+                        </div>
+                        <% }) %>
+                      </div>
+                      <% } %>
+                    </div>
+                  </div>
+                </div> -->
+
+                <!-- Screenshots -->
+                <% if (screenshot.screenshots && screenshot.screenshots.length > 0) { %>
+                <div class="info-card">
+                  <div class="info-title">
+                    <i class="material-icons left">photo_library</i>
+                    Screenshots (<%= screenshot.screenshots.length %> images)
+                  </div>
+                  <div class="screenshot-grid">
+                    <% screenshot.screenshots.forEach((img, index) => { %>
+                    <div class="screenshot-item">
+                      <img src="<%= process.env.IMAGE_URL %><%= img.image %>" alt="Screenshot <%= index + 1 %>">
+                      <!-- <span class="sort-badge">#<%= img.sort %></span> -->
+                    </div>
+                    <% }) %>
+                  </div>
+                </div>
+                <% } %>
+
+                <% } else { %>
+                <!-- Empty State -->
+                <div class="center" style="padding: 60px 20px;">
+                  <i class="material-icons large grey-text">photo_library</i>
+                  <h5 class="grey-text">No Screenshot Section Created</h5>
+                  <p class="grey-text">Create your screenshot section to manage website screenshots and content.</p>
+                  <a href="/admin/screenshot/create-screenshot" class="btn btn-add waves-effect waves-light">
+                    <i class="material-icons left">add</i>
+                    Create Screenshot Section
+                  </a>
+                </div>
+                <% } %>
+
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="content-overlay"></div>
+      </div>
+    </div>
+  </div>
+
+  <%- include('_layouts/commonJs') %>
+</body>
+
+</html>

@@ -20,7 +20,7 @@ exports.getAllUsers = async (req, res) => {
         res.redirect('/admin');
     }
 };
- 
+
 
 // exports.viewUser = async (req, res) => {
 //   try {
@@ -90,9 +90,9 @@ exports.getAllUsers = async (req, res) => {
 //     user.totalOrders = calculated.totalOrders;
 //     user.currentPoints = (user.points || 0);
 
-//     res.render('user_view', { 
+//     res.render('user_view', {
 //       title: 'User View',
-//       user 
+//       user
 //     });
 
 //   } catch (error) {
@@ -136,7 +136,7 @@ exports.viewUser = async (req, res) => {
       select: 'name',
       populate: [
         { path: 'vendor', select: 'businessName' },
-        { path: 'branch', select: 'buildingName' } 
+        { path: 'branch', select: 'buildingName' }
       ]
     })
     .populate('items.menuItem', 'name')
@@ -147,7 +147,7 @@ exports.viewUser = async (req, res) => {
     const redemptionHistory = redemptions.map(r => ({
       date: r.createdAt,
       vendorName: r.staff?.vendor?.businessName || 'Unknown Vendor',
-      branchName: r.staff?.branch?.buildingName || '—', 
+      branchName: r.staff?.branch?.buildingName || '—',
       productName: r.items?.[0]?.menuItem?.name || 'General Discount',
       pointsRedeemed: r.spentPoints || 0,
       discountGiven: r.discountAmount || 0,
@@ -162,7 +162,7 @@ exports.viewUser = async (req, res) => {
 
     // console.log('branch : ',redemptionHistory)
 
-    res.render('user_view', { 
+    res.render('user_view', {
       title: 'User Profile',
       user,
       redemptions: redemptionHistory
@@ -293,7 +293,7 @@ exports.deleteAccountUser = async (req, res, next) => {
 //     if (endDate) {
 //       const end = new Date(endDate);
 //       end.setHours(23, 59, 59, 999);
-//       filter.createdAt = filter.createdAt 
+//       filter.createdAt = filter.createdAt
 //         ? { ...filter.createdAt, $lte: end }
 //         : { $lte: end };
 //     }
@@ -391,7 +391,7 @@ exports.deleteAccountUser = async (req, res, next) => {
 //     if (endDate) {
 //       const end = new Date(endDate);
 //       end.setHours(23, 59, 59, 999);
-//       filter.createdAt = filter.createdAt 
+//       filter.createdAt = filter.createdAt
 //         ? { ...filter.createdAt, $lte: end }
 //         : { $lte: end };
 //     }
@@ -522,7 +522,7 @@ exports.getUserRedemptions = async (req, res) => {
       // Branch lookup
       {
         $lookup: {
-          from: 'branches',                  
+          from: 'branches',
           localField: 'staffInfo.branch',
           foreignField: '_id',
           as: 'branchInfo'
@@ -549,10 +549,10 @@ exports.getUserRedemptions = async (req, res) => {
           date: { $first: '$createdAt' },
           transactionId: { $first: '$_id' },
           vendorName: { $first: { $ifNull: ['$vendorInfo.businessName', 'Unknown Vendor'] } },
-          branchName: { 
-            $first: { 
-              $ifNull: ['$branchInfo.buildingName', { $ifNull: ['$branchInfo.name', '—'] }] 
-            } 
+          branchName: {
+            $first: {
+              $ifNull: ['$branchInfo.buildingName', { $ifNull: ['$branchInfo.name', '—'] }]
+            }
           },
           productName: { $first: { $ifNull: ['$itemInfo.name', 'General Discount'] } },
           pointsRedeemed: { $first: '$spentPoints' },
@@ -579,4 +579,3 @@ exports.getUserRedemptions = async (req, res) => {
     res.status(500).json({ success: false, redemptions: [] });
   }
 };
-

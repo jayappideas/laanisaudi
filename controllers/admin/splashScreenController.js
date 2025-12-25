@@ -109,6 +109,7 @@ exports.deleteVideo = async (req, res) => {
                 splashScreen.selectedVideo = null;
             }
 
+            // 8590
             await splashScreen.save();
             req.flash('green', 'Video deleted successfully.');
         } else {

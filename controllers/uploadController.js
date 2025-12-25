@@ -16,9 +16,14 @@ exports.upload = multer({
             file.mimetype === 'image/jpeg' ||
             file.mimetype === 'image/jpg' ||
             file.mimetype === 'image/png' ||
-            file.mimetype === 'image/webp'
+            // file.mimetype === 'image/heic' ||
+            // file.mimetype === 'image/heif' ||
+            file.mimetype === 'image/webp' ||
+            file.mimetype === 'application/pdf' ||
+            file.mimetype === 'application/msword' ||
+            file.mimetype === 'application/vnd.ms-excel'
         )
             cb(null, true);
-        else cb(new Error('Please upload jpg or png file.'), false);
+        else cb(new Error('Something went wrong!'), false);
     },
 });

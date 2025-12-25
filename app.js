@@ -103,7 +103,7 @@ app.use(function (req, res, next) {
     res.locals.dateOptions = {
         hour: '2-digit',
         minute: '2-digit',
-        hour12: true,   
+        hour12: true,
     };
     next();
 });
@@ -111,7 +111,7 @@ app.use(function (req, res, next) {
 app.get('/admin/receipt', async (req, res) => {
     res.render('receipt', { receiptData });
 });
-app.use('/admin/', require('./routes/admin/authRoutes')); 
+app.use('/admin/', require('./routes/admin/authRoutes'));
 app.use('/admin/user', require('./routes/admin/userRoutes'));
 app.use('/admin/vendor', require('./routes/admin/vendorRoutes'));
 app.use('/admin/banner', require('./routes/admin/bannerRoutes'));
@@ -123,7 +123,7 @@ app.use('/admin/customer', require('./routes/admin/customerRoutes'));
 app.use('/admin/intro-screen', require('./routes/admin/introScreenRoutes'));
 app.use('/admin/splash-screen', require('./routes/admin/splashScreenRoutes'));
 app.use("/admin/reports", require("./routes/admin/reportsRoutes"))
-
+app.use('/admin/screenshot', require('./routes/admin/screenshotRoutes'));
 // 404 admin
 app.all('/admin/*', (req, res) => res.status(404).render('404'));
 
