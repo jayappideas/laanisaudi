@@ -21,6 +21,116 @@ exports.getAllUsers = async (req, res) => {
     }
 };
 
+// Add these functions to controllers/admin/userController.js
+
+const QRCode = require('qrcode');
+const path = require('path');
+
+// Get Add User Page
+exports.getAddUser = async (req, res) => {
+    try {
+        res.render('user_add', { title: 'Add User' });
+    } catch (error) {
+        req.flash('red', error.message);
+        res.redirect('/admin/user');
+    }
+};
+
+// Create New User
+exports.createUser = async (req, res) => {
+    try {
+        const { name, mobileNumber, password, birthDate, language, gender } = req.body;
+
+        // Check if user already exists
+        const userExists = await User.findOne({ mobileNumber });
+        if (userExists) {
+            req.flash('red', 'User already exists with this mobile number.');
+            return res.redirect('/admin/user');
+        }
+
+        // Create user
+        let user = await User.create({
+            name,
+            mobileNumber,
+            password,
+            birthDate: birthDate || null,
+            language,
+            gender: gender || null,
+            isActive: true,
+        });
+
+        // Generate QR Code
+        const uploadsDir = path.join('./public/uploads');
+        const fileName = `${user._id}_qr.png`;
+        const filePath = path.join(uploadsDir, fileName);
+
+        await QRCode.toFile(filePath, user._id.toString(), {
+            color: {
+                dark: '#000000',
+                light: '#ffffff',
+            },
+        });
+
+        user.qrCode = fileName;
+        await user.save();
+
+        req.flash('green', 'User created successfully.');
+        res.redirect('/admin/user');
+    } catch (error) {
+        console.log(error);
+        req.flash('red', error.message);
+        res.redirect('/admin/user');
+    }
+};
+
+// Get Edit User Page
+exports.getEditUser = async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id);
+
+        if (!user) {
+            req.flash('red', 'User not found!');
+            return res.redirect('/admin/user');
+        }
+
+        res.render('user_edit', { user, title: 'Edit User' });
+    } catch (error) {
+        req.flash('red', error.message);
+        res.redirect('/admin/user');
+    }
+};
+
+// Update User
+exports.editUser = async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id);
+
+        if (!user) {
+            req.flash('red', 'User not found!');
+            return res.redirect('/admin/user');
+        }
+
+        user.name = req.body.name;
+        user.mobileNumber = req.body.mobileNumber;
+        user.language = req.body.language;
+        user.birthDate = req.body.birthDate || null;
+        user.gender = req.body.gender || null;
+
+        // Only update password if provided
+        if (req.body.password) {
+            user.password = req.body.password;
+        }
+
+        await user.save();
+
+        req.flash('green', 'User updated successfully.');
+        res.redirect('/admin/user');
+    } catch (error) {
+        console.log(error);
+        req.flash('red', error.message);
+        res.redirect('/admin/user');
+    }
+};
 
 // exports.viewUser = async (req, res) => {
 //   try {

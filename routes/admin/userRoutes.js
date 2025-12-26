@@ -1,26 +1,3 @@
-// const router = require('express').Router();
-// const fileUpload = require('express-fileupload');
-// const authController = require('../../controllers/admin/authController');
-
-// const userController = require('../../controllers/admin/userController');
-
-// router.get(
-//     '/',
-//     authController.checkPermission('user', 'isView'),
-//     userController.getAllUsers
-// );
-// router.get('/change-status/:id/:status', userController.changeUserStatus);
-// router.get('/user-delete/:id', userController.deleteAccountUser);
-// router.post('/notify',fileUpload(), userController.sendNotification);
-// router.get('/:type/:id', userController.viewUser);
-
-
-// router.get('/redemptions', userController.getUserRedemptions); 
-
-// module.exports = router;
-
-
-
 const router = require('express').Router();
 const fileUpload = require('express-fileupload');
 const authController = require('../../controllers/admin/authController');
@@ -33,14 +10,35 @@ router.get(
     userController.getAllUsers
 );
 
+// Add User Routes
+router
+    .route('/add-user')
+    .get(
+        authController.checkPermission('user', 'isAdd'),
+        userController.getAddUser
+    )
+    .post(
+        authController.checkPermission('user', 'isAdd'),
+        userController.createUser
+    );
+
+// Edit User Routes
+router
+    .route('/edit-user/:id')
+    .get(
+        authController.checkPermission('user', 'isEdit'),
+        userController.getEditUser
+    )
+    .post(
+        authController.checkPermission('user', 'isEdit'),
+        userController.editUser
+    );
 
 router.get('/change-status/:id/:status', userController.changeUserStatus);
-
 
 router.get('/user-delete/:id', userController.deleteAccountUser);
 
 router.post('/notify', fileUpload(), userController.sendNotification);
-
 
 router.get('/redemptions', userController.getUserRedemptions);
 
