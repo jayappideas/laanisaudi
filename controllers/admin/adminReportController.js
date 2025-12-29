@@ -577,10 +577,36 @@ exports.renderReports = async (req, res) => {
       }
     ]);
 
-    const allVendors = await Vendor.find({ adminApproved: true })
-      .select('_id businessName businessLogo')
-      .sort({ businessName: 1 })
-      .lean();
+    let allVendorStats = await Transaction.aggregate([
+      {
+        $match: {
+          ...dateFilter,
+          spentPoints: { $gt: 0 }
+        }
+      },
+      { $lookup: { from: 'staffs', localField: 'staff', foreignField: '_id', as: 's' } },
+      { $unwind: { path: '$s', preserveNullAndEmptyArrays: true } },
+      { $lookup: { from: 'vendors', localField: 's.vendor', foreignField: '_id', as: 'v' } },
+      { $unwind: { path: '$v', preserveNullAndEmptyArrays: true } },
+      { $match: { 'v.businessName': { $exists: true, $ne: null } } },
+      {
+        $group: {
+          _id: '$v._id',
+          businessName: { $first: '$v.businessName' }
+        }
+      },
+      { $sort: { businessName: 1 } }
+    ]);
+
+    let allVendors = allVendorStats;
+
+    if (vendorId && vendorId !== '' && vendorId !== 'null' && !allVendors.find(v => v._id.toString() === vendorId)) {
+      const selectedVendor = await Vendor.findById(vendorId).select('_id businessName').lean();
+      if (selectedVendor) {
+        allVendors.push(selectedVendor);
+        allVendors.sort((a, b) => a.businessName.localeCompare(b.businessName));
+      }
+    }
 
     const redemptionTrend = await Transaction.aggregate([
       {
