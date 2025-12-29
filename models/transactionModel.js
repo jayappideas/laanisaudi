@@ -18,7 +18,7 @@ const transactionSchema = new mongoose.Schema(
         },
         vendor: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: 'Vendor', 
+            ref: 'Vendor',
             // required: true,
         },
         items: [
@@ -68,7 +68,7 @@ const transactionSchema = new mongoose.Schema(
             type: String,
             enum: ['pending', 'accepted', 'rejected', 'expired'],
             required: true,
-        }, 
+        },
     },
     { timestamps: true }
 );
@@ -79,7 +79,7 @@ const transactionSchema = new mongoose.Schema(
 //       this.adminCommission = parseFloat((this.finalAmount * 0.10).toFixed(2));
 //     }
 //     next();
-//   }); 
+//   });
 
 // transactionSchema.pre('save', async function (next) {
 //     if (this.finalAmount > 0 && this.status === 'accepted') {

@@ -5,6 +5,8 @@ const {
 } = require('../../utils/sendNotificationStaff');
 const mongoose = require("mongoose")
 const Transaction = require("../../models/transactionModel")
+const QRCode = require('qrcode');
+const path = require('path');
 
 exports.getAllUsers = async (req, res) => {
     try {
@@ -21,10 +23,8 @@ exports.getAllUsers = async (req, res) => {
     }
 };
 
-// Add these functions to controllers/admin/userController.js
 
-const QRCode = require('qrcode');
-const path = require('path');
+
 
 // Get Add User Page
 exports.getAddUser = async (req, res) => {

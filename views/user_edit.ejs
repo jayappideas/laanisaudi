@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html class="loading" lang="en" data-textdirection="ltr">
+<head>
+  <%- include('_layouts/head') %>
+  <title>User Edit | <%= title %></title>
+  <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/Dropify/0.2.2/css/dropify.min.css">
+</head>
+
+<body class="vertical-layout page-header-light vertical-menu-collapsible vertical-dark-menu preload-transitions 2-columns" data-open="click" data-menu="vertical-dark-menu" data-col="2-columns">
+
+  <%- include('_layouts/sidenavbar') %>
+
+  <div id="main">
+    <div class="row">
+      <div class="pt-1 pb-0" id="breadcrumbs-wrapper">
+        <div class="container">
+          <div class="row">
+            <div class="col s12 m6 l6">
+              <h6 class="breadcrumbs-title"><span>Edit User</span></h6>
+            </div>
+            <div class="col s12 m6 l6 right-align-md" style="margin-top: -10px;">
+              <ol class="breadcrumbs mb-0">
+                <li class="breadcrumb-item"><a href="/admin">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="/admin/user">Users</a></li>
+                <li class="breadcrumb-item active">Edit User</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container pl-2 pr-2">
+      <div class="card">
+        <div class="row">
+          <div class="col s12">
+            <div id="basic-form" class="card-default scrollspy">
+              <div class="card-content">
+                <form method="POST" action="/admin/user/edit-user/<%= user._id %>" class="formValidate0" id="formValidate0">
+
+                  <div class="input-field col s12 m6">
+                    <label for="name">Name</label>
+                    <input class="validate" id="name" name="name" type="text" value="<%= user.name || '' %>">
+                    <div class="error-message" id="nameError"></div>
+                  </div>
+
+                  <div class="input-field col s12 m6">
+                    <label for="mobileNumber">Mobile Number</label>
+                    <input class="validate" id="mobileNumber" name="mobileNumber" type="text" value="<%= user.mobileNumber || '' %>" pattern="^\d+$">
+                    <div class="error-message" id="mobileNumberError"></div>
+                  </div>
+
+                  <div class="input-field col s12 m6">
+                    <label for="password">Password (Leave blank to keep current)</label>
+                    <input class="validate" id="password" name="password" type="password">
+                    <div class="error-message" id="passwordError"></div>
+                  </div>
+
+                  <div class="input-field col s12 m6">
+                    <label for="language" style="margin-top: -25px;font-size: 11px;">Language</label>
+                    <select class="error validate" id="language" name="language">
+                      <option value="" disabled>Choose language</option>
+                      <option value="en" <%= user.language === 'en' ? 'selected' : '' %>>English</option>
+                      <option value="ar" <%= user.language === 'ar' ? 'selected' : '' %>>Arabic</option>
+                    </select>
+                    <div class="error-message" id="languageError"></div>
+                  </div>
+
+                  <div class="input-field col s12 m6">
+                    <label for="birthDate">Birth Date</label>
+                    <input id="birthDate" name="birthDate" type="text" class="datepicker validate"
+                           value="<%= user.birthDate ? new Date(user.birthDate).toISOString().split('T')[0] : '' %>">
+                    <div class="error-message" id="birthDateError"></div>
+                  </div>
+
+                  <div class="input-field col s12 m6">
+                    <label for="gender" style="margin-top: -25px;font-size: 11px;">Gender</label>
+                    <select class="validate" id="gender" name="gender">
+                      <option value="" disabled>Choose gender</option>
+                      <option value="male" <%= user.gender === 'male' ? 'selected' : '' %>>Male</option>
+                      <option value="female" <%= user.gender === 'female' ? 'selected' : '' %>>Female</option>
+                    </select>
+                    <div class="error-message" id="genderError"></div>
+                  </div>
+
+                  <div class="row">
+                    <div class="col s12 display-flex justify-content-end">
+                      <button class="btn btn-edit" type="submit" name="action">Update</button>
+                      &nbsp;&nbsp;&nbsp;
+                      <a type="button" class="btn btn-delete" href="/admin/user">Cancel</a>
+                    </div>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <%- include('_layouts/commonJs') %>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Dropify/0.2.2/js/dropify.min.js"></script>
+  <script src="/app-assets/js/scripts/form-file-uploads.min.js"></script>
+
+  <script>
+    $(document).ready(function() {
+      function showError(fieldId, message) {
+        $('#' + fieldId).addClass('error-field');
+        $('#' + fieldId + 'Error').text(message);
+      }
+
+      function clearError(fieldId) {
+        $('#' + fieldId).removeClass('error-field');
+        $('#' + fieldId + 'Error').text('');
+      }
+
+      function validateSelect(fieldId, message) {
+        const value = $('#' + fieldId).val();
+        if (!value) {
+          showError(fieldId, message);
+          return false;
+        } else {
+          clearError(fieldId);
+          return true;
+        }
+      }
+
+      function validateText(fieldId, message) {
+        const value = $('#' + fieldId).val().trim();
+        if (!value) {
+          showError(fieldId, message);
+          return false;
+        } else {
+          clearError(fieldId);
+          return true;
+        }
+      }
+
+      function validatePassword(fieldId) {
+        const value = $('#' + fieldId).val().trim();
+        // Password is optional in edit mode
+        if (value && value.length < 6) {
+          showError(fieldId, 'Password should be at least 6 characters long.');
+          return false;
+        } else {
+          clearError(fieldId);
+          return true;
+        }
+      }
+
+      function validateMobile(fieldId) {
+        const value = $('#' + fieldId).val().trim();
+        const mobileRegex = /^\d{10,15}$/;
+        if (!value) {
+          showError(fieldId, 'Mobile number is required.');
+          return false;
+        } else if (!mobileRegex.test(value)) {
+          showError(fieldId, 'Please enter a valid mobile number (10-15 digits).');
+          return false;
+        } else {
+          clearError(fieldId);
+          return true;
+        }
+      }
+
+      $('#formValidate0').on('submit', function(e) {
+        let valid = true;
+
+        valid &= validateText('name', 'Name is required.');
+        valid &= validateMobile('mobileNumber');
+        valid &= validatePassword('password');
+        valid &= validateSelect('language', 'Please select a language.');
+
+        if (!valid) {
+          e.preventDefault();
+          $('html, body').animate({
+            scrollTop: $('.error-message:contains("Please"), .error-message:contains("required"), .error-message:contains("valid")').first().offset().top - 50
+          }, 500);
+        }
+      });
+
+           $('.datepicker').datepicker({
+           format: 'yyyy-mm-dd',
+           yearRange: 100,
+           maxDate: new Date(), // prevent selecting future dates
+           autoClose: true,
+           defaultDate: null,
+           });
+           
+      // Real-time validation
+      $('#name').on('input', () => validateText('name', 'Name is required.'));
+      $('#mobileNumber').on('input', () => validateMobile('mobileNumber'));
+      $('#password').on('input', () => validatePassword('password'));
+      $('#language').on('change', () => validateSelect('language', 'Please select a language.'));
+    });
+  </script>
+</body>
+</html>

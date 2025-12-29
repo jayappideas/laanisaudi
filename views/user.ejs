@@ -1,322 +1,251 @@
 <!DOCTYPE html>
 <html class="loading" lang="en" data-textdirection="ltr">
-<!-- BEGIN: Head-->
-
 <head>
-  <%- include('_layouts/head') %>
-
-    <title>User List | <%= title %>
-    </title>
-
-    <link rel="stylesheet" type="text/css" href="/app-assets/css/pages/page-users.css">
-
+    <%- include('_layouts/head') %>
+    <title>User List | <%= title %></title>
     <link rel="stylesheet" type="text/css" href="/app-assets/vendors/data-tables/css/jquery.dataTables.min.css">
-    <link rel="stylesheet" type="text/css"
-      href="/app-assets/vendors/data-tables/extensions/responsive/css/responsive.dataTables.min.css">
+    <link rel="stylesheet" type="text/css" href="/app-assets/vendors/data-tables/extensions/responsive/css/responsive.dataTables.min.css">
     <link rel="stylesheet" type="text/css" href="/app-assets/vendors/data-tables/css/select.dataTables.min.css">
     <link rel="stylesheet" type="text/css" href="/app-assets/css/pages/data-tables.css">
-    <link rel="stylesheet" type="text/css"
-      href="https://cdnjs.cloudflare.com/ajax/libs/Dropify/0.2.2/css/dropify.min.css">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/Dropify/0.2.2/css/dropify.min.css">
+
     <style>
-      table tr td,
-      th {
-        text-align: center;
-      }
+        table tr td,th{
+            text-align: center;
+        }
 
-      [type='checkbox']+span:not(.lever):before {
+        [type='checkbox']+span:not(.lever):before {
         border-color: black;
-      }
+        }
 
-      [type='checkbox']:checked+span:not(.lever):before {
+        [type='checkbox']:checked+span:not(.lever):before {
         border-right-color: black;
         border-bottom-color: black;
-      }
+        }
     </style>
-
 </head>
-<!-- END: Head-->
 
-<body
-  class="vertical-layout page-header-light vertical-menu-collapsible vertical-dark-menu preload-transitions 2-columns"
-  data-open="click" data-menu="vertical-dark-menu" data-col="2-columns">
+<body class="vertical-layout page-header-light vertical-menu-collapsible vertical-dark-menu preload-transitions 2-columns" data-open="click" data-menu="vertical-dark-menu" data-col="2-columns">
 
-  <%- include('_layouts/sidenavbar') %>
+    <%- include('_layouts/sidenavbar') %>
 
-    <!-- BEGIN: Page Main-->
     <div id="main">
-      <div class="row">
-
-        <div class="pt-1 pb-0" id="breadcrumbs-wrapper">
-          <div class="container">
-            <div class="row">
-              <%- include('messages', { messages: messages }) %>
+        <div class="row">
+          <div class="pt-1 pb-0" id="breadcrumbs-wrapper">
+            <div class="container">
+              <div class="row">
+                <%- include('messages', { messages: messages }) %>
                 <div class="col s12 m6 l6">
                   <h6 class="breadcrumbs-title"><span>Manage Users</span></h6>
                 </div>
-                <div class="col s12 m6 l6 right-align-md">
-                  <a class="btn gradient-45deg-purple-deep-orange pull-right btn-breadcrumbs modal-trigger"
-                    href="#modal">Send Notification</a>
-                </div>
-                <!-- <div class="col s12 m6 l6 right-align-md" style="margin-top: -10px;">
-                            <ol class="breadcrumbs mb-0">
-                                <li class="breadcrumb-item"><a href="/">Dashboard</a>
-                                </li>
-                                <li class="breadcrumb-item active">User List
-                                </li>
-                            </ol>
-                        </div> -->
-            </div>
-          </div>
-        </div>
-
-
-        <div class="col s12">
-          <div class="container">
-            <div class="section section-data-tables">
-              <!-- Page Length Options -->
-              <div class="row">
-                <div class="col s12">
-                  <div class="card">
-                    <div class="card-content">
-                      <div class="row">
-                        <div class="col s12 overflow">
-                          <table id="page-length-option" class="display">
-                            <thead>
-                              <tr>
-                                <th>Sr</th>
-                                <th style="width: 60px; text-align: center;">
-                                  <label
-                                    style="margin: 0; display: flex; align-items: center; justify-content: center;">
-                                    <input type="checkbox" id="selectAll" />
-                                    <span style="margin-left: 4px;">All</span>
-                                  </label>
-                                </th>
-
-                                <th>QRCode</th>
-                                <th>Name</th>
-                                <th>Mobile No.</th>
-                                <th>Birth Date</th>
-                                <th>Gender</th>
-                                <th>Created Date</th>
-                                <th data-orderable="false">Status</th>
-                                <th>View</th>
-                                <th data-orderable="false">Action</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              <% for( let i=0; i < users.length; i++ ) { %>
-                                <tr>
-                                  <td>
-                                    <%= i+1 %>
-                                  </td>
-                                  <td>
-                                    <label>
-                                      <input type="checkbox" name="selectedUsers[]" value="<%= users[i].id %>" />
-                                      <span></span>
-                                    </label>
-                                  </td>
-                                  <td><img src="<%= process.env.IMAGE_URL%><%= users[i].qrCode %>"
-                                      style="width: 30%;" /></td>
-                                  <td>
-                                    <%= users[i].name %>
-                                  </td>
-                                  <td>
-                                    <%= users[i].mobileNumber %>
-                                  </td>
-                                  <td>
-                                    <%= users[i].birthDate ? new Date(users[i].birthDate).toISOString().split('T')[0]
-                                      : '-' %>
-                                  </td>
-                                  <td>
-                                    <%= users[i].gender %>
-                                  </td>
-                                  <!-- <td><%= users[i].createdAt.toISOString().split('T')[0] %> <%=
-                                                                users[i].createdAt.toLocaleString('en-US', {
-                                                                    timeZone: 'UTC',
-                                                                    hour: '2-digit',
-                                                                    minute: '2-digit',
-                                                                    hour12: true
-                                                                  }).replace(',', ''); %>
-                              </td> -->
-                                  <!-- <% const createdAt=new Date(users[i].createdAt); const day=String(createdAt.getUTCDate()).padStart(2, '0' ); const
-                                  month=String(createdAt.getUTCMonth() + 1).padStart(2, '0' ); const year=createdAt.getUTCFullYear(); const
-                                  formattedDate=`${day}-${month}-${year}`; %>
-                                  <td>
-                                    <%= formattedDate %>
-                                  </td> -->
-
-                                  <% let formattedDateTime='-' ; if (users[i].createdAt) { const createdAt=new
-                                    Date(users[i].createdAt); const day=String(createdAt.getUTCDate()).padStart(2, '0'
-                                    ); const month=String(createdAt.getUTCMonth() + 1).padStart(2, '0' ); const
-                                    year=createdAt.getUTCFullYear(); const
-                                    hours=String(createdAt.getUTCHours()).padStart(2, '0' ); const
-                                    minutes=String(createdAt.getUTCMinutes()).padStart(2, '0' ); const
-                                    seconds=String(createdAt.getUTCSeconds()).padStart(2, '0' );
-                                    formattedDateTime=`${day}-${month}-${year} ${hours}:${minutes}:${seconds}`; } %>
-                                    <td>
-                                      <%= formattedDateTime %>
-                                    </td>
-
-                                    <td>
-                                      <% if (users[i].isActive) { %>
-                                        <a href="/admin/user/change-status/<%= users[i]._id %>/0"
-                                          class="waves-effect border-round waves-light btn green mr-1 mb-2"
-                                          onclick="return confirm('Are you sure want to De-Active this user?');">Active</a>
-                                        <% } else { %>
-                                          <a href="/admin/user/change-status/<%= users[i]._id %>/1"
-                                            class="waves-effect border-round waves-light btn red mr-1 mb-2"
-                                            style="padding: 0px 16px 0px 16px;"
-                                            onclick="return confirm('Are you sure want to Active this user?');">De-Active</a>
-                                          <% } %>
-
-                                    </td>
-                                    <td>
-                                      <a href="/admin/user/user_view/<%= users[i]._id %>"><i
-                                          class="material-icons">visibility</i></a></a>
-                                    </td>
-                                    <td>
-                                      <a href="/admin/user/user-delete/<%= users[i]._id %>"
-                                        class="btn-floating waves-effect waves-light accent-2 btn-delete">
-                                        <i class="material-icons"
-                                          onclick="return confirm('Are you sure want to delete this user?');">delete</i>
-                                      </a>
-                                    </td>
-                                </tr>
-                                <% } %>
-                            </tbody>
-                          </table>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div id="modal" class="modal">
-                  <div class="modal-content">
-                    <h5>Send Notification</h5>
-                    <form id="form" class="image-form" method="POST" action="/admin/user/notify"
-                      enctype="multipart/form-data">
-                      <div class="input-field col s12">
-                        <input placeholder="Title" id="title" name="title" type="text">
-                        <label for="title">Title</label>
-                        <small>
-                          <div id="error1" class="error"></div>
-                        </small>
-                      </div>
-                      <div class="input-field col s12 mt-0 mb-0">
-                        <input placeholder="Body" id="body" name="body" type="text">
-                        <label for="body">Body</label>
-                        <small>
-                          <div id="error2" class="error"></div>
-                        </small>
-                      </div>
-
-                      <input type="hidden" name="selectedUserIds" id="selectedUserIds" />
-                      <button type="submit" class="btn purple mr-40" id="submitBtn">Send</button>
-                    </form>
-                  </div>
+                <div class="col s12 m6 l6 right-align-md" style="display: flex; justify-content: flex-end; gap: 10px;">
+                  <a class="btn pull-right btn-add btn-breadcrumbs white-text" href="/admin/user/add-user">Create User</a>
+                  <a class="btn gradient-45deg-purple-deep-orange modal-trigger" href="#modal">Send Notification</a>
                 </div>
               </div>
             </div>
           </div>
-          <div class="content-overlay"></div>
+
+            <div class="col s12">
+                <div class="container">
+                    <div class="section section-data-tables">
+                        <div class="row">
+                            <div class="col s12">
+                                <div class="card">
+                                    <div class="card-content">
+                                        <div class="row">
+                                            <div class="col s12 overflow">
+                                                <table id="page-length-option" class="display">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Sr</th>
+                                                            <th style="width: 60px; text-align: center;">
+                                                              <label style="margin: 0; display: flex; align-items: center; justify-content: center;">
+                                                                <input type="checkbox" id="selectAll" />
+                                                                <span style="margin-left: 4px;">All</span>
+                                                              </label>
+                                                            </th>
+                                                            <th>QR Code</th>
+                                                            <th>Name</th>
+                                                            <th>Mobile Number</th>
+                                                            <th>Birth Date</th>
+                                                            <th>Gender</th>
+                                                            <th>Created Date</th>
+                                                            <th data-orderable="false">Status</th>
+                                                            <th data-orderable="false">View</th>
+                                                            <th data-orderable="false">Action</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <% for( let i=0; i < users.length; i++ ) { %>
+                                                        <tr>
+                                                            <td><%= i+1 %></td>
+                                                            <td>
+                                                              <label>
+                                                                <input type="checkbox" name="selectedUsers[]" value="<%= users[i].id %>" />
+                                                                <span></span>
+                                                              </label>
+                                                            </td>
+                                                            <td width="50px"><img src="<%= process.env.IMAGE_URL%><%= users[i].qrCode %>" style="width: 80%;"/></td>
+                                                            <td><%= users[i].name || '-' %></td>
+                                                            <td><%= users[i].mobileNumber || '-' %></td>
+                                                            <td><%= users[i].birthDate ? new Date(users[i].birthDate).toLocaleDateString('en-IN') : '-' %></td>
+                                                            <td><%= users[i].gender ? (users[i].gender.charAt(0).toUpperCase() + users[i].gender.slice(1)) : '-' %></td>
+
+                                                            <% let formattedDateTime='-' ; if (users[i].createdAt) { const createdAt=new Date(users[i].createdAt); const
+                                                            day=String(createdAt.getUTCDate()).padStart(2, '0' ); const month=String(createdAt.getUTCMonth() + 1).padStart(2, '0'
+                                                            ); const year=createdAt.getUTCFullYear(); const hours=String(createdAt.getUTCHours()).padStart(2, '0' ); const
+                                                            minutes=String(createdAt.getUTCMinutes()).padStart(2, '0' ); const
+                                                            seconds=String(createdAt.getUTCSeconds()).padStart(2, '0' ); formattedDateTime=`${day}-${month}-${year}
+                                                            ${hours}:${minutes}:${seconds}`; } %>
+                                                            <td><%= formattedDateTime %></td>
+
+                                                            <td>
+                                                                <% if (users[i].isActive) { %>
+                                                                    <a href="/admin/user/change-status/<%= users[i]._id %>/0" class="waves-effect border-round waves-light btn green mr-1 mb-2"  onclick="return confirm('Are you sure want to De-Active this user?');">Active</a>
+                                                                <% } else { %>
+                                                                    <a href="/admin/user/change-status/<%= users[i]._id %>/1" class="waves-effect border-round waves-light btn red mr-1 mb-2"  style="padding: 0px 16px 0px 16px;" onclick="return confirm('Are you sure want to Active this user?');">De-Active</a>
+                                                                <% } %>
+                                                            </td>
+                                                            <td>
+                                                                <a href="/admin/user/view/<%= users[i].id %>"><i class="material-icons">visibility</i></a>
+                                                            </td>
+                                                            <td>
+                                                                <a href="/admin/user/edit-user/<%= users[i].id %>" class="btn-floating waves-effect waves-light accent-2 btn-edit">
+                                                                    <i class="material-icons">edit</i>
+                                                                </a> &nbsp;&nbsp;
+
+                                                                <a href="/admin/user/user-delete/<%= users[i]._id %>" class="btn-floating waves-effect waves-light accent-2 btn-delete">
+                                                                    <i class="material-icons" onclick="return confirm('Are you sure want to delete this user?');">delete</i>
+                                                                </a>
+                                                            </td>
+                                                        </tr>
+                                                        <% } %>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="modal" class="modal">
+                          <div class="modal-content">
+                            <h5>Send Notification</h5>
+                            <form id="form" class="image-form" method="POST" action="/admin/user/notify" onsubmit="validate()" enctype="multipart/form-data">
+                              <div class="input-field col s12">
+                                <input placeholder="Title" id="title" name="title" type="text">
+                                <label for="title">Title</label>
+                                <small>
+                                  <div id="error1" class="error"></div>
+                                </small>
+                              </div>
+                              <div class="input-field col s12 mt-0 mb-0">
+                                <input placeholder="Body" id="body" name="body" type="text">
+                                <label for="body">Body</label>
+                                <small>
+                                  <div id="error2" class="error"></div>
+                                </small>
+                              </div>
+
+                              <input type="hidden" name="selectedUserIds" id="selectedUserIds" />
+                              <button type="submit" class="btn purple" id="submitBtn">Send</button>
+                            </form>
+                          </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="content-overlay"></div>
+            </div>
         </div>
-      </div>
     </div>
-    <!-- END: Page Main-->
 
     <%- include('_layouts/commonJs') %>
-      <script src="/app-assets/vendors/data-tables/js/jquery.dataTables.min.js"></script>
-      <script src="/app-assets/js/scripts/data-tables.js"></script>
-      <script src="https://cdnjs.cloudflare.com/ajax/libs/Dropify/0.2.2/js/dropify.min.js"></script>
-      <script src="/app-assets/js/scripts/form-file-uploads.min.js"></script>
+    <script src="/app-assets/vendors/data-tables/js/jquery.dataTables.min.js"></script>
+    <script src="/app-assets/js/scripts/data-tables.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Dropify/0.2.2/js/dropify.min.js"></script>
+    <script src="/app-assets/js/scripts/form-file-uploads.min.js"></script>
 
-      <script>
-        // Modal
-        $(document).ready(function () {
-          $('.modal').modal();
-        });
+    <script>
+      $(document).ready(function() {
+        $('.modal').modal();
+      });
 
-        // Validation
-        // const form = document.getElementById('form');
-        // form.addEventListener('submit', (e) => {
-        //   e.preventDefault();
-        // });
+      const form = document.getElementById('form');
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+      });
 
-        // Validate Image upload
-        const forms = document.querySelectorAll(".image-form");
-        forms.forEach((elem) => {
-          elem.addEventListener('submit', (e) => {
-            e.preventDefault();
-            validate(e.target);
-          })
-        });
+      const forms = document.querySelectorAll(".image-form");
+      forms.forEach((elem) => {
+        elem.addEventListener('submit', (e) => {
+          e.preventDefault();
+          validate(e.target);
+        })
+      });
 
-        // Validation
-        function validate(formElement) {
-          let returnVal = true;
+      function validate() {
+        let returnVal = true;
 
-          const titleValue = formElement.querySelector('#title').value.trim();
-          const bodyValue = formElement.querySelector('#body').value.trim();
-          const selectedUserIds = formElement.querySelector('#selectedUserIds').value.trim();
-          console.log("Selected Users:", selectedUserIds);
+        const titleValue = document.getElementById('title').value.trim();
+        const bodyValue = document.getElementById('body').value.trim();
+        const selectedUserIds = document.getElementById('selectedUserIds').value.trim();
 
-          if (titleValue === '') {
-            document.getElementById('error1').innerText = 'Please enter notification title.';
-            returnVal = false;
-          } else {
-            document.getElementById('error1').innerText = '';
-          }
-
-          if (selectedUserIds === '') {
-            document.getElementById('error2').innerText = 'Please select some users.';
-            returnVal = false;
-          } else if (bodyValue === '') {
-            document.getElementById('error2').innerText = 'Please enter notification body.';
-            returnVal = false;
-          } else {
-            document.getElementById('error2').innerText = '';
-          }
-
-          if (returnVal) {
-            formElement.querySelector('#submitBtn').disabled = true;
-            formElement.submit();
-          }
+        if (titleValue == '') {
+          document.getElementById('error1').innerText = 'Please enter notification title.';
+          returnVal = false;
+        } else {
+          document.getElementById('error1').innerText = '';
         }
 
+        if (selectedUserIds == '') {
+          document.getElementById('error2').innerText = 'Please select some users.';
+          returnVal = false;
+        } else if (bodyValue == '') {
+          document.getElementById('error2').innerText = 'Please enter notification body.';
+          returnVal = false;
+        } else {
+          document.getElementById('error2').innerText = '';
+        }
 
-        document.addEventListener('DOMContentLoaded', function () {
-          const selectAllCheckbox = document.getElementById('selectAll');
-          const userCheckboxes = document.querySelectorAll('[name="selectedUsers[]"]');
-          const selectedUserIdsInput = document.getElementById('selectedUserIds');
+        if (returnVal) {
+          document.getElementById('submitBtn').disabled = true;
+          document.getElementById('form').submit();
+        }
+      }
 
-          selectAllCheckbox.addEventListener('change', function () {
-            userCheckboxes.forEach(function (checkbox) {
-              checkbox.checked = selectAllCheckbox.checked;
-            });
+      document.addEventListener('DOMContentLoaded', function() {
+        const selectAllCheckbox = document.getElementById('selectAll');
+        const userCheckboxes = document.querySelectorAll('[name="selectedUsers[]"]');
+        const selectedUserIdsInput = document.getElementById('selectedUserIds');
 
+        selectAllCheckbox.addEventListener('change', function() {
+          userCheckboxes.forEach(function(checkbox) {
+            checkbox.checked = selectAllCheckbox.checked;
+          });
+
+          updateSelectedUserIds();
+        });
+
+        userCheckboxes.forEach(function(checkbox) {
+          checkbox.addEventListener('change', function() {
             updateSelectedUserIds();
           });
-
-          userCheckboxes.forEach(function (checkbox) {
-            checkbox.addEventListener('change', function () {
-              updateSelectedUserIds();
-            });
-          });
-
-          function updateSelectedUserIds() {
-            const selectedUserIds = Array.from(userCheckboxes)
-              .filter(function (checkbox) {
-                return checkbox.checked;
-              })
-              .map(function (checkbox) {
-                return checkbox.value;
-              });
-
-            selectedUserIdsInput.value = selectedUserIds.join(',');
-          }
         });
-      </script>
-</body>
 
+        function updateSelectedUserIds() {
+          const selectedUserIds = Array.from(userCheckboxes)
+            .filter(function(checkbox) {
+              return checkbox.checked;
+            })
+            .map(function(checkbox) {
+              return checkbox.value;
+            });
+
+          selectedUserIdsInput.value = selectedUserIds.join(',');
+        }
+      });
+    </script>
+</body>
 </html>
