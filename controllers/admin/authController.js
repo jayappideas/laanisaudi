@@ -12,8 +12,9 @@ const moduleModel = require('../../models/moduleModel');
 const adminModel = require('../../models/adminModel');
 const staffNotificationModel = require('../../models/staffNotificationModel');
 const Transaction = require('../../models/transactionModel');
-const { sendNotificationsToTokens,} = require('../../utils/sendNotificationStaff');
-
+const {
+    sendNotificationsToTokens,
+} = require('../../utils/sendNotificationStaff');
 
 exports.checkAdmin = async (req, res, next) => {
     try {
@@ -99,25 +100,168 @@ exports.checkPermission = (moduleKey, action) => {
 };
 
 exports.getDashboard = async (req, res) => {
-    var data = {};
-    data.user = await User.find({ isDelete: false }).count();
-    data.vendor = await Vendor.find({ isDelete: false }).count();
+    try {
+        var data = {};
+        data.user = await User.find({ isDelete: false }).count();
+        data.vendor = await Vendor.find({ isDelete: false }).count();
 
-    // Calculate Total Earn Points (sum of all earnedPoints from accepted transactions)
-    const earnPointsResult = await Transaction.aggregate([
-        { $match: { status: 'accepted' } },
-        { $group: { _id: null, total: { $sum: '$earnedPoints' } } }
-    ]);
-    data.totalEarnPoints = earnPointsResult.length > 0 ? earnPointsResult[0].total : 0;
+        // Calculate Total Earn Points (sum of all earnedPoints from accepted transactions)
+        const earnPointsResult = await Transaction.aggregate([
+            { $match: { status: 'accepted' } },
+            { $group: { _id: null, total: { $sum: '$earnedPoints' } } },
+        ]);
+        data.totalEarnPoints =
+            earnPointsResult.length > 0 ? earnPointsResult[0].total : 0;
 
-    // Calculate Total Redeem Points (sum of all spentPoints from accepted transactions)
-    const redeemPointsResult = await Transaction.aggregate([
-        { $match: { status: 'accepted' } },
-        { $group: { _id: null, total: { $sum: '$spentPoints' } } }
-    ]);
-    data.totalRedeemPoints = redeemPointsResult.length > 0 ? redeemPointsResult[0].total : 0;
+        // Calculate Total Redeem Points (sum of all spentPoints from accepted transactions)
+        const redeemPointsResult = await Transaction.aggregate([
+            { $match: { status: 'accepted' } },
+            { $group: { _id: null, total: { $sum: '$spentPoints' } } },
+        ]);
+        data.totalRedeemPoints =
+            redeemPointsResult.length > 0 ? redeemPointsResult[0].total : 0;
 
-    res.render('index', { data });
+        // Additional dashboard data (last 30 days)
+        const end = new Date();
+        const start = new Date();
+        start.setDate(end.getDate() - 30);
+
+        // Top 5 vendors by discount given in last 30 days
+        const vendorStats = await Transaction.aggregate([
+            { $match: { createdAt: { $gte: start, $lte: end } } },
+            {
+                $lookup: {
+                    from: 'staffs',
+                    localField: 'staff',
+                    foreignField: '_id',
+                    as: 'staffInfo',
+                },
+            },
+            {
+                $unwind: {
+                    path: '$staffInfo',
+                    preserveNullAndEmptyArrays: true,
+                },
+            },
+            {
+                $lookup: {
+                    from: 'vendors',
+                    localField: 'staffInfo.vendor',
+                    foreignField: '_id',
+                    as: 'vendorInfo',
+                },
+            },
+            {
+                $unwind: {
+                    path: '$vendorInfo',
+                    preserveNullAndEmptyArrays: true,
+                },
+            },
+            { $match: { 'vendorInfo._id': { $exists: true } } },
+            {
+                $group: {
+                    _id: '$vendorInfo._id',
+                    vendorName: { $first: '$vendorInfo.businessName' },
+                    totalTransactions: { $sum: 1 },
+                    totalRedemptions: {
+                        $sum: { $cond: [{ $gt: ['$spentPoints', 0] }, 1, 0] },
+                    },
+                    totalDiscountGiven: { $sum: '$discountAmount' },
+                },
+            },
+            { $sort: { totalDiscountGiven: -1 } },
+            { $limit: 5 },
+            {
+                $project: {
+                    _id: 0,
+                    vendorId: '$_id',
+                    vendorName: { $ifNull: ['$vendorName', 'Unknown Vendor'] },
+                    totalTransactions: 1,
+                    totalRedemptions: 1,
+                    totalDiscountBHD: { $round: ['$totalDiscountGiven', 3] },
+                },
+            },
+        ]);
+
+        // Redemption trend (last 30 days)
+        const redemptionTrend = await Transaction.aggregate([
+            {
+                $match: {
+                    spentPoints: { $gt: 0 },
+                    createdAt: { $gte: start, $lte: end },
+                },
+            },
+            {
+                $group: {
+                    _id: {
+                        $dateToString: {
+                            format: '%Y-%m-%d',
+                            date: '$createdAt',
+                        },
+                    },
+                    points: { $sum: '$spentPoints' },
+                    redemptions: { $sum: 1 },
+                },
+            },
+            { $sort: { _id: 1 } },
+        ]);
+
+        // Top 5 users participating in offers (transactions with discount)
+        const topOfferUsers = await Transaction.aggregate([
+            {
+                $match: {
+                    discount: { $ne: null },
+                    // createdAt: { $gte: start, $lte: end },
+                },
+            },
+            {
+                $group: {
+                    _id: '$user',
+                    offersCount: { $sum: 1 },
+                    totalDiscount: { $sum: '$discountAmount' },
+                },
+            },
+            { $sort: { offersCount: -1 } },
+            { $limit: 5 },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: '_id',
+                    foreignField: '_id',
+                    as: 'userInfo',
+                },
+            },
+            {
+                $unwind: {
+                    path: '$userInfo',
+                    preserveNullAndEmptyArrays: true,
+                },
+            },
+            {
+                $project: {
+                    _id: 0,
+                    userId: '$_id',
+                    name: {
+                        $ifNull: ['$userInfo.name', '$userInfo.mobileNumber'],
+                    },
+                    mobile: '$userInfo.mobileNumber',
+                    offersCount: 1,
+                    totalDiscount: { $round: ['$totalDiscount', 3] },
+                },
+            },
+        ]);
+
+        res.render('index', {
+            data,
+            topVendors: vendorStats,
+            redemptionTrend,
+            topOfferUsers,
+        });
+    } catch (error) {
+        console.error('Dashboard Error:', error.message);
+        req.flash('red', 'Failed to load dashboard');
+        res.redirect('/admin');
+    }
 };
 
 exports.getLogin = async (req, res) => {
@@ -460,7 +604,7 @@ exports.sendNotificationstaff = async (req, res) => {
         const fcmTokens = users.map(user => user.fcmToken);
         const usersWithNotification = users.map(user => user._id);
         const data = {
-            type: 'admin_notification'
+            type: 'admin_notification',
         };
         await sendNotificationsToTokens(title, body, fcmTokens, data);
 
@@ -483,7 +627,6 @@ exports.deleteAccountSubAdmin = async (req, res, next) => {
         const subadmin = await adminModel.findByIdAndDelete(req.params.id);
 
         // const modifiedEmail = `${subadmin.email}_deleted_${Date.now()}`;
-
 
         // subadmin.isDelete = true;
         // subadmin.token = '';

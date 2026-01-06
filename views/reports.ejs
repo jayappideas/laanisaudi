@@ -15,7 +15,7 @@
   <style>
     table tr td, th { text-align: center; vertical-align: middle; }
     /* .card { border-radius: 16px; box-shadow: 0 6px 25px rgba(0,0,0,0.1); margin-bottom: 30px; overflow: hidden; } */
-    
+
     .metric-card {
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
@@ -96,43 +96,10 @@
             </div>
           </div>
 
-          <!-- TOP 5 VENDORS -->
-          <% if(topVendors.length > 0) { %>
-            <div class="card">
-              <div class="card-content">
-                <h5 class="purple-text">Top 5 Vendors (by Discount Given)</h5>
-                <% topVendors.forEach((v, i) => { %>
-                  <div class="top-vendor">
-                    <div style="display:flex;align-items:center;">
-                      <div style="width:40px;height:40px;border-radius:50%;background:<%= i===0?'#FFD700':i===1?'#C0C0C0':i===2?'#CD7F32':'#667eea' %>;color:white;font-weight:bold;display:flex;align-items:center;justify-content:center;margin-right:15px;">
-                        <%= i+1 %>
-                      </div>
-                      <div>
-                        <strong><%= v.vendorName %></strong><br>
-                        <small><%= v.redemptions %> redemptions • <%= v.totalOrders %> orders</small>
-                      </div>
-                    </div>
-                    <div class="right-align">
-                      <strong style="font-size:20px;color:#2e7d32;"><%= v.totalDiscountBHD %> BHD</strong>
-                    </div>
-                  </div>
-                <% }) %>
-              </div>
-            </div>
-          <% } %>
-
-          <!-- REDEMPTION TREND CHART -->
-          <div class="card">
-            <div class="card-content">
-              <h5 class="purple-text">Point Redemption Trend</h5>
-              <canvas id="redemptionChart" height="100"></canvas>
-            </div>
-          </div>
-
           <!-- RECENT REDEMPTIONS TABLE -->
           <div class="card">
             <div class="card-content">
-              <h5>Recent Redemptions</h5>
+              <h5>Redemptions History</h5>
               <div class="section section-data-tables">
                 <div class="row">
                   <div class="col s12">
@@ -189,36 +156,5 @@
   <script src="/app-assets/vendors/data-tables/js/jquery.dataTables.min.js"></script>
   <script src="/app-assets/js/scripts/data-tables.js"></script>
 
-  <script>
-    $(document).ready(function() {
-      // Chart
-      const ctx = document.getElementById('redemptionChart').getContext('2d');
-      new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: [<%- redemptionTrend.map(d => `'${d._id}'`).join(',') %>],
-          datasets: [{
-            label: 'Points Redeemed',
-            data: [<%- redemptionTrend.map(d => d.points || 0).join(',') %>],
-            borderColor: '#667eea',
-            backgroundColor: 'rgba(102, 126, 234, 0.1)',
-            tension: 0.4,
-            fill: true,
-            pointRadius: 4
-          }]
-        },
-        options: {
-          responsive: true,
-          plugins: {
-            legend: { position: 'top' },
-            title: { display: false }
-          },
-          scales: {
-            y: { beginAtZero: true }
-          }
-        }
-      });
-    });
-  </script>
 </body>
 </html>
