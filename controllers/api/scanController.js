@@ -1100,7 +1100,7 @@ exports.getCurrentTransaction = async (req, res, next) => {
 //       message: `Order ${status} successfully`,
 //       order: {
 //         ...order.toObject(),
-//         adminCommissionPercent: commissionPercent, 
+//         adminCommissionPercent: commissionPercent,
 //       },
 //     });
 
@@ -1229,7 +1229,7 @@ exports.getCurrentTransaction = async (req, res, next) => {
 //                 });
 //             }
 
-//             // NOTIFICATION TO STAFF 
+//             // NOTIFICATION TO STAFF
 //             let title = 'Order Status Update';
 //             const userName = order.user?.name || 'User';
 //             const bill = order.finalAmount?.toFixed(2) || '0.00';
@@ -1293,7 +1293,7 @@ exports.getCurrentTransaction = async (req, res, next) => {
 //     }
 // };
 
-//? Accept or Reject an order by USER 
+//? Accept or Reject an order by USER
 // exports.updateOrderStatus = async (req, res, next) => {
 //     try {
 //         const { status, transactionTime } = req.body;
@@ -1392,7 +1392,7 @@ exports.getCurrentTransaction = async (req, res, next) => {
 //                 });
 //             }
 
-//             // NOTIFICATION TO STAFF — ACCEPT 
+//             // NOTIFICATION TO STAFF — ACCEPT
 //             if (order.staff?.fcmToken) {
 //                 const title = 'Order Accepted';
 //                 const userName = user.name || 'Customer';
@@ -1463,7 +1463,7 @@ exports.getCurrentTransaction = async (req, res, next) => {
 //     }
 // };
 
-//? Accept or Reject an order by USER 
+//? Accept or Reject an order by USER
 exports.updateOrderStatus = async (req, res, next) => {
     try {
         const { status, transactionTime } = req.body;
@@ -1502,7 +1502,7 @@ exports.updateOrderStatus = async (req, res, next) => {
             order.earnedPoints = points;
             order.finalAmount = finalAmount;
 
-            // Proper admin commission calculation 
+            // Proper admin commission calculation
             const adminCommissionPercent = order.staff?.vendor?.adminCommission || 0;
             const adminCommissionAmount = (order.billAmount * adminCommissionPercent) / 100;
             order.adminCommission = adminCommissionAmount;
@@ -1516,7 +1516,7 @@ exports.updateOrderStatus = async (req, res, next) => {
                 vendor: order.staff.vendor,
             });
 
-            // Discount usage tracking 
+            // Discount usage tracking
             if (order.discount?._id) {
                 const discount = await discountModel.findById(order.discount._id);
                 if (discount) {
@@ -1565,7 +1565,7 @@ exports.updateOrderStatus = async (req, res, next) => {
                 });
             }
 
-            // NOTIFICATION TO STAFF — ACCEPT 
+            // NOTIFICATION TO STAFF — ACCEPT
             if (order.staff?.fcmToken) {
                 const title = 'Order Accepted';
                 const userName = user.name || 'Customer';

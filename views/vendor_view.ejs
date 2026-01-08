@@ -3,506 +3,706 @@
 
 <head>
   <%- include('_layouts/head') %>
-    <title>Vendor View | <%= title %>
-    </title>
-    <link rel="stylesheet" type="text/css" href="/app-assets/css/pages/page-users.css">
-    <link rel="stylesheet" type="text/css" href="/app-assets/vendors/data-tables/css/jquery.dataTables.min.css">
-    <link rel="stylesheet" type="text/css"
-      href="/app-assets/vendors/data-tables/extensions/responsive/css/responsive.dataTables.min.css">
-    <link rel="stylesheet" type="text/css" href="/app-assets/vendors/data-tables/css/select.dataTables.min.css">
-    <link rel="stylesheet" type="text/css" href="/app-assets/css/pages/data-tables.css">
-    <link rel="stylesheet" type="text/css"
-      href="https://cdnjs.cloudflare.com/ajax/libs/Dropify/0.2.2/css/dropify.min.css">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <title>Vendor View | <%= title %>
+  </title>
+  <link rel="stylesheet" type="text/css" href="/app-assets/css/pages/page-users.css">
+  <link rel="stylesheet" type="text/css" href="/app-assets/vendors/data-tables/css/jquery.dataTables.min.css">
+  <link rel="stylesheet" type="text/css" href="/app-assets/vendors/data-tables/extensions/responsive/css/responsive.dataTables.min.css">
+  <link rel="stylesheet" type="text/css" href="/app-assets/vendors/data-tables/css/select.dataTables.min.css">
+  <link rel="stylesheet" type="text/css" href="/app-assets/css/pages/data-tables.css">
+  <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/Dropify/0.2.2/css/dropify.min.css">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
-    <style>
-      table tr td,
-      th {
-        text-align: center;
+  <style>
+    table tr td,
+    th {
+      text-align: center;
+    }
+
+    [type='checkbox']+span:not(.lever):before {
+      border-color: black;
+    }
+
+    [type='checkbox']:checked+span:not(.lever):before {
+      border-right-color: black;
+      border-bottom-color: black;
+    }
+
+    .switch label input[type=checkbox]:not(:checked)+.lever {
+      background-color: #f3374a;
+    }
+
+    .switch label input[type=checkbox]:not(:checked)+.lever::before {
+      background-color: #ffaba5;
+    }
+
+    .switch label input[type=checkbox]:checked+.lever {
+      background-color: #31db37;
+    }
+
+    .switch label input[type=checkbox]:checked+.lever::before {
+      background-color: #4CAF50;
+    }
+
+    #commissionInput {
+      width: 65%;
+      height: 40px;
+      text-align: center;
+      font-size: 1.4rem;
+      font-weight: bold;
+      border: 3px solid #6a6a6ac0;
+      border-radius: 8px;
+      background: white;
+    }
+
+    #commissionInput:disabled {
+      background: #f5f5f5;
+      color: #999;
+      border-color: #ccc;
+    }
+
+    #transactions-table ul {
+      list-style-type: disc;
+      margin: 5px 0;
+    }
+
+    #transactions-table ul li {
+      margin-bottom: 3px;
+      font-size: 0.9em;
+    }
+
+    #transactions-table tfoot tr {
+      border-top: 2px solid #673ab7;
+    }
+
+    #transactions-table tfoot td {
+      font-size: 1.05em;
+      padding: 12px 8px;
+    }
+
+    /* RESPONSIVE FIXES */
+    @media (max-width: 768px) {
+      .commission-section {
+        flex-direction: column !important;
+        align-items: flex-end !important;
+        gap: 15px !important;
       }
 
-      [type='checkbox']+span:not(.lever):before {
-        border-color: black;
-      }
-
-      [type='checkbox']:checked+span:not(.lever):before {
-        border-right-color: black;
-        border-bottom-color: black;
-      }
-
-      .switch label input[type=checkbox]:not(:checked)+.lever {
-        background-color: #f3374a;
-      }
-
-      .switch label input[type=checkbox]:not(:checked)+.lever::before {
-        background-color: #ffaba5;
-      }
-
-      .switch label input[type=checkbox]:checked+.lever {
-        background-color: #31db37;
-      }
-
-      .switch label input[type=checkbox]:checked+.lever::before {
-        background-color: #4CAF50;
+      .commission-input-wrapper {
+        width: 100%;
+        justify-content: flex-end !important;
       }
 
       #commissionInput {
-        width: 65%;
-        height: 40px;
-        text-align: center;
-        font-size: 1.4rem;
-        font-weight: bold;
-        border: 3px solid #6a6a6ac0;
-        border-radius: 8px;
-        background: white;
+        width: 100px;
       }
 
-      #commissionInput:disabled {
-        background: #f5f5f5;
-        color: #999;
-        border-color: #ccc;
+      .switch {
+        margin-top: 10px;
       }
-
-      /* RESPONSIVE FIXES */
-      @media (max-width: 768px) {
-        .commission-section {
-          flex-direction: column !important;
-          align-items: flex-end !important;
-          gap: 15px !important;
-        }
-
-        .commission-input-wrapper {
-          width: 100%;
-          justify-content: flex-end !important;
-        }
-
-        #commissionInput {
-          width: 100px;
-        }
-
-        .switch {
-          margin-top: 10px;
-        }
-      }
-    </style>
+    }
+  </style>
 </head>
 
-<body
-  class="vertical-layout page-header-light vertical-menu-collapsible vertical-dark-menu preload-transitions 2-columns"
-  data-open="click" data-menu="vertical-dark-menu" data-col="2-columns">
+<body class="vertical-layout page-header-light vertical-menu-collapsible vertical-dark-menu preload-transitions 2-columns" data-open="click" data-menu="vertical-dark-menu" data-col="2-columns">
 
   <%- include('_layouts/sidenavbar') %>
 
-    <div id="main">
-      <div class="row">
-        <div id="breadcrumbs-wrapper" style="background-color: white;">
-          <div class="container">
-            <div class="row">
-              <div class="col s12 m6 l6">
-                <h5 class="breadcrumbs-title"><span>Vendor View</span></h5>
-              </div>
-              <div class="col s12 m6 l6 right-align-md">
-                <a class="btn gradient-45deg-purple-deep-orange pull-right btn-breadcrumbs modal-trigger"
-                  href="#modal">Send Notification</a>
-              </div>
+  <div id="main">
+    <div class="row">
+      <div id="breadcrumbs-wrapper" style="background-color: white;">
+        <div class="container">
+          <div class="row">
+            <div class="col s12 m6 l6">
+              <h5 class="breadcrumbs-title"><span>Vendor View</span></h5>
+            </div>
+            <div class="col s12 m6 l6 right-align-md">
+              <a class="btn gradient-45deg-purple-deep-orange pull-right btn-breadcrumbs modal-trigger" href="#modal">Send Notification</a>
             </div>
           </div>
         </div>
+      </div>
 
-        <%- include('messages', { messages: messages }) %>
+      <%- include('messages', { messages: messages }) %>
 
-          <div class="col s12">
-            <div class="container">
-              <div class="section users-view">
+      <div class="col s12">
+        <div class="container">
+          <div class="section users-view">
 
-                <!-- HEADER CARD -->
-                <div class="card-panel">
-                  <div class="row">
-                    <div class="col s12 m7">
-                      <div class="display-flex media">
-                        <img src="<%= process.env.IMAGE_URL %><%= vendor.qrCode %>" alt="QR" height="64" width="64">
-                        <div class="media-body" style="margin-left: 10px;">
-                          <h5>
-                            <%= vendor.businessName || 'Vendor' %>
-                          </h5>
-                          <span>Email:</span>
-                          <span class="users-view-id"><a href="mailto:<%= vendor.email %>">
-                              <%= vendor.email %>
-                            </a></span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <!-- RIGHT SIDE: COMMISSION + TOGGLE (NO GAP, FULLY RESPONSIVE) -->
-                    <div class="col s12 m5" style="text-align: right;">
-                      <!-- COMMISSION + TOGGLE IN ONE LINE -->
-                      <div class="commission-section"
-                        style="display: flex; align-items: center; justify-content: flex-end; gap: 20px; flex-wrap: wrap;">
-
-                        <!-- ADMIN COMMISSION -->
-                        <div class="commission-input-wrapper" style="display: flex; align-items: center; gap: 10px;">
-                          <div>
-                            <label
-                              style="display: block; font-weight: bold; color: #444; font-size: 1rem; margin-bottom: 4px;">
-                              Admin Commission
-                            </label>
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                              <!-- <input type="number" id="commissionInput" name="commission"
-                                value="<%= vendor.adminCommissionPercent || 15 %>" min="0" max="50" step="1"
-                                style="font-weight: bold;"> -->
-                              <input type="number" id="commissionInput" name="commission"
-                                value="<%= vendor.adminCommissionPercent != null ? vendor.adminCommissionPercent : 15 %>"
-                                min="0" max="50" step="1">
-                              <span style="font-size: 1.2rem; font-weight: bold; color: #333;">%</span>
-                            </div>
-                          </div>
-                        </div>
-
-                        <!-- APPROVAL TOGGLE -->
-                        <div class="switch">
-                          <label>
-                            <span style="color: red; font-weight: bold;">Pending</span>
-                            <input type="checkbox" <%=vendor.adminApproved ? 'checked' : '' %>
-                            onchange="toggleApprovalWithCommission('<%= vendor._id %>', this.checked)"
-                              >
-                              <span class="lever"></span>
-                              <span style="color: green; font-weight: bold;">Approved</span>
-                          </label>
-                        </div>
-                      </div>
-
-                      <!-- UPDATE COMMISSION BUTTON (Only if approved) -->
-                      <!-- <% if (vendor.adminApproved) { %>
-                        <div style="margin-top: 15px; text-align: right;">
-                          <button onclick="updateCommissionNow('<%= vendor._id %>')"
-                           class="btn-small waves-effect purple waves-light"
-                            >
-                            Update Commission
-                          </button>
-                        </div>
-                        <% } %> -->
-
-                      <!-- ACTION BUTTONS -->
-                      <div
-                        style="margin-top: 25px; display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap;">
-
-                        <% if (vendor.adminApproved) { %>
-
-                          <button onclick="updateCommissionNow('<%= vendor._id %>')"
-                            class="btn-small waves-effect purple waves-light">
-                            Update Commission
-                          </button>
-
-                          <% } %>
-
-                            <a href="/admin/vendor/logs/<%= vendor._id %>"
-                              class="btn-small indigo waves-effect waves-light">
-                              View Activity
-                            </a>
-                            <a href="/admin/vendor/edit-vendor/<%= vendor._id %>"
-                              class="btn-small blue waves-effect waves-light">
-                              Edit
-                            </a>
-                            <a href="/admin/vendor/delete/<%= vendor._id %>"
-                              class="btn-small red waves-effect waves-light"
-                              onclick="return confirm('Delete this vendor?');">
-                              Delete
-                            </a>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <!-- Header End -->
-
-                <!-- Business Information -->
-                <div class="card">
-                  <div class="card-content">
-                    <h5>Business Information</h5>
-                    <div class="row">
-                      <div class="col s12 m6">
-                        <table class="striped">
-                          <tbody>
-                            <tr>
-                              <th style="width: 200px;">Business Type</th>
-                              <td>
-                                <%= vendor.businessType ? vendor.businessType.en.name : '-' %>
-                              </td>
-                            </tr>
-                            <tr>
-                              <th>Business Name</th>
-                              <td>
-                                <%= vendor.businessName || '-' %>
-                              </td>
-                            </tr>
-                            <tr>
-                              <th>Business Mobile</th>
-                              <td>
-                                <%= vendor.businessMobile || '-' %>
-                              </td>
-                            </tr>
-                            <tr>
-                              <th>Registered Date</th>
-                              <td>
-                                <%= new Date(vendor.createdAt).toLocaleDateString('en-IN') %>
-                              </td>
-                            </tr>
-                            <tr>
-                              <th>Admin Commission</th>
-                              <td><strong style="color: red; font-size: 1.2rem;">
-                                  <%= vendor.adminCommissionPercent || 0 %>% on every bill
-                                </strong></td>
-                            </tr>
-                          </tbody>
-                        </table>
-                      </div>
-                      <div class="col s12 m6">
-                        <div class="row">
-                          <div class="col s6">
-                            <h6>Business Logo</h6>
-                            <img src="<%= process.env.IMAGE_URL %><%= vendor.businessLogo %>"
-                              style="width: 100%; border-radius: 8px;" />
-                          </div>
-                          <div class="col s6">
-                            <h6>Business License</h6>
-                            <img src="<%= process.env.IMAGE_URL %><%= vendor.businessLicense %>"
-                              style="width: 100%; border-radius: 8px;" />
-                          </div>
-                        </div>
-                      </div>
+            <!-- HEADER CARD -->
+            <div class="card-panel">
+              <div class="row">
+                <div class="col s12 m7">
+                  <div class="display-flex media">
+                    <img src="<%= process.env.IMAGE_URL %><%= vendor.qrCode %>" alt="QR" height="64" width="64">
+                    <div class="media-body" style="margin-left: 10px;">
+                      <h5>
+                        <%= vendor.businessName || 'Vendor' %>
+                      </h5>
+                      <span>Email:</span>
+                      <span class="users-view-id"><a href="mailto:<%= vendor.email %>">
+                          <%= vendor.email %>
+                        </a></span>
                     </div>
                   </div>
                 </div>
 
-                <div class="row">
-                  <div class="col s12">
-                    <h5>Branches Information</h5>
-                  </div>
-                  <div class="col s12" style="padding: 0%;">
-                    <div class="section section-data-tables">
-                      <div class="col s12">
-                        <div class="card">
-                          <div class="card-content">
-                            <div class="row">
-                              <div class="col s12 overflow">
-                                <table id="branches-table" class="display">
-                                  <thead>
-                                    <tr>
-                                      <th>Sr</th>
-                                      <th>Branch Name</th>
-                                      <th>
-                                        Email
-                                      </th>
-                                      <th>Phone</th>
+                <!-- RIGHT SIDE: COMMISSION + TOGGLE -->
+                <div class="col s12 m5" style="text-align: right;">
+                  <div class="commission-section" style="display: flex; align-items: center; justify-content: flex-end; gap: 20px; flex-wrap: wrap;">
 
-                                      <th>Building Name</th>
-                                      <th>Building No.</th>
-                                      <th>Road Name</th>
-                                      <th>City</th>
-                                      <th>State</th>
-                                      <th>Country</th>
-                                    </tr>
-                                  </thead>
-                                  <tbody>
-                                    <% for( let i=0; i < branch.length; i++ ) { %>
-                                      <tr>
-                                        <td>
-                                          <%= i+1 %>
-                                        </td>
-                                        <td>
-                                          <%= branch[i].name %>
-                                        </td>
-                                        <td>
-                                          <%= branch[i].email %>
-                                        </td>
-                                        <td>
-                                          <%= branch[i].phone %>
-                                        </td>
-                                        <td>
-                                          <%= branch[i].buildingName %>
-                                        </td>
-                                        <td>
-                                          <%= branch[i].buildingNo %>
-                                        </td>
-                                        <td>
-                                          <%= branch[i].roadName %>
-                                        </td>
-                                        <td>
-                                          <%= branch[i].city %>
-                                        </td>
-                                        <td>
-                                          <%= branch[i].state %>
-                                        </td>
-                                        <td>
-                                          <%= branch[i].country %>
-                                        </td>
-                                      </tr>
-                                      <% } %>
-                                  </tbody>
-                                </table>
-                              </div>
-                            </div>
-                          </div>
+                    <!-- ADMIN COMMISSION -->
+                    <div class="commission-input-wrapper" style="display: flex; align-items: center; gap: 10px;">
+                      <div>
+                        <label style="display: block; font-weight: bold; color: #444; font-size: 1rem; margin-bottom: 4px;">
+                          Admin Commission
+                        </label>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                          <input type="number" id="commissionInput" name="commission" value="<%= vendor.adminCommissionPercent != null ? vendor.adminCommissionPercent : 15 %>" min="0" max="50" step="1">
+                          <span style="font-size: 1.2rem; font-weight: bold; color: #333;">%</span>
                         </div>
                       </div>
                     </div>
-                  </div>
-                </div>
 
-                <div class="row">
-                  <div class="col s12">
-                    <h5>Staff Members Information</h5>
-                  </div>
-                  <div class="col s12" style="padding: 0%;">
-                    <div class="section section-data-tables">
-                      <div class="col s12">
-                        <div class="card">
-                          <div class="card-content">
-                            <div class="row">
-                              <div class="col s12 overflow">
-                                <table id="staff-table" class="display">
-                                  <thead>
-                                    <tr>
-                                      <th>Sr</th>
-                                      <th style="width: 60px; text-align: center;">
-                                        <label
-                                          style="margin: 0; display: flex; align-items: center; justify-content: center;">
-                                          <input type="checkbox" id="selectAll" />
-                                          <span style="margin-left: 4px;">All</span>
-                                        </label>
-                                      </th>
-                                      <th>QR Code</th>
-                                      <th>Building Name</th>
-                                      <th>Branch Name</th>
-                                      <th>Staff Name</th>
-                                      <th>Email</th>
-                                      <th>Mobile Number</th>
-                                      <th>Occupation</th>
-                                    </tr>
-                                  </thead>
-                                  <tbody>
-                                    <% for(let i=0; i < staff.length; i++ ) { %>
-                                      <tr>
-                                        <td>
-                                          <%= i+1 %>
-                                        </td>
-                                        <td>
-                                          <label>
-                                            <input type="checkbox" name="selectedUsers[]" value="<%= staff[i].id %>" />
-                                            <span></span>
-                                          </label>
-                                        </td>
-                                        <td width="100px"><img src="<%= process.env.IMAGE_URL%><%= staff[i].qrCode %>"
-                                            style="width: 60%;" /></td>
-                                        <td>
-                                          <%= staff[i].branch?.buildingName %>
-                                        </td>
-                                        <td>
-                                          <%= staff[i].branch?.name %>
-                                        </td>
-                                        <td>
-                                          <%= staff[i].name %>
-                                        </td>
-                                        <td>
-                                          <%= staff[i].email %>
-                                        </td>
-                                        <td>
-                                          <%= staff[i].mobileNumber %>
-                                        </td>
-                                        <td>
-                                          <%= staff[i].occupation %>
-                                        </td>
-                                      </tr>
-                                      <% } %>
-                                  </tbody>
-                                </table>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
+                    <!-- APPROVAL TOGGLE -->
+                    <div class="switch">
+                      <label>
+                        <span style="color: red; font-weight: bold;">Pending</span>
+                        <input type="checkbox" <%=vendor.adminApproved ? 'checked' : '' %> onchange="toggleApprovalWithCommission('<%= vendor._id %>', this.checked)">
+                        <span class="lever"></span>
+                        <span style="color: green; font-weight: bold;">Approved</span>
+                      </label>
                     </div>
                   </div>
 
-                  <div id="modal" class="modal">
-                    <div class="modal-content">
-                      <h5>Send Notification</h5>
-                      <form id="form" class="image-form" method="POST" action="/admin/user/notify"
-                        enctype="multipart/form-data">
-                        <div class="input-field col s12">
-                          <input placeholder="Title" id="title" name="title" type="text">
-                          <label for="title">Title</label>
-                          <small>
-                            <div id="error1" class="error"></div>
-                          </small>
-                        </div>
-                        <div class="input-field col s12 mt-0 mb-0">
-                          <input placeholder="Body" id="body" name="body" type="text">
-                          <label for="body">Body</label>
-                          <small>
-                            <div id="error2" class="error"></div>
-                          </small>
-                        </div>
+                  <!-- ACTION BUTTONS -->
+                  <div style="margin-top: 25px; display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap;">
 
-                        <input type="hidden" name="selectedUserIds" id="selectedUserIds" />
-                        <button type="submit" class="btn purple mr-40" id="submitBtn">Send</button>
-                      </form>
-                    </div>
+                    <% if (vendor.adminApproved) { %>
+                    <button onclick="updateCommissionNow('<%= vendor._id %>')" class="btn-small waves-effect purple waves-light">
+                      Update Commission
+                    </button>
+                    <% } %>
+
+                    <a href="/admin/vendor/logs/<%= vendor._id %>" class="btn-small indigo waves-effect waves-light">
+                      View Activity
+                    </a>
+                    <a href="/admin/vendor/edit-vendor/<%= vendor._id %>" class="btn-small blue waves-effect waves-light">
+                      Edit
+                    </a>
+                    <a href="/admin/vendor/delete/<%= vendor._id %>" class="btn-small red waves-effect waves-light" onclick="return confirm('Delete this vendor?');">
+                      Delete
+                    </a>
                   </div>
                 </div>
-
               </div>
             </div>
+            <!-- Header End -->
+
+            <!-- Business Information -->
+            <div class="card">
+              <div class="card-content">
+                <h5>Business Information</h5>
+                <div class="row">
+                  <div class="col s12 m6">
+                    <table class="striped">
+                      <tbody>
+                        <tr>
+                          <th style="width: 200px;">Business Type</th>
+                          <td>
+                            <%= vendor.businessType ? vendor.businessType.en.name : '-' %>
+                          </td>
+                        </tr>
+                        <tr>
+                          <th>Business Name</th>
+                          <td>
+                            <%= vendor.businessName || '-' %>
+                          </td>
+                        </tr>
+                        <tr>
+                          <th>Business Mobile</th>
+                          <td>
+                            <%= vendor.businessMobile || '-' %>
+                          </td>
+                        </tr>
+                        <tr>
+                          <th>Registered Date</th>
+                          <td>
+                            <%= new Date(vendor.createdAt).toLocaleDateString('en-IN') %>
+                          </td>
+                        </tr>
+                        <tr>
+                          <th>Admin Commission</th>
+                          <td><strong style="color: red; font-size: 1.2rem;">
+                              <%= vendor.adminCommissionPercent || 0 %>% on every bill
+                            </strong></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <div class="col s12 m6">
+                    <div class="row">
+                      <div class="col s6">
+                        <h6>Business Logo</h6>
+                        <img src="<%= process.env.IMAGE_URL %><%= vendor.businessLogo %>" style="width: 100%; border-radius: 8px;" />
+                      </div>
+                      <div class="col s6">
+                        <h6>Business License</h6>
+                        <img src="<%= process.env.IMAGE_URL %><%= vendor.businessLicense %>" style="width: 100%; border-radius: 8px;" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Branches Information -->
+            <div class="row">
+              <div class="col s12">
+                <h5>Branches Information</h5>
+              </div>
+              <div class="col s12" style="padding: 0%;">
+                <div class="section section-data-tables">
+                  <div class="col s12">
+                    <div class="card">
+                      <div class="card-content">
+                        <div class="row">
+                          <div class="col s12 overflow">
+                            <table id="branches-table" class="display">
+                              <thead>
+                                <tr>
+                                  <th>Sr</th>
+                                  <th>Branch Name</th>
+                                  <th>Email</th>
+                                  <th>Phone</th>
+                                  <th>Building Name</th>
+                                  <th>Building No.</th>
+                                  <th>Road Name</th>
+                                  <th>City</th>
+                                  <th>State</th>
+                                  <th>Country</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                <% for( let i=0; i < branch.length; i++ ) { %>
+                                <tr>
+                                  <td>
+                                    <%= i+1 %>
+                                  </td>
+                                  <td>
+                                    <%= branch[i].name %>
+                                  </td>
+                                  <td>
+                                    <%= branch[i].email %>
+                                  </td>
+                                  <td>
+                                    <%= branch[i].phone %>
+                                  </td>
+                                  <td>
+                                    <%= branch[i].buildingName %>
+                                  </td>
+                                  <td>
+                                    <%= branch[i].buildingNo %>
+                                  </td>
+                                  <td>
+                                    <%= branch[i].roadName %>
+                                  </td>
+                                  <td>
+                                    <%= branch[i].city %>
+                                  </td>
+                                  <td>
+                                    <%= branch[i].state %>
+                                  </td>
+                                  <td>
+                                    <%= branch[i].country %>
+                                  </td>
+                                </tr>
+                                <% } %>
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Staff Members Information -->
+            <div class="row">
+              <div class="col s12">
+                <h5>Staff Members Information</h5>
+              </div>
+              <div class="col s12" style="padding: 0%;">
+                <div class="section section-data-tables">
+                  <div class="col s12">
+                    <div class="card">
+                      <div class="card-content">
+                        <div class="row">
+                          <div class="col s12 overflow">
+                            <table id="staff-table" class="display">
+                              <thead>
+                                <tr>
+                                  <th>Sr</th>
+                                  <th style="width: 60px; text-align: center;">
+                                    <label style="margin: 0; display: flex; align-items: center; justify-content: center;">
+                                      <input type="checkbox" id="selectAll" />
+                                      <span style="margin-left: 4px;">All</span>
+                                    </label>
+                                  </th>
+                                  <th>QR Code</th>
+                                  <th>Building Name</th>
+                                  <th>Branch Name</th>
+                                  <th>Staff Name</th>
+                                  <th>Email</th>
+                                  <th>Mobile Number</th>
+                                  <th>Occupation</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                <% for(let i=0; i < staff.length; i++ ) { %>
+                                <tr>
+                                  <td>
+                                    <%= i+1 %>
+                                  </td>
+                                  <td>
+                                    <label>
+                                      <input type="checkbox" name="selectedUsers[]" value="<%= staff[i].id %>" />
+                                      <span></span>
+                                    </label>
+                                  </td>
+                                  <td width="100px"><img src="<%= process.env.IMAGE_URL%><%= staff[i].qrCode %>" style="width: 60%;" /></td>
+                                  <td>
+                                    <%= staff[i].branch?.buildingName %>
+                                  </td>
+                                  <td>
+                                    <%= staff[i].branch?.name %>
+                                  </td>
+                                  <td>
+                                    <%= staff[i].name %>
+                                  </td>
+                                  <td>
+                                    <%= staff[i].email %>
+                                  </td>
+                                  <td>
+                                    <%= staff[i].mobileNumber %>
+                                  </td>
+                                  <td>
+                                    <%= staff[i].occupation %>
+                                  </td>
+                                </tr>
+                                <% } %>
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Transaction History -->
+            <div class="row">
+              <div class="col s12">
+                <h5>Transaction History</h5>
+              </div>
+              <div class="col s12" style="padding: 0%;">
+                <div class="section section-data-tables">
+                  <div class="col s12">
+                    <div class="card">
+                      <div class="card-content">
+                        <div class="row">
+                          <div class="col s12 overflow">
+                            <table id="transactions-table" class="display">
+                              <thead>
+                                <tr>
+                                  <th>Sr</th>
+                                  <th>Transaction Date</th>
+                                  <th>Customer</th>
+                                  <th>Mobile</th>
+                                  <th>Items Purchased</th>
+                                  <th>Quantity</th>
+                                  <th>Bill Amount</th>
+                                  <th>Discount</th>
+                                  <th>Final Amount</th>
+                                  <th>Points Earned</th>
+                                  <th>Points Spent</th>
+                                  <!-- <th>Admin Commission</th> -->
+                                  <th>Staff</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                <% if (transactions && transactions.length > 0) { %>
+                                <% for(let i = 0; i < transactions.length; i++) { %>
+                                <tr>
+                                  <td><%= i + 1 %></td>
+                                  <td>
+                                    <%
+                              const transDate = new Date(transactions[i].createdAt);
+                              const day = String(transDate.getDate()).padStart(2, '0');
+                              const month = String(transDate.getMonth() + 1).padStart(2, '0');
+                              const year = transDate.getFullYear();
+                              const hours = String(transDate.getHours()).padStart(2, '0');
+                              const minutes = String(transDate.getMinutes()).padStart(2, '0');
+                            %>
+                                    <%= `${day}-${month}-${year} ${hours}:${minutes}` %>
+                                  </td>
+                                  <td>
+                                    <%= transactions[i].user?.name || '-' %>
+                                  </td>
+                                  <td>
+                                    <%= transactions[i].user?.mobileNumber || '-' %>
+                                  </td>
+                                  <td>
+                                    <% if (transactions[i].items && transactions[i].items.length > 0) { %>
+                                    <ul style="margin: 0; padding-left: 20px;">
+                                      <% transactions[i].items.forEach(item => { %>
+                                      <li>
+                                        <%= item.menuItem?.name || 'Item Deleted' %>
+                                        <% if (item.menuItem?.price) { %>
+                                        (₹<%= item.menuItem.price %>)
+                                        <% } %>
+                                      </li>
+                                      <% }) %>
+                                    </ul>
+                                    <% } else { %>
+                                    -
+                                    <% } %>
+                                  </td>
+                                  <td>
+                                    <% if (transactions[i].items && transactions[i].items.length > 0) { %>
+                                    <ul style="margin: 0; padding-left: 20px;">
+                                      <% transactions[i].items.forEach(item => { %>
+                                      <li>
+                                        <%= item.quantity || 1 %>
+                                      </li>
+                                      <% }) %>
+                                    </ul>
+                                    <% } else { %>
+                                    -
+                                    <% } %>
+                                  </td>
+                                  <td>
+                                    <strong>₹<%= transactions[i].billAmount?.toFixed(2) || '0.00' %></strong>
+                                  </td>
+                                  <td>
+                                    <% if (transactions[i].discount) { %>
+                                    <span style="color: #ff5722;">
+                                      <%= transactions[i].discount.title %><br>
+                                      <small>
+                                        <% if (transactions[i].discount.discountType==='Percentage' ) { %>
+                                        <%= transactions[i].discount.discountValue %>% off
+                                        <% } else { %>
+                                        ₹<%= transactions[i].discount.discountValue %> off
+                                        <% } %>
+                                      </small>
+                                    </span>
+                                    <% } else if (transactions[i].discountAmount> 0) { %>
+                                    <span style="color: #ff5722;">₹<%=
+                                                    transactions[i].discountAmount?.toFixed(2) %></span>
+                                    <% } else { %>
+                                    -
+                                    <% } %>
+                                  </td>
+                                  <td>
+                                    <strong style="color: #4caf50; font-size: 1.1em;">
+                                      ₹<%= transactions[i].finalAmount?.toFixed(2) || '0.00' %>
+                                    </strong>
+                                  </td>
+                                  <td>
+                                    <span style="background-color: #e8f5e9; padding: 4px 8px; border-radius: 4px; color: #2e7d32; font-weight: bold;">
+                                      +<%= transactions[i].earnedPoints || 0 %> pts
+                                    </span>
+                                  </td>
+                                  <td>
+                                    <% if (transactions[i].spentPoints> 0) { %>
+                                    <span style="background-color: #ffebee; padding: 4px 8px; border-radius: 4px; color: #c62828; font-weight: bold;">
+                                      -<%= transactions[i].spentPoints %> pts
+                                    </span>
+                                    <% } else { %>
+                                    -
+                                    <% } %>
+                                  </td>
+                                 
+                                  <td>
+                                    <%= transactions[i].staff?.name || '-' %>
+                                  </td>
+                                </tr>
+                                <% } %>
+                                <% } else { %>
+                                <tr>
+                                  <td colspan="13" style="text-align: center;">No transactions found for
+                                    this vendor</td>
+                                </tr>
+                                <% } %>
+                              </tbody>
+                              <tfoot>
+                                <% if (transactions && transactions.length> 0) { %>
+                                <%
+                        const totalBill=transactions.reduce((sum, t)=> sum + (t.billAmount || 0), 0);
+                        const totalDiscount = transactions.reduce((sum, t) => sum + (t.discountAmount || 0), 0);
+                        const totalFinal = transactions.reduce((sum, t) => sum + (t.finalAmount || 0), 0);
+                        const totalEarned = transactions.reduce((sum, t) => sum + (t.earnedPoints || 0), 0);
+                        const totalSpent = transactions.reduce((sum, t) => sum + (t.spentPoints || 0), 0);
+                        const totalCommission = transactions.reduce((sum, t) => sum + (t.adminCommission || 0), 0);
+                      %>
+                                <tr style="background-color: #f5f5f5; font-weight: bold;">
+                                  <td colspan="6" style="text-align: right;">TOTAL:</td>
+                                  <td>₹<%= totalBill.toFixed(2) %></td>
+                                  <td>₹<%= totalDiscount.toFixed(2) %></td>
+                                  <td style="color: #4caf50;">₹<%= totalFinal.toFixed(2) %></td>
+                                  <td style="color: #2e7d32;">+<%= totalEarned %> pts</td>
+                                  <td style="color: #c62828;">
+                                    <%= totalSpent> 0 ? '-' + totalSpent + ' pts' : '-' %>
+                                  </td>
+                                  <td style="color: #673ab7;">₹<%= totalCommission.toFixed(2) %></td>
+                                  <td>-</td>
+                                </tr>
+                                <% } %>
+                              </tfoot>
+                            </table>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Send Notification Modal -->
+            <div id="modal" class="modal">
+              <div class="modal-content">
+                <h5>Send Notification</h5>
+                <form id="form" class="image-form" method="POST" action="/admin/vendor/notify" enctype="multipart/form-data">
+                  <div class="input-field col s12">
+                    <input placeholder="Title" id="title" name="title" type="text">
+                    <label for="title">Title</label>
+                    <small>
+                      <div id="error1" class="error"></div>
+                    </small>
+                  </div>
+                  <div class="input-field col s12 mt-0 mb-0">
+                    <input placeholder="Body" id="body" name="body" type="text">
+                    <label for="body">Body</label>
+                    <small>
+                      <div id="error2" class="error"></div>
+                    </small>
+                  </div>
+
+                  <input type="hidden" name="selectedUserIds" id="selectedUserIds" />
+                  <button type="submit" class="btn purple mr-40" id="submitBtn">Send</button>
+                </form>
+              </div>
+            </div>
+
           </div>
+        </div>
       </div>
     </div>
+  </div>
 
-    <%- include('_layouts/commonJs') %>
-      <script src="/app-assets/vendors/data-tables/js/jquery.dataTables.min.js"></script>
-      <script src="/app-assets/js/scripts/data-tables.js"></script>
-      <script src="https://cdnjs.cloudflare.com/ajax/libs/Dropify/0.2.2/js/dropify.min.js"></script>
-      <script src="/app-assets/js/scripts/form-file-uploads.min.js"></script>
-      <script>
+  <%- include('_layouts/commonJs') %>
+  <script src="/app-assets/vendors/data-tables/js/jquery.dataTables.min.js"></script>
+  <script src="/app-assets/js/scripts/data-tables.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Dropify/0.2.2/js/dropify.min.js"></script>
+  <script src="/app-assets/js/scripts/form-file-uploads.min.js"></script>
 
-        $(document).ready(function () {
-          $('.modal').modal();
-          $('#branches-table, #staff-table').DataTable({
-            responsive: true
+  <script>
+    $(document).ready(function() {
+      $('.modal').modal();
+
+      // Initialize all DataTables
+      $('#branches-table, #staff-table, #buyers-table').DataTable({
+        responsive: true,
+        order: [
+          [0, 'asc']
+        ]
+      });
+
+      // Transactions table with custom settings
+      $('#transactions-table').DataTable({
+        responsive: true,
+        order: [
+          [1, 'desc']
+        ], // Sort by date descending (newest first)
+        pageLength: 25,
+        columnDefs: [{
+            targets: [4, 5],
+            orderable: false
+          } // Disable sorting on items and quantity columns
+        ]
+      });
+
+      // Select all checkboxes functionality
+      const selectAllCheckbox = document.getElementById('selectAll');
+      const userCheckboxes = document.querySelectorAll('[name="selectedUsers[]"]');
+      const selectedUserIdsInput = document.getElementById('selectedUserIds');
+
+      if (selectAllCheckbox) {
+        selectAllCheckbox.addEventListener('change', function() {
+          userCheckboxes.forEach(function(checkbox) {
+            checkbox.checked = selectAllCheckbox.checked;
           });
+          updateSelectedUserIds();
         });
+      }
 
-        function toggleApprovalWithCommission(vendorId, isApproved) {
-          if (isApproved) {
-            const commission = document.getElementById('commissionInput').value.trim();
-            if (!commission || commission < 0 || commission > 50) {
-              alert('Commission must be between 0% and 50%');
-              setTimeout(() => location.reload(), 100);
-              return;
-            }
-            if (confirm(`Approve vendor with ${commission}% commission?`)) {
-              window.location.href = `/admin/vendor/approved/${vendorId}?commission=${commission}`;
-            } else {
-              setTimeout(() => location.reload(), 100);
-            }
-          } else {
-            if (confirm('Block / Disapprove this vendor?')) {
-              window.location.href = `/admin/vendor/disapproved/${vendorId}`;
-            } else {
-              setTimeout(() => location.reload(), 100);
-            }
-          }
-        }
+      userCheckboxes.forEach(function(checkbox) {
+        checkbox.addEventListener('change', function() {
+          updateSelectedUserIds();
+        });
+      });
 
-        function updateCommissionNow(vendorId) {
-          const value = document.getElementById('commissionInput').value.trim();
-          if (!value || value < 0 || value > 50) {
-            alert('Please enter valid commission (0-50%)');
-            return;
-          }
-          if (confirm(`Change commission to ${value}%?`)) {
-            window.location.href = `/admin/vendor/commission/${vendorId}?value=${value}`;
-          }
+      function updateSelectedUserIds() {
+        const selectedUserIds = Array.from(userCheckboxes)
+          .filter(function(checkbox) {
+            return checkbox.checked;
+          })
+          .map(function(checkbox) {
+            return checkbox.value;
+          });
+
+        selectedUserIdsInput.value = selectedUserIds.join(',');
+      }
+    });
+
+    function toggleApprovalWithCommission(vendorId, isApproved) {
+      if (isApproved) {
+        const commission = document.getElementById('commissionInput').value.trim();
+        if (!commission || commission < 0 || commission > 50) {
+          alert('Commission must be between 0% and 50%');
+          setTimeout(() => location.reload(), 100);
+          return;
         }
-      </script>
+        if (confirm(`Approve vendor with ${commission}% commission?`)) {
+          window.location.href = `/admin/vendor/approved/${vendorId}?commission=${commission}`;
+        } else {
+          setTimeout(() => location.reload(), 100);
+        }
+      } else {
+        if (confirm('Block / Disapprove this vendor?')) {
+          window.location.href = `/admin/vendor/disapproved/${vendorId}`;
+        } else {
+          setTimeout(() => location.reload(), 100);
+        }
+      }
+    }
+
+    function updateCommissionNow(vendorId) {
+      const value = document.getElementById('commissionInput').value.trim();
+      if (!value || value < 0 || value > 50) {
+        alert('Please enter valid commission (0-50%)');
+        return;
+      }
+      if (confirm(`Change commission to ${value}%?`)) {
+        window.location.href = `/admin/vendor/commission/${vendorId}?value=${value}`;
+      }
+    }
+  </script>
 </body>
 
 </html>
