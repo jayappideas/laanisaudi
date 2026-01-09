@@ -183,8 +183,8 @@ exports.getDashboard = async (req, res) => {
             },
         ]);
 
-        // Redemption trend (last 30 days)
-        const redemptionTrend = await Transaction.aggregate([
+        // Redemption trend (last 30 days) - Including all dates in range
+        const redemptionTrendRaw = await Transaction.aggregate([
             {
                 $match: {
                     spentPoints: { $gt: 0 },
@@ -205,6 +205,22 @@ exports.getDashboard = async (req, res) => {
             },
             { $sort: { _id: 1 } },
         ]);
+
+        // Create complete date range (all 30 days)
+        const redemptionTrend = [];
+        const currentDate = new Date(start);
+        while (currentDate <= end) {
+            const dateStr = currentDate.toISOString().split('T')[0];
+            const existingData = redemptionTrendRaw.find(
+                d => d._id === dateStr
+            );
+            redemptionTrend.push({
+                _id: dateStr,
+                points: existingData ? existingData.points : 0,
+                redemptions: existingData ? existingData.redemptions : 0,
+            });
+            currentDate.setDate(currentDate.getDate() + 1);
+        }
 
         // Top 5 users participating in offers (transactions with discount)
         const topOfferUsers = await Transaction.aggregate([

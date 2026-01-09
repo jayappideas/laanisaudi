@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html class="loading" lang="en" data-textdirection="ltr">
+
 <head>
   <%- include('_layouts/head') %>
   <title>Reports & Analytics | <%= title %></title>
@@ -13,7 +14,12 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
-    table tr td, th { text-align: center; vertical-align: middle; }
+    table tr td,
+    th {
+      text-align: center;
+      vertical-align: middle;
+    }
+
     /* .card { border-radius: 16px; box-shadow: 0 6px 25px rgba(0,0,0,0.1); margin-bottom: 30px; overflow: hidden; } */
 
     .metric-card {
@@ -27,6 +33,7 @@
       flex-direction: column;
       justify-content: center;
     }
+
     .top-vendor {
       padding: 15px;
       background: #f8f9fc;
@@ -37,12 +44,30 @@
       justify-content: space-between;
       align-items: center;
     }
-    .chip { border-radius: 30px; padding: 6px 16px; font-weight: 600; font-size: 13px; }
-    code { background: #f5f5f5; padding: 4px 10px; border-radius: 8px; font-size: 13px; font-family: 'Courier New', monospace; }
+
+    .chip {
+      border-radius: 30px;
+      padding: 6px 16px;
+      font-weight: 600;
+      font-size: 13px;
+    }
+
+    code {
+      background: #f5f5f5;
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-family: 'Courier New', monospace;
+    }
 
     /* Vendor list jaisa scroll */
-    .dataTables_wrapper .dataTables_scrollBody { -webkit-overflow-scrolling: touch; }
-    #page-length-option_wrapper { overflow-x: auto; }
+    .dataTables_wrapper .dataTables_scrollBody {
+      -webkit-overflow-scrolling: touch;
+    }
+
+    #page-length-option_wrapper {
+      overflow-x: auto;
+    }
   </style>
 </head>
 
@@ -55,7 +80,9 @@
         <div class="container">
           <div class="row">
             <%- include('messages', { messages: messages }) %>
-            <div class="col s12"><h5>Reports & Analytics</h5></div>
+            <div class="col s12">
+              <h5>Reports & Analytics</h5>
+            </div>
           </div>
         </div>
       </div>
@@ -66,57 +93,149 @@
           <!-- KEY METRICS -->
           <div class="row">
 
-          <!-- FILTER FORM -->
-          <div class="card">
-            <div class="card-content">
-              <h5 class="purple-text">Filter Reports</h5>
-              <form action="/admin/reports" method="GET">
-                <div class="row">
-                  <div class="input-field col s12 m4">
-                    <input type="text" name="startDate" class="datepicker" value="<%= filters.startDate || '' %>">
-                    <label>Start Date</label>
-                  </div>
-                  <div class="input-field col s12 m4">
-                    <input type="text" name="endDate" class="datepicker" value="<%= filters.endDate || '' %>">
-                    <label>End Date</label>
-                  </div>
-                  <div class="input-field col s12 m4">
-                    <select name="vendorId">
-                      <option value="">All Vendors</option>
-                      <% allVendors.forEach(v => { %>
+            <!-- FILTER FORM -->
+            <div class="card">
+              <div class="card-content">
+                <h5 class="purple-text">Filter Reports</h5>
+                <form action="/admin/reports" method="GET">
+                  <div class="row">
+                    <div class="input-field col s12 m4">
+                      <input type="text" name="startDate" class="datepicker" value="<%= filters.startDate || '' %>">
+                      <label>Start Date</label>
+                    </div>
+                    <div class="input-field col s12 m4">
+                      <input type="text" name="endDate" class="datepicker" value="<%= filters.endDate || '' %>">
+                      <label>End Date</label>
+                    </div>
+                    <div class="input-field col s12 m4">
+                      <select name="vendorId">
+                        <option value="">All Vendors</option>
+                        <% allVendors.forEach(v => { %>
                         <option value="<%= v._id %>" <%= filters.vendorId === v._id.toString() ? 'selected' : '' %>><%= v.businessName %></option>
-                      <% }) %>
-                    </select>
-                    <label>Vendor</label>
+                        <% }) %>
+                      </select>
+                      <label>Vendor</label>
+                    </div>
+                  </div>
+                  <button type="submit" class="btn gradient-45deg-purple-deep-orange">Apply</button>
+                  <a href="/admin/reports" class="btn grey">Reset</a>
+                </form>
+              </div>
+            </div>
+
+            <!-- VENDOR PERFORMANCE -->
+            <div class="card">
+              <div class="card-content">
+                <h5>Vendors Performance</h5>
+                <div class="section section-data-tables">
+                  <div class="row">
+                    <div class="col s12">
+                      <table id="vendor-performance-table" class="display" style="width:100%">
+                        <thead>
+                          <tr>
+                            <th>Sr</th>
+                            <th>Vendor</th>
+                            <th>Total Transactions</th>
+                            <th>Points Redeemed</th>
+                            <th>Discount (BHD)</th>
+                            <th>Admin Commission (BHD)</th>
+                            <th>View</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <% (vendorPerformanceAll || []).forEach((v, i) => { %>
+                          <tr>
+                            <td><%= i + 1 %></td>
+                            <td><%= v.vendorName %></td>
+                            <td><%= v.totalTransactions %></td>
+                            <td><span class="new badge red" data-badge-caption="pts"><%= v.totalPointsRedeemed %></span></td>
+                            <td><strong class="green-text"><%= v.totalDiscountGiven %> BHD</strong></td>
+                            <td><strong><%= v.totalAdminCommission %> BHD</strong></td>
+                            <td>
+                              <a href="/admin/vendor/view/<%= v.vendorId %>">
+                                <i class="material-icons">visibility</i>
+                              </a>
+                            </td>
+                          </tr>
+                          <% }) %>
+                          <% if(!vendorPerformanceAll || vendorPerformanceAll.length === 0) { %>
+                          <tr>
+                            <td colspan="7" class="center grey-text">No vendor data</td>
+                          </tr>
+                          <% } %>
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 </div>
-                <button type="submit" class="btn gradient-45deg-purple-deep-orange">Apply</button>
-                <a href="/admin/reports" class="btn grey">Reset</a>
-              </form>
+              </div>
             </div>
-          </div>
 
-          <!-- RECENT REDEMPTIONS TABLE -->
-          <div class="card">
-            <div class="card-content">
-              <h5>Redemptions History</h5>
-              <div class="section section-data-tables">
-                <div class="row">
-                  <div class="col s12">
-                    <table id="page-length-option" class="display" style="width:100%">
-                      <thead>
-                        <tr>
-                          <th>Sr</th>
-                          <th>Date & Time</th>
-                          <th>Customer</th>
-                          <th>Vendor</th>
-                          <th>Points Used</th>
-                          <th>Discount (BHD)</th>
-                          <th>View</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <% recentRedemptions.forEach((r, i) => { %>
+            <!-- USERS PERFORMANCE -->
+            <div class="card">
+              <div class="card-content">
+                <h5>Users Performance</h5>
+                <div class="section section-data-tables">
+                  <div class="row">
+                    <div class="col s12">
+                      <table id="users-performance-table" class="display" style="width:100%">
+                        <thead>
+                          <tr>
+                            <th>Sr</th>
+                            <th>Name</th>
+                            <th>Mobile</th>
+                            <th>Total Transactions</th>
+                            <th>View</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <% (usersPerformanceAll || []).forEach((u, i) => { %>
+                          <tr>
+                            <td><%= i + 1 %></td>
+                            <td><%= u.userName %></td>
+                            <td><%= u.mobile || '-' %></td>
+                            <td><%= u.totalTransactions %></td>
+                            <td>
+                              <a href="/admin/user/view/<%= u.userId %>">
+                                <i class="material-icons">visibility</i>
+                              </a>
+                            </td>
+                          </tr>
+                          <% }) %>
+                          <% if(!usersPerformanceAll || usersPerformanceAll.length === 0) { %>
+                          <tr>
+                            <td colspan="9" class="center grey-text">No user data</td>
+                          </tr>
+                          <% } %>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- RECENT REDEMPTIONS TABLE -->
+            <div class="card">
+              <div class="card-content">
+                <h5>Redemptions History</h5>
+                <div class="section section-data-tables">
+                  <div class="row">
+                    <div class="col s12">
+                      <table id="page-length-option" class="display" style="width:100%">
+                        <thead>
+                          <tr>
+                            <th>Sr</th>
+                            <th>Date & Time</th>
+                            <th>Customer</th>
+                            <th>Vendor</th>
+                            <th>Points Used</th>
+                            <th>Discount (BHD)</th>
+                            <th>View</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <% recentRedemptions.forEach((r, i) => { %>
                           <tr>
                             <td><%= i + 1 %></td>
                             <td>
@@ -127,34 +246,66 @@
                             <td><span class="chip teal lighten-4"><%= r.vendor %></span></td>
                             <td><span class="new badge red" data-badge-caption="pts"><%= r.points %></span></td>
                             <td><strong class="green-text"><%= r.discount %> BHD</strong></td>
+
                             <td>
                               <a href="/admin/reports/view/<%= r._id %>">
                                 <i class="material-icons">visibility</i>
                               </a>
                             </td>
                           </tr>
-                        <% }) %>
-                        <% if(recentRedemptions.length === 0) { %>
-                          <tr><td colspan="7" class="center grey-text">No redemptions found</td></tr>
-                        <% } %>
-                      </tbody>
-                    </table>
+                          <% }) %>
+                          <% if(recentRedemptions.length === 0) { %>
+                          <tr>
+                            <td colspan="7" class="center grey-text">No redemptions found</td>
+                          </tr>
+                          <% } %>
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
 
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <%- include('_layouts/commonJs') %>
+    <%- include('_layouts/commonJs') %>
 
-  <!-- DataTables + Chart.js -->
-  <script src="/app-assets/vendors/data-tables/js/jquery.dataTables.min.js"></script>
-  <script src="/app-assets/js/scripts/data-tables.js"></script>
+    <!-- DataTables + Chart.js -->
+    <script src="/app-assets/vendors/data-tables/js/jquery.dataTables.min.js"></script>
+    <script src="/app-assets/js/scripts/data-tables.js"></script>
+
+    <script>
+      // Initialize pagination for Vendors Performance table
+      $(document).ready(function() {
+        $('#vendor-performance-table').DataTable({
+          pageLength: 10,
+          lengthMenu: [
+            [10, 25, 50, -1],
+            [10, 25, 50, 'All']
+          ],
+          ordering: true,
+          searching: true,
+          responsive: true
+        });
+
+        // Initialize pagination for Users Performance table
+        $('#users-performance-table').DataTable({
+          pageLength: 10,
+          lengthMenu: [
+            [10, 25, 50, -1],
+            [10, 25, 50, 'All']
+          ],
+          ordering: true,
+          searching: true,
+          responsive: true
+        });
+      });
+    </script>
 
 </body>
+
 </html>
