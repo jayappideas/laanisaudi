@@ -126,7 +126,12 @@
             <!-- VENDOR PERFORMANCE -->
             <div class="card">
               <div class="card-content">
-                <h5>Vendors Performance</h5>
+                <div style="display:flex;align-items:center;justify-content:space-between;">
+                  <h5>Vendors Performance</h5>
+                  <div>
+                    <a href="/admin/reports/export/vendors-performance?<%= 'startDate=' + (filters.startDate || '') + '&endDate=' + (filters.endDate || '') + '&vendorId=' + (filters.vendorId || '') %>" class="btn green">Export Vendors Performance</a>
+                  </div>
+                </div>
                 <div class="section section-data-tables">
                   <div class="row">
                     <div class="col s12">
@@ -174,7 +179,12 @@
             <!-- USERS PERFORMANCE -->
             <div class="card">
               <div class="card-content">
-                <h5>Users Performance</h5>
+                <div style="display:flex;align-items:center;justify-content:space-between;">
+                  <h5>Users Performance</h5>
+                  <div>
+                    <a href="/admin/reports/export/users-performance?<%= 'startDate=' + (filters.startDate || '') + '&endDate=' + (filters.endDate || '') %>" class="btn blue">Export Users Performance</a>
+                  </div>
+                </div>
                 <div class="section section-data-tables">
                   <div class="row">
                     <div class="col s12">

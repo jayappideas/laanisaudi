@@ -905,6 +905,202 @@ exports.renderReports = async (req, res) => {
     }
 };
 
+// Export CSV for Vendors Performance
+exports.exportVendorsPerformance = async (req, res) => {
+    try {
+        const { startDate, endDate } = req.query;
+        let start = new Date('2020-01-01');
+        let end = new Date();
+        end.setHours(23, 59, 59, 999);
+
+        if (startDate && endDate) {
+            start = new Date(startDate);
+            end = new Date(endDate);
+            end.setHours(23, 59, 59, 999);
+        }
+
+        const dateFilter = { createdAt: { $gte: start, $lte: end } };
+
+        const allVendorsList = await Vendor.find({
+            adminApproved: true,
+            isDelete: false,
+        })
+            .select('_id businessName')
+            .lean();
+
+        const vendorTransactionStats = await Transaction.aggregate([
+            { $match: { ...dateFilter } },
+            {
+                $lookup: {
+                    from: 'staffs',
+                    localField: 'staff',
+                    foreignField: '_id',
+                    as: 's',
+                },
+            },
+            { $unwind: { path: '$s', preserveNullAndEmptyArrays: true } },
+            {
+                $lookup: {
+                    from: 'vendors',
+                    localField: 's.vendor',
+                    foreignField: '_id',
+                    as: 'v',
+                },
+            },
+            { $unwind: { path: '$v', preserveNullAndEmptyArrays: true } },
+            { $match: { 'v._id': { $exists: true } } },
+            {
+                $group: {
+                    _id: '$v._id',
+                    vendorName: { $first: '$v.businessName' },
+                    totalTransactions: { $sum: 1 },
+                    totalPointsRedeemed: {
+                        $sum: { $ifNull: ['$spentPoints', 0] },
+                    },
+                    totalDiscountGiven: {
+                        $sum: { $ifNull: ['$discountAmount', 0] },
+                    },
+                    totalAdminCommission: {
+                        $sum: { $ifNull: ['$adminCommission', 0] },
+                    },
+                },
+            },
+        ]);
+
+        const vendorPerformanceAll = allVendorsList
+            .map(vendor => {
+                const stats =
+                    vendorTransactionStats.find(
+                        v => v._id && v._id.toString() === vendor._id.toString()
+                    ) || {};
+                return {
+                    vendorId: vendor._id,
+                    vendorName: vendor.businessName,
+                    totalTransactions: stats.totalTransactions || 0,
+                    totalPointsRedeemed: stats.totalPointsRedeemed || 0,
+                    totalDiscountGiven: stats.totalDiscountGiven
+                        ? parseFloat(stats.totalDiscountGiven.toFixed(3))
+                        : 0,
+                    totalAdminCommission: stats.totalAdminCommission
+                        ? parseFloat(stats.totalAdminCommission.toFixed(3))
+                        : 0,
+                };
+            })
+            .sort((a, b) => b.totalTransactions - a.totalTransactions);
+
+        // CSV helper
+        const escapeCSV = val => {
+            if (val === null || val === undefined) return '';
+            return '"' + String(val).replace(/"/g, '""') + '"';
+        };
+
+        let csv =
+            'Vendor ID,Vendor Name,Total Transactions,Points Redeemed,Discount (BHD),Admin Commission (BHD)\n';
+        vendorPerformanceAll.forEach(v => {
+            csv += `${escapeCSV(v.vendorId)} ,${escapeCSV(v.vendorName)} ,${
+                v.totalTransactions
+            } ,${v.totalPointsRedeemed} ,${v.totalDiscountGiven} ,${
+                v.totalAdminCommission
+            }\n`;
+        });
+
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader(
+            'Content-Disposition',
+            `attachment; filename=vendors-performance-${Date.now()}.csv`
+        );
+        res.send(csv);
+    } catch (err) {
+        console.error('Export Vendors Error:', err.message);
+        res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+// Export CSV for Users Performance
+exports.exportUsersPerformance = async (req, res) => {
+    try {
+        const { startDate, endDate } = req.query;
+        let start = new Date('2020-01-01');
+        let end = new Date();
+        end.setHours(23, 59, 59, 999);
+
+        if (startDate && endDate) {
+            start = new Date(startDate);
+            end = new Date(endDate);
+            end.setHours(23, 59, 59, 999);
+        }
+
+        const dateFilter = { createdAt: { $gte: start, $lte: end } };
+
+        const allUsersList = await User.find({ isDelete: false })
+            .select('_id name mobileNumber email createdAt')
+            .lean();
+
+        const userTransactionStats = await Transaction.aggregate([
+            { $match: { ...dateFilter } },
+            {
+                $group: {
+                    _id: '$user',
+                    totalTransactions: { $sum: 1 },
+                    totalPointsEarned: {
+                        $sum: { $ifNull: ['$earnedPoints', 0] },
+                    },
+                    totalPointsRedeemed: {
+                        $sum: { $ifNull: ['$spentPoints', 0] },
+                    },
+                    totalSpent: { $sum: { $ifNull: ['$finalAmount', 0] } },
+                },
+            },
+        ]);
+
+        const usersPerformanceAll = allUsersList
+            .map(user => {
+                const stats =
+                    userTransactionStats.find(
+                        u => u._id && u._id.toString() === user._id.toString()
+                    ) || {};
+                return {
+                    userId: user._id,
+                    userName: user.name || user.mobileNumber || 'Guest',
+                    mobile: user.mobileNumber,
+                    email: user.email,
+                    totalTransactions: stats.totalTransactions || 0,
+                    totalPointsEarned: stats.totalPointsEarned || 0,
+                    totalPointsRedeemed: stats.totalPointsRedeemed || 0,
+                    totalSpent: stats.totalSpent
+                        ? parseFloat(stats.totalSpent.toFixed(3))
+                        : 0,
+                };
+            })
+            .sort((a, b) => b.totalTransactions - a.totalTransactions);
+
+        const escapeCSV = val => {
+            if (val === null || val === undefined) return '';
+            return '"' + String(val).replace(/"/g, '""') + '"';
+        };
+
+        let csv =
+            'Name,Mobile,Email,Total Transactions,Points Earned,Points Redeemed,Total Spent (BHD)\n';
+        usersPerformanceAll.forEach(u => {
+            csv += `${escapeCSV(u.userName)} ,${escapeCSV(
+                u.mobile
+            )} ,${escapeCSV(u.email)} ,${u.totalTransactions} ,${
+                u.totalPointsEarned
+            } ,${u.totalPointsRedeemed} ,${u.totalSpent}\n`;
+        });
+
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader(
+            'Content-Disposition',
+            `attachment; filename=users-performance-${Date.now()}.csv`
+        );
+        res.send(csv);
+    } catch (err) {
+        console.error('Export Users Error:', err.message);
+        res.status(500).json({ success: false, message: err.message });
+    }
+};
+
 // exports.viewReport = async (req, res) => {
 //   try {
 //     const transactionId = req.params.id;

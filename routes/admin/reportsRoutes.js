@@ -1,12 +1,14 @@
 const express = require('express');
 const router = express.Router();
 const {
-  getUserAnalytics,
-  getPointRedemptionAnalytics,  
-  getVendorPerformance,
-  getRedemptionTrends,
-  renderReports,
-  viewReport
+    getUserAnalytics,
+    getPointRedemptionAnalytics,
+    getVendorPerformance,
+    getRedemptionTrends,
+    renderReports,
+    exportVendorsPerformance,
+    exportUsersPerformance,
+    viewReport,
 } = require('../../controllers/admin/adminReportController');
 
 const { checkAdmin } = require('../../controllers/admin/authController');
@@ -14,17 +16,19 @@ const { checkAdmin } = require('../../controllers/admin/authController');
 router.get('/users-analytics', checkAdmin, getUserAnalytics);
 router.get('/point-redemptions', checkAdmin, getPointRedemptionAnalytics);
 router.get('/vendor-performance', checkAdmin, getVendorPerformance);
-router.get('/redemption-trends', checkAdmin, getRedemptionTrends); 
+router.get('/redemption-trends', checkAdmin, getRedemptionTrends);
+router.get('/export/vendors-performance', checkAdmin, exportVendorsPerformance);
+router.get('/export/users-performance', checkAdmin, exportUsersPerformance);
 
 // router.get('/', checkAdmin, (req, res) => {
-//   res.render('reports', {     
+//   res.render('reports', {
 //     url: '/admin/reports',
 //     pageTitle: 'Reports & Analytics'
 //   });
 // });
 
-router.get('/', checkAdmin , renderReports)
+router.get('/', checkAdmin, renderReports);
 
-router.get("/view/:id",checkAdmin,viewReport)
+router.get('/view/:id', checkAdmin, viewReport);
 
 module.exports = router;
