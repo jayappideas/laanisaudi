@@ -542,6 +542,103 @@ exports.isVendorCheck = async (req, res, next) => {
 };
 
 //? Home screen dashboard Vendor
+// exports.dashboardVendor = async (req, res, next) => {
+//     try {
+//         if (!req.body.time) {
+//             return next(createError.Unauthorized('Please enter time'))
+//         }
+
+//         const vendorId = req.vendor._id;
+
+//         const totalStaff = await Staff.countDocuments({
+//             vendor: vendorId,
+//             isActive: true,
+//             isDelete: false,
+//         });
+//         const totalDiscount = await discountModel.find({
+//             vendor: vendorId,
+//             adminApprovedStatus: 'Approved',
+//             status: 'Active',
+//         });
+
+//         const filteredOffers = totalDiscount.filter(offer => {
+//             const expiryStr = offer.expiryDate.trim();
+//             let expiryDate;
+
+//             if (/am|pm/i.test(expiryStr)) {
+//                 const [datePart, hourStr, minuteStr, meridian] = expiryStr.split(/[\s:]+/);
+//                 const [day, month, year] = datePart.split('/').map(Number);
+//                 let hour = parseInt(hourStr, 10);
+//                 const minute = parseInt(minuteStr, 10);
+
+//                 if (meridian.toUpperCase() === 'PM' && hour !== 12) hour += 12;
+//                 if (meridian.toUpperCase() === 'AM' && hour === 12) hour = 0;
+
+//                 expiryDate = new Date(year, month - 1, day, hour, minute);
+//             } else {
+//                 const [day, month, year] = expiryStr.split('/').map(Number);
+//                 expiryDate = new Date(year, month - 1, day, 23, 59, 59); // End of day
+//             }
+//             // const now = new Date();
+//             const now = new Date(req.body.time);
+//             return expiryDate >= now;
+//         });
+
+//         const data = await Transaction.aggregate([
+//             {
+//                 $lookup: {
+//                     from: 'staff',
+//                     localField: 'staff',
+//                     foreignField: '_id',
+//                     as: 'staffInfo',
+//                 },
+//             },
+//             {
+//                 $unwind: '$staffInfo',
+//             },
+//             {
+//                 $match: {
+//                     'staffInfo.vendor': vendorId,
+//                     status: 'accepted',
+//                 },
+//             },
+//             {
+//                 $group: {
+//                     _id: null,
+//                     totalSpentPoints: { $sum: '$spentPoints' },
+//                     totalFinalAmount: { $sum: '$finalAmount' },
+//                 },
+//             },
+//             {
+//                 $project: {
+//                     _id: 0,
+//                     totalSpentPoints: 1,
+//                     totalFinalAmount: 1,
+//                 },
+//             },
+//         ]);
+
+//         const stats = data[0] || {
+//             totalSpentPoints: 0,
+//             totalFinalAmount: 0,
+//         };
+
+//         // console.log('filteredOffers', filteredOffers)
+//         // console.log(filteredOffers.length);
+
+//         res.status(200).json({
+//             success: true,
+//             message: req.t('success'),
+//             totalStaff,
+//             totalDiscount: filteredOffers.length,
+//             ...stats,
+//         });
+//     } catch (error) {
+//         console.log('error: ', error);
+//         next(error);
+//     }
+// };
+
 exports.dashboardVendor = async (req, res, next) => {
     try {
         if (!req.body.time) {
@@ -555,6 +652,7 @@ exports.dashboardVendor = async (req, res, next) => {
             isActive: true,
             isDelete: false,
         });
+        
         const totalDiscount = await discountModel.find({
             vendor: vendorId,
             adminApprovedStatus: 'Approved',
@@ -577,29 +675,54 @@ exports.dashboardVendor = async (req, res, next) => {
                 expiryDate = new Date(year, month - 1, day, hour, minute);
             } else {
                 const [day, month, year] = expiryStr.split('/').map(Number);
-                expiryDate = new Date(year, month - 1, day, 23, 59, 59); // End of day
+                expiryDate = new Date(year, month - 1, day, 23, 59, 59);
             }
-            // const now = new Date();
+            
             const now = new Date(req.body.time);
             return expiryDate >= now;
         });
 
+        // ✅ DEBUG: Check all transactions for this vendor's staff
+        console.log('🔍 Debugging Transaction Data...');
+        
+        const allTransactions = await Transaction.find()
+            .populate('staff', 'vendor')
+            .limit(5);
+        
+        console.log('📊 Sample Transactions:', JSON.stringify(allTransactions, null, 2));
+
+        // ✅ DEBUG: Check what statuses exist
+        const uniqueStatuses = await Transaction.distinct('status', {});
+        console.log('📌 Available Transaction Statuses:', uniqueStatuses);
+
+        // ✅ FIXED AGGREGATION - Try multiple possible status values
         const data = await Transaction.aggregate([
             {
                 $lookup: {
-                    from: 'staff',
+                    from: 'staffs',
                     localField: 'staff',
                     foreignField: '_id',
                     as: 'staffInfo',
                 },
             },
             {
-                $unwind: '$staffInfo',
+                $unwind: {
+                    path: '$staffInfo',
+                    preserveNullAndEmptyArrays: false // Only keep docs with staff
+                }
             },
             {
                 $match: {
                     'staffInfo.vendor': vendorId,
-                    status: 'accepted',
+                    // ✅ Try case-insensitive and multiple status options
+                    $or: [
+                        { status: 'accepted' },
+                        { status: 'Accepted' },
+                        { status: 'completed' },
+                        { status: 'Completed' },
+                        { status: 'success' },
+                        { status: 'Success' }
+                    ]
                 },
             },
             {
@@ -607,6 +730,7 @@ exports.dashboardVendor = async (req, res, next) => {
                     _id: null,
                     totalSpentPoints: { $sum: '$spentPoints' },
                     totalFinalAmount: { $sum: '$finalAmount' },
+                    count: { $sum: 1 } // Count matching transactions
                 },
             },
             {
@@ -614,27 +738,62 @@ exports.dashboardVendor = async (req, res, next) => {
                     _id: 0,
                     totalSpentPoints: 1,
                     totalFinalAmount: 1,
+                    count: 1
                 },
             },
         ]);
 
+        console.log('💰 Aggregation Result:', data);
+
         const stats = data[0] || {
             totalSpentPoints: 0,
             totalFinalAmount: 0,
+            count: 0
         };
 
-        // console.log('filteredOffers', filteredOffers)
-        // console.log(filteredOffers.length);
+        // ✅ ALTERNATIVE: Direct query if aggregation fails
+        if (stats.totalFinalAmount === 0 && stats.totalSpentPoints === 0) {
+            console.log('⚠️ Aggregation returned 0, trying direct query...');
+            
+            // Get all staff IDs for this vendor
+            const staffIds = await Staff.find({ 
+                vendor: vendorId,
+                isActive: true,
+                isDelete: false 
+            }).distinct('_id');
+            
+            console.log('👥 Staff IDs for vendor:', staffIds);
+
+            // Direct query on transactions
+            const transactions = await Transaction.find({
+                staff: { $in: staffIds },
+                status: { 
+                    $in: ['accepted', 'Accepted', 'completed', 'Completed', 'success', 'Success'] 
+                }
+            });
+
+            console.log('📝 Direct Query Found Transactions:', transactions.length);
+            console.log('Sample Transaction:', transactions[0]);
+
+            if (transactions.length > 0) {
+                stats.totalSpentPoints = transactions.reduce((sum, t) => sum + (t.spentPoints || 0), 0);
+                stats.totalFinalAmount = transactions.reduce((sum, t) => sum + (t.finalAmount || 0), 0);
+                stats.count = transactions.length;
+            }
+        }
 
         res.status(200).json({
             success: true,
             message: req.t('success'),
             totalStaff,
             totalDiscount: filteredOffers.length,
-            ...stats,
+            totalSpentPoints: stats.totalSpentPoints,
+            totalFinalAmount: stats.totalFinalAmount,
+            transactionCount: stats.count, 
         });
+        
     } catch (error) {
-        console.log('error: ', error);
+        console.log('Error: ', error);
         next(error);
     }
 };
