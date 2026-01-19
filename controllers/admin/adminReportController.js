@@ -529,6 +529,383 @@ exports.getRedemptionTrends = async (req, res) => {
 //   }
 // };
 
+// last
+// exports.renderReports = async (req, res) => {
+//     try {
+//         const { startDate, endDate, vendorId } = req.query;
+
+//         let start = new Date('2020-01-01');
+//         let end = new Date();
+//         end.setHours(23, 59, 59, 999);
+
+//         if (startDate && endDate) {
+//             start = new Date(startDate);
+//             end = new Date(endDate);
+//             end.setHours(23, 59, 59, 999);
+//         }
+
+//         const dateFilter = { createdAt: { $gte: start, $lte: end } };
+
+//         // Vendor filter
+//         let staffIds = [];
+//         if (vendorId && vendorId !== '' && vendorId !== 'null') {
+//             const vendorObjectId = new mongoose.Types.ObjectId(vendorId);
+//             staffIds = await Staff.find({ vendor: vendorObjectId }).distinct(
+//                 '_id'
+//             );
+//         }
+
+//         const summary = await Transaction.aggregate([
+//             {
+//                 $match: {
+//                     ...dateFilter,
+//                     spentPoints: { $gt: 0 },
+//                     ...(staffIds.length > 0
+//                         ? { staff: { $in: staffIds } }
+//                         : {}),
+//                 },
+//             },
+//             {
+//                 $group: {
+//                     _id: null,
+//                     totalRedemptions: { $sum: 1 },
+//                     totalPointsUsed: { $sum: '$spentPoints' },
+//                     totalDiscountGiven: { $sum: '$discountAmount' },
+//                 },
+//             },
+//         ]).then(
+//             r =>
+//                 r[0] || {
+//                     totalRedemptions: 0,
+//                     totalPointsUsed: 0,
+//                     totalDiscountGiven: 0,
+//                 }
+//         );
+
+//         // 2. Top 5 Vendors
+//         const vendorStats = await Transaction.aggregate([
+//             { $match: dateFilter },
+//             {
+//                 $lookup: {
+//                     from: 'staffs',
+//                     localField: 'staff',
+//                     foreignField: '_id',
+//                     as: 's',
+//                 },
+//             },
+//             { $unwind: { path: '$s', preserveNullAndEmptyArrays: true } },
+//             {
+//                 $lookup: {
+//                     from: 'vendors',
+//                     localField: 's.vendor',
+//                     foreignField: '_id',
+//                     as: 'v',
+//                 },
+//             },
+//             { $unwind: { path: '$v', preserveNullAndEmptyArrays: true } },
+//             { $match: { 'v.businessName': { $exists: true, $ne: null } } },
+//             {
+//                 $group: {
+//                     _id: '$v._id',
+//                     vendorName: { $first: '$v.businessName' },
+//                     totalOrders: { $sum: 1 },
+//                     redemptions: {
+//                         $sum: { $cond: [{ $gt: ['$spentPoints', 0] }, 1, 0] },
+//                     },
+//                     totalPoints: { $sum: '$spentPoints' },
+//                     totalDiscountBHD: { $sum: '$discountAmount' },
+//                 },
+//             },
+//             { $sort: { totalDiscountBHD: -1 } },
+//             { $limit: 5 },
+//             {
+//                 $project: {
+//                     _id: 0,
+//                     vendorId: '$_id',
+//                     vendorName: 1,
+//                     totalOrders: 1,
+//                     redemptions: 1,
+//                     points: { $ifNull: ['$totalPoints', 0] },
+//                     totalDiscountBHD: { $round: ['$totalDiscountBHD', 3] },
+//                 },
+//             },
+//         ]);
+//         // 3. Recent Redemptions — same
+//         const recentRedemptions = await Transaction.aggregate([
+//             {
+//                 $match: {
+//                     ...dateFilter,
+//                     spentPoints: { $gt: 0 },
+//                     ...(staffIds.length > 0
+//                         ? { staff: { $in: staffIds } }
+//                         : {}),
+//                 },
+//             },
+//             { $sort: { createdAt: -1 } },
+//             { $limit: 100 },
+//             {
+//                 $lookup: {
+//                     from: 'staffs',
+//                     localField: 'staff',
+//                     foreignField: '_id',
+//                     as: 's',
+//                 },
+//             },
+//             { $unwind: { path: '$s', preserveNullAndEmptyArrays: true } },
+//             {
+//                 $lookup: {
+//                     from: 'vendors',
+//                     localField: 's.vendor',
+//                     foreignField: '_id',
+//                     as: 'v',
+//                 },
+//             },
+//             { $unwind: { path: '$v', preserveNullAndEmptyArrays: true } },
+//             {
+//                 $lookup: {
+//                     from: 'users',
+//                     localField: 'user',
+//                     foreignField: '_id',
+//                     as: 'u',
+//                 },
+//             },
+//             { $unwind: { path: '$u', preserveNullAndEmptyArrays: true } },
+//             {
+//                 $project: {
+//                     date: '$createdAt',
+//                     customer: {
+//                         $ifNull: [
+//                             '$u.name',
+//                             { $ifNull: ['$u.mobileNumber', 'Guest'] },
+//                         ],
+//                     },
+//                     vendor: { $ifNull: ['$v.businessName', 'Unknown Vendor'] },
+//                     points: '$spentPoints',
+//                     discount: { $round: ['$discountAmount', 3] },
+//                     totalAmount: {
+//                         $round: [{ $ifNull: ['$totalAmount', 0] }, 3],
+//                     },
+//                     orderId: { $substr: [{ $toString: '$_id' }, 16, 8] },
+//                 },
+//             },
+//         ]);
+
+//         let allVendorStats = await Transaction.aggregate([
+//             {
+//                 $match: {
+//                     ...dateFilter,
+//                     spentPoints: { $gt: 0 },
+//                 },
+//             },
+//             {
+//                 $lookup: {
+//                     from: 'staffs',
+//                     localField: 'staff',
+//                     foreignField: '_id',
+//                     as: 's',
+//                 },
+//             },
+//             { $unwind: { path: '$s', preserveNullAndEmptyArrays: true } },
+//             {
+//                 $lookup: {
+//                     from: 'vendors',
+//                     localField: 's.vendor',
+//                     foreignField: '_id',
+//                     as: 'v',
+//                 },
+//             },
+//             { $unwind: { path: '$v', preserveNullAndEmptyArrays: true } },
+//             { $match: { 'v.businessName': { $exists: true, $ne: null } } },
+//             {
+//                 $group: {
+//                     _id: '$v._id',
+//                     businessName: { $first: '$v.businessName' },
+//                 },
+//             },
+//             { $sort: { businessName: 1 } },
+//         ]);
+
+//         let allVendors = allVendorStats;
+
+//         if (
+//             vendorId &&
+//             vendorId !== '' &&
+//             vendorId !== 'null' &&
+//             !allVendors.find(v => v._id.toString() === vendorId)
+//         ) {
+//             const selectedVendor = await Vendor.findById(vendorId)
+//                 .select('_id businessName')
+//                 .lean();
+//             if (selectedVendor) {
+//                 allVendors.push(selectedVendor);
+//                 allVendors.sort((a, b) =>
+//                     a.businessName.localeCompare(b.businessName)
+//                 );
+//             }
+//         }
+
+//         const redemptionTrend = await Transaction.aggregate([
+//             {
+//                 $match: {
+//                     spentPoints: { $gt: 0 },
+//                     createdAt: { $gte: start, $lte: end },
+//                 },
+//             },
+//             {
+//                 $group: {
+//                     _id: {
+//                         $dateToString: {
+//                             format: '%Y-%m-%d',
+//                             date: '$createdAt',
+//                         },
+//                     },
+//                     points: { $sum: '$spentPoints' },
+//                     redemptions: { $sum: 1 },
+//                 },
+//             },
+//             { $sort: { _id: 1 } },
+//         ]);
+
+//         // Vendor performance for ALL vendors (including those with no transactions)
+//         // Step 1: Get all vendors
+//         const allVendorsList = await Vendor.find({
+//             adminApproved: true,
+//             isDelete: false,
+//         })
+//             .select('_id businessName')
+//             .lean();
+
+//         // Step 2: Get transaction stats by vendor
+//         const vendorTransactionStats = await Transaction.aggregate([
+//             {
+//                 $lookup: {
+//                     from: 'staffs',
+//                     localField: 'staff',
+//                     foreignField: '_id',
+//                     as: 's',
+//                 },
+//             },
+//             { $unwind: { path: '$s', preserveNullAndEmptyArrays: true } },
+//             {
+//                 $lookup: {
+//                     from: 'vendors',
+//                     localField: 's.vendor',
+//                     foreignField: '_id',
+//                     as: 'v',
+//                 },
+//             },
+//             { $unwind: { path: '$v', preserveNullAndEmptyArrays: true } },
+//             { $match: { 'v._id': { $exists: true } } },
+//             {
+//                 $group: {
+//                     _id: '$v._id',
+//                     vendorName: { $first: '$v.businessName' },
+//                     totalTransactions: { $sum: 1 },
+//                     totalPointsRedeemed: {
+//                         $sum: { $ifNull: ['$spentPoints', 0] },
+//                     },
+//                     totalDiscountGiven: {
+//                         $sum: { $ifNull: ['$discountAmount', 0] },
+//                     },
+//                     totalAdminCommission: {
+//                         $sum: { $ifNull: ['$adminCommission', 0] },
+//                     },
+//                 },
+//             },
+//         ]);
+
+//         // Step 3: Merge all vendors with transaction stats
+//         const vendorPerformanceAll = allVendorsList
+//             .map(vendor => {
+//                 const stats =
+//                     vendorTransactionStats.find(
+//                         v => v._id.toString() === vendor._id.toString()
+//                     ) || {};
+
+//                 return {
+//                     vendorId: vendor._id,
+//                     vendorName: vendor.businessName,
+//                     totalTransactions: stats.totalTransactions || 0,
+//                     totalPointsRedeemed: stats.totalPointsRedeemed || 0,
+//                     totalDiscountGiven: stats.totalDiscountGiven
+//                         ? parseFloat(stats.totalDiscountGiven.toFixed(3))
+//                         : 0,
+//                     totalAdminCommission: stats.totalAdminCommission
+//                         ? parseFloat(stats.totalAdminCommission.toFixed(3))
+//                         : 0,
+//                 };
+//             })
+//             .sort((a, b) => b.totalTransactions - a.totalTransactions);
+
+//         // Users Performance - Get all users with transaction stats
+//         const allUsersList = await User.find({ isDelete: false })
+//             .select('_id name mobileNumber email createdAt')
+//             .lean();
+
+//         // Get transaction stats by user
+//         const userTransactionStats = await Transaction.aggregate([
+//             {
+//                 $group: {
+//                     _id: '$user',
+//                     totalTransactions: { $sum: 1 },
+//                     totalPointsEarned: {
+//                         $sum: { $ifNull: ['$earnedPoints', 0] },
+//                     },
+//                     totalPointsRedeemed: {
+//                         $sum: { $ifNull: ['$spentPoints', 0] },
+//                     },
+//                     totalSpent: {
+//                         $sum: { $ifNull: ['$finalAmount', 0] },
+//                     },
+//                 },
+//             },
+//         ]);
+
+//         // Merge all users with transaction stats
+//         const usersPerformanceAll = allUsersList
+//             .map(user => {
+//                 const stats =
+//                     userTransactionStats.find(
+//                         u => u._id && u._id.toString() === user._id.toString()
+//                     ) || {};
+
+//                 return {
+//                     userId: user._id,
+//                     userName: user.name || user.mobileNumber || 'Guest',
+//                     mobile: user.mobileNumber,
+//                     email: user.email,
+//                     totalTransactions: stats.totalTransactions || 0,
+//                     totalPointsEarned: stats.totalPointsEarned || 0,
+//                     totalPointsRedeemed: stats.totalPointsRedeemed || 0,
+//                     totalSpent: stats.totalSpent
+//                         ? parseFloat(stats.totalSpent.toFixed(3))
+//                         : 0,
+//                 };
+//             })
+//             .sort((a, b) => b.totalTransactions - a.totalTransactions);
+
+//         res.render('reports', {
+//             title: 'Reports & Analytics',
+//             summary,
+//             topVendors: vendorStats,
+//             allVendors,
+//             vendorPerformanceAll,
+//             usersPerformanceAll,
+//             recentRedemptions,
+//             redemptionTrend,
+//             filters: {
+//                 startDate: startDate || '',
+//                 endDate: endDate || '',
+//                 vendorId: vendorId || '',
+//             },
+//         });
+//     } catch (error) {
+//         console.error('Render Reports Error:', error.message);
+//         req.flash('red', 'Failed to load reports');
+//         res.redirect('/admin');
+//     }
+// };
+
 exports.renderReports = async (req, res) => {
     try {
         const { startDate, endDate, vendorId } = req.query;
@@ -629,7 +1006,8 @@ exports.renderReports = async (req, res) => {
                 },
             },
         ]);
-        // 3. Recent Redemptions — same
+
+        // 3. Recent Redemptions — only this part changed (added earned points)
         const recentRedemptions = await Transaction.aggregate([
             {
                 $match: {
@@ -680,6 +1058,7 @@ exports.renderReports = async (req, res) => {
                     },
                     vendor: { $ifNull: ['$v.businessName', 'Unknown Vendor'] },
                     points: '$spentPoints',
+                    pointsEarned: { $ifNull: ['$earnedPoints', 0] }, // ← ONLY THIS LINE ADDED
                     discount: { $round: ['$discountAmount', 3] },
                     totalAmount: {
                         $round: [{ $ifNull: ['$totalAmount', 0] }, 3],
@@ -688,6 +1067,8 @@ exports.renderReports = async (req, res) => {
                 },
             },
         ]);
+
+        // ... everything below remains 100% unchanged ...
 
         let allVendorStats = await Transaction.aggregate([
             {

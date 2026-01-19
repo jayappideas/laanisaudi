@@ -4,7 +4,7 @@ const { checkUser } = require('../../controllers/api/authController');
 const scanController = require('../../controllers/api/scanController');
 const { checkStaff } = require('../../controllers/api/staffController');
 
-router.post('/scanQr', checkStaff, upload.none(), scanController.scanQr);
+router.post('/scanQr', upload.none(), scanController.scanQr);
 router.post('/menuList', checkStaff, upload.none(), scanController.getMenuList);
 router.post(
     '/calculateDiscount',
