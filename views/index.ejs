@@ -4,35 +4,35 @@
 
 <head>
   <%- include('_layouts/head') %>
-  <title>Dashboard | <%= title %>
-  </title>
+  <title>Dashboard | <%= title %></title>
   <link rel="stylesheet" type="text/css" href="/app-assets/css/pages/dashboard.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <!-- END: Head-->
 
-<body class="vertical-layout page-header-light vertical-menu-collapsible vertical-dark-menu preload-transitions 2-columns" data-open="click" data-menu="vertical-dark-menu" data-col="2-columns">
+<body
+  class="vertical-layout page-header-light vertical-menu-collapsible vertical-dark-menu preload-transitions 2-columns"
+  data-open="click" data-menu="vertical-dark-menu" data-col="2-columns">
 
   <%- include('_layouts/sidenavbar') %>
 
   <!-- BEGIN: Page Main-->
-  <div id="main ">
+  <div id="main">
     <div class="row dashboard">
       <div class="col s12">
         <div class="container">
           <div class="section">
             <!--card stats start-->
             <div id="card-stats" class="pt-0">
-              <div class="row">
-              </div>
+              <div class="row"></div>
               <%- include('messages', { messages: messages }) %>
               <div class="row mt-2">
 
                 <div class="col m3 s12" style="padding: 10px;">
                   <a href="/admin/user" style="text-decoration: none;">
                     <div style="background-color: #1A9CFF; border-radius: 20px; padding: 10px 10px 20px 30px;">
-                      <h4 style="font-size: 40px; color: #FFFFFF; font-weight: 900;" class="counter" data-target="<%= data.user %>">
-                        <!-- The counter number will be inserted dynamically -->
+                      <h4 style="font-size: 40px; color: #FFFFFF; font-weight: 900;" class="counter"
+                        data-target="<%= data.user %>">
                       </h4>
                       <span style="font-size: 22px; color: #FFFFFF;">Total Users</span>
                     </div>
@@ -42,8 +42,8 @@
                 <div class="col m3 s12" style="padding: 10px;">
                   <a href="/admin/vendor" style="text-decoration: none;">
                     <div style="background-color: #5139DB; border-radius: 20px; padding: 10px 10px 20px 30px;">
-                      <h4 style="font-size: 40px; color: #FFFFFF; font-weight: 900;" class="counter" data-target="<%= data.vendor %>">
-                        <!-- The counter number will be inserted dynamically -->
+                      <h4 style="font-size: 40px; color: #FFFFFF; font-weight: 900;" class="counter"
+                        data-target="<%= data.vendor %>">
                       </h4>
                       <span style="font-size: 22px; color: #FFFFFF;">Total Vendors</span>
                     </div>
@@ -53,8 +53,8 @@
                 <div class="col m3 s12" style="padding: 10px;">
                   <a href="/admin/user" style="text-decoration: none;">
                     <div style="background-color: #31B411; border-radius: 20px; padding: 10px 10px 20px 30px;">
-                      <h4 style="font-size: 40px; color: #FFFFFF; font-weight: 900;" class="counter" data-target="<%= data.totalEarnPoints %>">
-                        <!-- The counter number will be inserted dynamically -->
+                      <h4 style="font-size: 40px; color: #FFFFFF; font-weight: 900;" class="counter"
+                        data-target="<%= data.totalEarnPoints %>">
                       </h4>
                       <span style="font-size: 22px; color: #FFFFFF;">Total Earn Points</span>
                     </div>
@@ -64,8 +64,8 @@
                 <div class="col m3 s12" style="padding: 10px;">
                   <a href="/admin/user" style="text-decoration: none;">
                     <div style="background-color: #FF531A; border-radius: 20px; padding: 10px 10px 20px 30px;">
-                      <h4 style="font-size: 40px; color: #FFFFFF; font-weight: 900;" class="counter" data-target="<%= data.totalRedeemPoints %>">
-                        <!-- The counter number will be inserted dynamically -->
+                      <h4 style="font-size: 40px; color: #FFFFFF; font-weight: 900;" class="counter"
+                        data-target="<%= data.totalRedeemPoints %>">
                       </h4>
                       <span style="font-size: 22px; color: #FFFFFF;">Total Redeem Points</span>
                     </div>
@@ -84,20 +84,27 @@
                 <div class="card-content">
                   <h5 class="purple-text">Top 5 Vendors</h5>
                   <% if (topVendors && topVendors.length > 0) { %>
-                  <% topVendors.forEach((v, i) => { %>
-                  <div style="padding: 10px; border-bottom: 1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
-                    <div style="display:flex;align-items:center;">
-                      <div style="width:36px;height:36px;border-radius:50%;background:<%= i===0?'#FFD700':i===1?'#C0C0C0':i===2?'#CD7F32':'#667eea' %>;color:white;font-weight:bold;display:flex;align-items:center;justify-content:center;margin-right:12px;"> <%= i+1 %> </div>
-                      <div>
-                        <strong><%= v.vendorName %></strong><br>
-                        <small><%= v.totalRedemptions %> redemptions • <%= v.totalTransactions %> orders</small>
-                      </div>
-                    </div>
-                    <div><strong style="color:#2e7d32"><%= v.totalDiscountBHD %> BHD</strong></div>
-                  </div>
-                  <% }) %>
+                    <% topVendors.forEach((v, i) => { %>
+                      <a href="/admin/vendor/view/<%= v.vendorId %>"
+                        style="color: inherit; text-decoration: none; display: block;">
+                        <div class="vendor-row"
+                          style="padding: 10px; border-bottom: 1px solid #eee; display:flex; justify-content:space-between; align-items:center; cursor: pointer; transition: background 0.2s;">
+                          <div style="display:flex;align-items:center;">
+                            <div
+                              style="width:36px;height:36px;border-radius:50%;background:<%= i===0?'#FFD700':i===1?'#C0C0C0':i===2?'#CD7F32':'#667eea' %>;color:white;font-weight:bold;display:flex;align-items:center;justify-content:center;margin-right:12px;">
+                              <%= i+1 %>
+                            </div>
+                            <div>
+                              <strong><%= v.vendorName %></strong><br>
+                              <small><%= v.totalRedemptions %> redemptions • <%= v.totalTransactions %> orders</small>
+                            </div>
+                          </div>
+                          <div><strong style="color:#2e7d32"><%= v.totalDiscountBHD %> BHD</strong></div>
+                        </div>
+                      </a>
+                    <% }) %>
                   <% } else { %>
-                  <div class="center grey-text">No vendor data</div>
+                    <div class="center grey-text">No vendor data</div>
                   <% } %>
                 </div>
               </div>
@@ -108,20 +115,24 @@
                 <div class="card-content">
                   <h5 class="purple-text">Top 5 Users</h5>
                   <% if (topOfferUsers && topOfferUsers.length > 0) { %>
-                  <% topOfferUsers.forEach((u, i) => { %>
-                  <div style="padding: 10px; border-bottom: 1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
-                    <div>
-                      <strong><%= u.name || 'Guest' %></strong><br>
-                      <small><%= u.mobile || '' %></small>
-                    </div>
-                    <div style="text-align:right;">
-                      <div><strong><%= u.offersCount %></strong> offers</div>
-                      <div class="green-text"><strong><%= u.totalDiscount %> BHD</strong></div>
-                    </div>
-                  </div>
-                  <% }) %>
+                    <% topOfferUsers.forEach((u, i) => { %>
+                      <a href="/admin/user/view/<%= u.userId %>"
+                        style="color: inherit; text-decoration: none; display: block;">
+                        <div class="user-row"
+                          style="padding: 10px; border-bottom: 1px solid #eee; display:flex; justify-content:space-between; align-items:center; cursor: pointer; transition: background 0.2s;">
+                          <div>
+                            <strong><%= u.name || 'Guest' %></strong><br>
+                            <small><%= u.mobile || '' %></small>
+                          </div>
+                          <div style="text-align:right;">
+                            <div><strong><%= u.offersCount %></strong> offers</div>
+                            <div class="green-text"><strong><%= u.totalDiscount %> BHD</strong></div>
+                          </div>
+                        </div>
+                      </a>
+                    <% }) %>
                   <% } else { %>
-                  <div class="center grey-text">No offer user data</div>
+                    <div class="center grey-text">No offer user data</div>
                   <% } %>
                 </div>
               </div>
@@ -143,24 +154,22 @@
           </div>
 
         </div>
-
         <!--end container-->
       </div>
     </div>
   </div>
-  </div>
-  </div>
   <!-- END: Page Main-->
+
   <%- include('_layouts/commonJs') %>
 
   <script>
-    jQuery(document).ready(function($) {
-      $(".clickable-row").click(function() {
+    jQuery(document).ready(function ($) {
+      $(".clickable-row").click(function () {
         window.location = $(this).data("href");
       });
     });
 
-    // script.js
+    // Counter animation + Chart
     document.addEventListener('DOMContentLoaded', () => {
       const counters = document.querySelectorAll('.counter');
 
@@ -180,10 +189,11 @@
         updateCounter();
       });
 
-      // Render redemption chart (if data available)
+      // Render redemption chart
       try {
         const labels = [<%- (redemptionTrend || []).map(d => `'${d._id}'`).join(',') %>];
         const dataPoints = [<%- (redemptionTrend || []).map(d => d.points || 0).join(',') %>];
+
         if (labels.length && document.getElementById('redemptionChart')) {
           const ctx = document.getElementById('redemptionChart').getContext('2d');
           new Chart(ctx, {
@@ -203,12 +213,8 @@
             options: {
               responsive: true,
               plugins: {
-                legend: {
-                  position: 'top'
-                },
-                title: {
-                  display: false
-                }
+                legend: { position: 'top' },
+                title: { display: false }
               },
               scales: {
                 x: {
@@ -226,11 +232,9 @@
           });
         }
       } catch (err) {
-        console.error('Chart render error', err);
+        console.error('Chart render error:', err);
       }
-
     });
   </script>
 </body>
-
 </html>

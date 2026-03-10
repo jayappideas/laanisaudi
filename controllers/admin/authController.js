@@ -99,75 +99,257 @@ exports.checkPermission = (moduleKey, action) => {
     };
 };
 
+// exports.getDashboard = async (req, res) => {
+//     try {
+//         var data = {};
+//         data.user = await User.find({ isDelete: false }).count();
+//         data.vendor = await Vendor.find({ isDelete: false }).count();
+
+//         // Calculate Total Earn Points (sum of all earnedPoints from accepted transactions)
+//         const earnPointsResult = await Transaction.aggregate([
+//             { $match: { status: 'accepted' } },
+//             { $group: { _id: null, total: { $sum: '$earnedPoints' } } },
+//         ]);
+//         data.totalEarnPoints =
+//             earnPointsResult.length > 0 ? earnPointsResult[0].total : 0;
+
+//         // Calculate Total Redeem Points (sum of all spentPoints from accepted transactions)
+//         const redeemPointsResult = await Transaction.aggregate([
+//             { $match: { status: 'accepted' } },
+//             { $group: { _id: null, total: { $sum: '$spentPoints' } } },
+//         ]);
+//         data.totalRedeemPoints =
+//             redeemPointsResult.length > 0 ? redeemPointsResult[0].total : 0;
+
+//         // Additional dashboard data (last 30 days)
+//         const end = new Date();
+//         const start = new Date();
+//         start.setDate(end.getDate() - 30);
+
+//         // Top 5 vendors by discount given in last 30 days
+//         const vendorStats = await Transaction.aggregate([
+//             { $match: { createdAt: { $gte: start, $lte: end } } },
+//             {
+//                 $lookup: {
+//                     from: 'staffs',
+//                     localField: 'staff',
+//                     foreignField: '_id',
+//                     as: 'staffInfo',
+//                 },
+//             },
+//             {
+//                 $unwind: {
+//                     path: '$staffInfo',
+//                     preserveNullAndEmptyArrays: true,
+//                 },
+//             },
+//             {
+//                 $lookup: {
+//                     from: 'vendors',
+//                     localField: 'staffInfo.vendor',
+//                     foreignField: '_id',
+//                     as: 'vendorInfo',
+//                 },
+//             },
+//             {
+//                 $unwind: {
+//                     path: '$vendorInfo',
+//                     preserveNullAndEmptyArrays: true,
+//                 },
+//             },
+//             { $match: { 'vendorInfo._id': { $exists: true } } },
+//             {
+//                 $group: {
+//                     _id: '$vendorInfo._id',
+//                     vendorName: { $first: '$vendorInfo.businessName' },
+//                     totalTransactions: { $sum: 1 },
+//                     totalRedemptions: {
+//                         $sum: { $cond: [{ $gt: ['$spentPoints', 0] }, 1, 0] },
+//                     },
+//                     totalDiscountGiven: { $sum: '$discountAmount' },
+//                 },
+//             },
+//             { $sort: { totalDiscountGiven: -1 } },
+//             { $limit: 5 },
+//             {
+//                 $project: {
+//                     _id: 0,
+//                     vendorId: '$_id',
+//                     vendorName: { $ifNull: ['$vendorName', 'Unknown Vendor'] },
+//                     totalTransactions: 1,
+//                     totalRedemptions: 1,
+//                     totalDiscountBHD: { $round: ['$totalDiscountGiven', 3] },
+//                 },
+//             },
+//         ]);
+
+//         // Redemption trend (last 30 days) - Including all dates in range
+//         const redemptionTrendRaw = await Transaction.aggregate([
+//             {
+//                 $match: {
+//                     spentPoints: { $gt: 0 },
+//                     createdAt: { $gte: start, $lte: end },
+//                 },
+//             },
+//             {
+//                 $group: {
+//                     _id: {
+//                         $dateToString: {
+//                             format: '%Y-%m-%d',
+//                             date: '$createdAt',
+//                         },
+//                     },
+//                     points: { $sum: '$spentPoints' },
+//                     redemptions: { $sum: 1 },
+//                 },
+//             },
+//             { $sort: { _id: 1 } },
+//         ]);
+
+//         // Create complete date range (all 30 days)
+//         const redemptionTrend = [];
+//         const currentDate = new Date(start);
+//         while (currentDate <= end) {
+//             const dateStr = currentDate.toISOString().split('T')[0];
+//             const existingData = redemptionTrendRaw.find(
+//                 d => d._id === dateStr
+//             );
+//             redemptionTrend.push({
+//                 _id: dateStr,
+//                 points: existingData ? existingData.points : 0,
+//                 redemptions: existingData ? existingData.redemptions : 0,
+//             });
+//             currentDate.setDate(currentDate.getDate() + 1);
+//         }
+
+//         // Top 5 users participating in offers (transactions with discount)
+//         const topOfferUsers = await Transaction.aggregate([
+//             {
+//                 $match: {
+//                     discount: { $ne: null },
+//                     // createdAt: { $gte: start, $lte: end },
+//                 },
+//             },
+//             {
+//                 $group: {
+//                     _id: '$user',
+//                     offersCount: { $sum: 1 },
+//                     totalDiscount: { $sum: '$discountAmount' },
+//                 },
+//             },
+//             { $sort: { offersCount: -1 } },
+//             { $limit: 5 },
+//             {
+//                 $lookup: {
+//                     from: 'users',
+//                     localField: '_id',
+//                     foreignField: '_id',
+//                     as: 'userInfo',
+//                 },
+//             },
+//             {
+//                 $unwind: {
+//                     path: '$userInfo',
+//                     preserveNullAndEmptyArrays: true,
+//                 },
+//             },
+//             {
+//                 $project: {
+//                     _id: 0,
+//                     userId: '$_id',
+//                     name: {
+//                         $ifNull: ['$userInfo.name', '$userInfo.mobileNumber'],
+//                     },
+//                     mobile: '$userInfo.mobileNumber',
+//                     offersCount: 1,
+//                     totalDiscount: { $round: ['$totalDiscount', 3] },
+//                 },
+//             },
+//         ]);
+
+//         res.render('index', {
+//             data,
+//             topVendors: vendorStats,
+//             redemptionTrend,
+//             topOfferUsers,
+//         });
+//     } catch (error) {
+//         console.error('Dashboard Error:', error.message);
+//         req.flash('red', 'Failed to load dashboard');
+//         res.redirect('/admin');
+//     }
+// };
+
 exports.getDashboard = async (req, res) => {
     try {
-        var data = {};
-        data.user = await User.find({ isDelete: false }).count();
-        data.vendor = await Vendor.find({ isDelete: false }).count();
+        const data = {};
 
-        // Calculate Total Earn Points (sum of all earnedPoints from accepted transactions)
+        data.user = await User.find({ isDelete: false }).countDocuments();
+        data.vendor = await Vendor.find({ isDelete: false }).countDocuments();
+
+        // Total Earned Points (only accepted)
         const earnPointsResult = await Transaction.aggregate([
             { $match: { status: 'accepted' } },
             { $group: { _id: null, total: { $sum: '$earnedPoints' } } },
         ]);
-        data.totalEarnPoints =
-            earnPointsResult.length > 0 ? earnPointsResult[0].total : 0;
+        data.totalEarnPoints = earnPointsResult[0]?.total || 0;
 
-        // Calculate Total Redeem Points (sum of all spentPoints from accepted transactions)
+        // Total Redeemed Points (only accepted)
         const redeemPointsResult = await Transaction.aggregate([
             { $match: { status: 'accepted' } },
             { $group: { _id: null, total: { $sum: '$spentPoints' } } },
         ]);
-        data.totalRedeemPoints =
-            redeemPointsResult.length > 0 ? redeemPointsResult[0].total : 0;
+        data.totalRedeemPoints = redeemPointsResult[0]?.total || 0;
 
-        // Additional dashboard data (last 30 days)
+        // Last 30 days range
         const end = new Date();
         const start = new Date();
         start.setDate(end.getDate() - 30);
 
-        // Top 5 vendors by discount given in last 30 days
+        // ────────────────────────────────────────────────
+        // Top 5 vendors by discount given (ONLY accepted)
+        // ────────────────────────────────────────────────
         const vendorStats = await Transaction.aggregate([
-            { $match: { createdAt: { $gte: start, $lte: end } } },
+            {
+                $match: {
+                    status: 'accepted',
+                    createdAt: { $gte: start, $lte: end },
+                    discountAmount: { $gt: 0 }          // optional: skip zero-discount tx
+                }
+            },
             {
                 $lookup: {
                     from: 'staffs',
                     localField: 'staff',
                     foreignField: '_id',
-                    as: 'staffInfo',
-                },
+                    as: 'staffInfo'
+                }
             },
-            {
-                $unwind: {
-                    path: '$staffInfo',
-                    preserveNullAndEmptyArrays: true,
-                },
-            },
+            { $unwind: { path: '$staffInfo', preserveNullAndEmptyArrays: true } },
             {
                 $lookup: {
                     from: 'vendors',
                     localField: 'staffInfo.vendor',
                     foreignField: '_id',
-                    as: 'vendorInfo',
-                },
+                    as: 'vendorInfo'
+                }
             },
+            { $unwind: { path: '$vendorInfo', preserveNullAndEmptyArrays: true } },
             {
-                $unwind: {
-                    path: '$vendorInfo',
-                    preserveNullAndEmptyArrays: true,
-                },
+                $match: {
+                    'vendorInfo._id': { $exists: true, $ne: null }
+                }
             },
-            { $match: { 'vendorInfo._id': { $exists: true } } },
             {
                 $group: {
                     _id: '$vendorInfo._id',
                     vendorName: { $first: '$vendorInfo.businessName' },
                     totalTransactions: { $sum: 1 },
                     totalRedemptions: {
-                        $sum: { $cond: [{ $gt: ['$spentPoints', 0] }, 1, 0] },
+                        $sum: { $cond: [{ $gt: ['$spentPoints', 0] }, 1, 0] }
                     },
                     totalDiscountGiven: { $sum: '$discountAmount' },
-                },
+                }
             },
             { $sort: { totalDiscountGiven: -1 } },
             { $limit: 5 },
@@ -175,67 +357,67 @@ exports.getDashboard = async (req, res) => {
                 $project: {
                     _id: 0,
                     vendorId: '$_id',
-                    vendorName: { $ifNull: ['$vendorName', 'Unknown Vendor'] },
+                    vendorName: { $ifNull: ['$vendorName', 'Unknown'] },
                     totalTransactions: 1,
                     totalRedemptions: 1,
-                    totalDiscountBHD: { $round: ['$totalDiscountGiven', 3] },
-                },
-            },
+                    totalDiscountBHD: { $round: ['$totalDiscountGiven', 2] },
+                }
+            }
         ]);
 
-        // Redemption trend (last 30 days) - Including all dates in range
+        // ────────────────────────────────────────────────
+        // Redemption trend – last 30 days (only accepted)
+        // ────────────────────────────────────────────────
         const redemptionTrendRaw = await Transaction.aggregate([
             {
                 $match: {
+                    status: 'accepted',
                     spentPoints: { $gt: 0 },
-                    createdAt: { $gte: start, $lte: end },
-                },
+                    createdAt: { $gte: start, $lte: end }
+                }
             },
             {
                 $group: {
-                    _id: {
-                        $dateToString: {
-                            format: '%Y-%m-%d',
-                            date: '$createdAt',
-                        },
-                    },
+                    _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
                     points: { $sum: '$spentPoints' },
-                    redemptions: { $sum: 1 },
-                },
+                    redemptions: { $sum: 1 }
+                }
             },
-            { $sort: { _id: 1 } },
+            { $sort: { _id: 1 } }
         ]);
 
-        // Create complete date range (all 30 days)
+        // Fill missing days with 0
         const redemptionTrend = [];
-        const currentDate = new Date(start);
-        while (currentDate <= end) {
-            const dateStr = currentDate.toISOString().split('T')[0];
-            const existingData = redemptionTrendRaw.find(
-                d => d._id === dateStr
-            );
+        let current = new Date(start);
+        while (current <= end) {
+            const dateStr = current.toISOString().split('T')[0];
+            const dayData = redemptionTrendRaw.find(d => d._id === dateStr);
             redemptionTrend.push({
                 _id: dateStr,
-                points: existingData ? existingData.points : 0,
-                redemptions: existingData ? existingData.redemptions : 0,
+                points: dayData?.points || 0,
+                redemptions: dayData?.redemptions || 0
             });
-            currentDate.setDate(currentDate.getDate() + 1);
+            current.setDate(current.getDate() + 1);
         }
 
-        // Top 5 users participating in offers (transactions with discount)
+        // ────────────────────────────────────────────────
+        // Top 5 users by number of offers used (ONLY accepted)
+        // ────────────────────────────────────────────────
         const topOfferUsers = await Transaction.aggregate([
             {
                 $match: {
-                    discount: { $ne: null },
-                    // createdAt: { $gte: start, $lte: end },
-                },
+                    status: 'accepted',
+                    discount: { $ne: null },           // has some discount applied
+                    discountAmount: { $gt: 0 }         // optional but recommended
+                    // createdAt: { $gte: start, $lte: end }   ← uncomment if you want last 30 days only
+                }
             },
             {
                 $group: {
                     _id: '$user',
                     offersCount: { $sum: 1 },
-                    totalDiscount: { $sum: '$discountAmount' },
-                },
+                    totalDiscount: { $sum: '$discountAmount' }
+                }
             },
             { $sort: { offersCount: -1 } },
             { $limit: 5 },
@@ -244,27 +426,20 @@ exports.getDashboard = async (req, res) => {
                     from: 'users',
                     localField: '_id',
                     foreignField: '_id',
-                    as: 'userInfo',
-                },
+                    as: 'userInfo'
+                }
             },
-            {
-                $unwind: {
-                    path: '$userInfo',
-                    preserveNullAndEmptyArrays: true,
-                },
-            },
+            { $unwind: { path: '$userInfo', preserveNullAndEmptyArrays: true } },
             {
                 $project: {
                     _id: 0,
                     userId: '$_id',
-                    name: {
-                        $ifNull: ['$userInfo.name', '$userInfo.mobileNumber'],
-                    },
+                    name: { $ifNull: ['$userInfo.name', '$userInfo.mobileNumber', 'Unknown'] },
                     mobile: '$userInfo.mobileNumber',
                     offersCount: 1,
-                    totalDiscount: { $round: ['$totalDiscount', 3] },
-                },
-            },
+                    totalDiscount: { $round: ['$totalDiscount', 2] }
+                }
+            }
         ]);
 
         res.render('index', {
@@ -273,12 +448,13 @@ exports.getDashboard = async (req, res) => {
             redemptionTrend,
             topOfferUsers,
         });
+
     } catch (error) {
-        console.error('Dashboard Error:', error.message);
+        console.error('Dashboard Error:', error);
         req.flash('red', 'Failed to load dashboard');
         res.redirect('/admin');
     }
-};
+};  
 
 exports.getLogin = async (req, res) => {
     try {
@@ -490,7 +666,7 @@ exports.getSubAdminList = async (req, res) => {
     res.render('subadmin', { subadmin });
 };
 
-exports.getSubAdmin = async (req, res) => {
+exports.getSubAdmin = async (req, res) => {         
     const modules = await moduleModel.find();
     res.render('subadmin_add', { modules });
 };
@@ -566,18 +742,50 @@ exports.getEditSubAdmin = async (req, res) => {
     res.render('subadmin_edit', { admin });
 };
 
+// exports.postEditSubAdmin = async (req, res) => {
+//     try {
+//         const { name, email, password, permissions } = req.body;
+
+//         // if(isExists){
+//         //     req.flash('red', 'This email address already registered!');
+//         //     return res.redirect("/admin/sub-admin/list");
+//         // }
+
+//         const admin = await adminModel.findById(req.params.id);
+
+//         // Convert permissions into required format
+//         const formattedPermissions = Object.values(permissions).map(perm => ({
+//             key: perm.module,
+//             module: perm.moduleName,
+//             isView: perm.isView === 'true',
+//             isAdd: perm.isAdd === 'true',
+//             isEdit: perm.isEdit === 'true',
+//             isDelete: perm.isDelete === 'true',
+//         }));
+
+//         // Create a new admin/sub-admin
+//         admin.name = name;
+//         admin.email = email;
+//         admin.password = password;
+//         admin.permission = formattedPermissions;
+
+//         await admin.save();
+
+//         req.flash('green', 'Sub Admin updated successfully.');
+//         res.redirect('/admin/sub-admin/list');
+//     } catch (error) {
+//         req.flash('red', 'Something went wrong!');
+//         res.redirect('/admin/sub-admin/list');
+//     }
+// };
+
 exports.postEditSubAdmin = async (req, res) => {
     try {
         const { name, email, password, permissions } = req.body;
 
-        // if(isExists){
-        //     req.flash('red', 'This email address already registered!');
-        //     return res.redirect("/admin/sub-admin/list");
-        // }
-
         const admin = await adminModel.findById(req.params.id);
 
-        // Convert permissions into required format
+        // Convert permissions into required format (WITHOUT adding extra subadmin module)
         const formattedPermissions = Object.values(permissions).map(perm => ({
             key: perm.module,
             module: perm.moduleName,
@@ -587,10 +795,15 @@ exports.postEditSubAdmin = async (req, res) => {
             isDelete: perm.isDelete === 'true',
         }));
 
-        // Create a new admin/sub-admin
+        // Update admin data
         admin.name = name;
         admin.email = email;
-        admin.password = password;
+        
+        // Only update password if provided
+        if (password && password.trim() !== '') {
+            admin.password = password;
+        }
+        
         admin.permission = formattedPermissions;
 
         await admin.save();
@@ -598,6 +811,7 @@ exports.postEditSubAdmin = async (req, res) => {
         req.flash('green', 'Sub Admin updated successfully.');
         res.redirect('/admin/sub-admin/list');
     } catch (error) {
+        console.error('Error updating sub admin:', error);
         req.flash('red', 'Something went wrong!');
         res.redirect('/admin/sub-admin/list');
     }

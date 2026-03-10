@@ -74,7 +74,7 @@ app.use(function (req, res, next) {
 
 app.use('/app-assets/*', (req, res) => res.status(404).end());
 
-app.use('/uploads/*', (req, res) => res.status(404).end());
+// app.use('/uploads/*', (req, res) => res.status(404).end());
 
 app.use('/api/auth', require('./routes/api/authRoutes'));
 app.use('/api/staff', require('./routes/api/staffRoutes'));

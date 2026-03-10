@@ -19,110 +19,6 @@ const PointsHistory = require('../../models/PointsHistory');
 const generateCode = require('../../utils/generateCode');
 const moment = require('moment');
 
-// exports.scanQr = async (req, res, next) => {
-//     try {
-//         const userId = req.body.qrId;
-//         const vendor = req.body.vendor;
-
-//         let user = await userModel
-//             .findById({ _id: userId, isActive: true })
-//             .select('name totalPoints')
-//             .lean();
-
-//         if (!user) return next(createError.BadRequest('redeem.invalidQr'));
-
-//         let userSpecificP = await userPoint.findOne({
-//             user: userId,
-//             vendor: vendor,
-//         });
-
-//         user.totalPoints = userSpecificP ? userSpecificP.totalPoints : 0;
-
-//         res.status(200).json({
-//             success: true,
-//             message: req.t('success'),
-//             data: user,
-//         });
-//     } catch (error) {
-//         next(error);
-//     }
-// };
-
-// Fix 2: scanQr - Change totalPoints to currentBalance
-
-
-// Fix for scanQr
-
-
-
-
-// ✅ FINAL FIX - scanQr
-
-// exports.scanQr = async (req, res, next) => {
-//     try {
-//         const userId = req.body.qrId;
-//         const vendorId = req.body.vendor;
-
-//         console.log('🔍 scanQr - userId:', userId);
-//         console.log('🔍 scanQr - vendorId:', vendorId);
-
-//         let user = await userModel
-//             .findOne({ _id: userId, isActive: true })
-//             .select('name')
-//             .lean();
-
-//         if (!user) return next(createError.BadRequest('redeem.invalidQr'));
-
-//         let balance = 0;
-
-//         if (vendorId) {
-//             // ✅ Step 1: Total earned points nikalo
-//             const pointDoc = await userPoint.findOne({
-//                 user: userId,
-//                 vendor: vendorId,
-//             }).lean();
-
-//             const totalEarned = pointDoc ? pointDoc.totalPoints || 0 : 0;
-
-//             // ✅ Step 2: Total spent points calculate karo (transactions se)
-//             const spentResult = await transactionModel.aggregate([
-//                 {
-//                     $match: {
-//                         user: mongoose.Types.ObjectId(userId),
-//                         vendor: mongoose.Types.ObjectId(vendorId),
-//                         status: 'accepted', // Ya jo bhi status valid ho
-//                         redeemBalancePoint: true // Jab points use kiye ho
-//                     }
-//                 },
-//                 {
-//                     $group: {
-//                         _id: null,
-//                         totalSpent: { $sum: '$spentPoints' }
-//                     }
-//                 }
-//             ]);
-
-//             const totalSpent = spentResult.length > 0 ? spentResult[0].totalSpent : 0;
-
-//             balance = totalEarned - totalSpent;
-
-//             console.log('💰 Total Earned:', totalEarned);
-//             console.log('💸 Total Spent:', totalSpent);
-//             console.log('✨ Available Balance:', balance);
-//         }
-
-//         user.currentBalance = balance;
-
-//         res.status(200).json({
-//             success: true,
-//             message: req.t('success'),
-//             data: user,
-//         });
-//     } catch (error) {
-//         console.error('❌ scanQr Error:', error);
-//         next(error);
-//     }
-// };
 
 exports.scanQr = async (req, res, next) => {
     try {
@@ -188,7 +84,7 @@ exports.scanQr = async (req, res, next) => {
             console.log('✨ Available Balance:', balance);
         }
 
-        user.currentBalance = balance;
+        user.totalPoints = balance;
 
         res.status(200).json({
             success: true,
@@ -200,6 +96,7 @@ exports.scanQr = async (req, res, next) => {
         next(error);
     }
 };
+
 
 exports.getMenuList = async (req, res, next) => {
     try {

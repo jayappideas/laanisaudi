@@ -1398,9 +1398,95 @@ exports.exportVendorsPerformance = async (req, res) => {
 };
 
 // Export CSV for Users Performance
+// exports.exportUsersPerformance = async (req, res) => {
+//     try {
+//         const { startDate, endDate } = req.query;
+//         let start = new Date('2020-01-01');
+//         let end = new Date();
+//         end.setHours(23, 59, 59, 999);
+
+//         if (startDate && endDate) {
+//             start = new Date(startDate);
+//             end = new Date(endDate);
+//             end.setHours(23, 59, 59, 999);
+//         }
+
+//         const dateFilter = { createdAt: { $gte: start, $lte: end } };
+
+//         const allUsersList = await User.find({ isDelete: false })
+//             .select('_id name mobileNumber email createdAt')
+//             .lean();
+
+//         const userTransactionStats = await Transaction.aggregate([
+//             { $match: { ...dateFilter } },
+//             {
+//                 $group: {
+//                     _id: '$user',
+//                     totalTransactions: { $sum: 1 },
+//                     totalPointsEarned: {
+//                         $sum: { $ifNull: ['$earnedPoints', 0] },
+//                     },
+//                     totalPointsRedeemed: {
+//                         $sum: { $ifNull: ['$spentPoints', 0] },
+//                     },
+//                     totalSpent: { $sum: { $ifNull: ['$finalAmount', 0] } },
+//                 },
+//             },
+//         ]);
+
+//         const usersPerformanceAll = allUsersList
+//             .map(user => {
+//                 const stats =
+//                     userTransactionStats.find(
+//                         u => u._id && u._id.toString() === user._id.toString()
+//                     ) || {};
+//                 return {
+//                     userId: user._id,
+//                     userName: user.name || user.mobileNumber || 'Guest',
+//                     mobile: user.mobileNumber,
+//                     totalTransactions: stats.totalTransactions || 0,
+//                     totalPointsEarned: stats.totalPointsEarned || 0,
+//                     totalPointsRedeemed: stats.totalPointsRedeemed || 0,
+//                     totalSpent: stats.totalSpent
+//                         ? parseFloat(stats.totalSpent.toFixed(3))
+//                         : 0,
+//                 };
+//             })
+//             .sort((a, b) => b.totalTransactions - a.totalTransactions);
+
+//         const escapeCSV = val => {
+//             if (val === null || val === undefined) return '';
+//             return '"' + String(val).replace(/"/g, '""') + '"';
+//         };
+
+//         let csv =
+//             'Name,Mobile,Total Transactions,Points Earned,Points Redeemed,Total Spent (BHD)\n';
+//         usersPerformanceAll.forEach(u => {
+//             csv += `${escapeCSV(u.userName)} ,${escapeCSV(
+//                 u.mobile
+//             )} ,${escapeCSV(u.email)} ,${u.totalTransactions} ,${
+//                 u.totalPointsEarned
+//             } ,${u.totalPointsRedeemed} ,${u.totalSpent}\n`;
+//         });
+
+//         res.setHeader('Content-Type', 'text/csv');
+//         res.setHeader(
+//             'Content-Disposition',
+//             `attachment; filename=users-performance-${Date.now()}.csv`
+//         );
+//         res.send(csv);
+//     } catch (err) {
+//         console.error('Export Users Error:', err.message);
+//         res.status(500).json({ success: false, message: err.message });
+//     }
+// };
+
+// Export CSV for Users Performance
 exports.exportUsersPerformance = async (req, res) => {
     try {
         const { startDate, endDate } = req.query;
+
+        // Default: last 5 years or full history
         let start = new Date('2020-01-01');
         let end = new Date();
         end.setHours(23, 59, 59, 999);
@@ -1413,72 +1499,99 @@ exports.exportUsersPerformance = async (req, res) => {
 
         const dateFilter = { createdAt: { $gte: start, $lte: end } };
 
+        // 1. Get all active users (basic info)
         const allUsersList = await User.find({ isDelete: false })
-            .select('_id name mobileNumber email createdAt')
+            .select('_id name mobileNumber') // removed email as per requirement
             .lean();
 
+        // 2. Aggregate transaction stats (most important fix is here)
         const userTransactionStats = await Transaction.aggregate([
-            { $match: { ...dateFilter } },
+            { $match: dateFilter }, // ← date filter on transaction date
+
+            // If your transactions use a different date field, change to:
+            // { $match: { transactionDate: { $gte: start, $lte: end } } }
+            // or completedAt / orderDate / paymentDate — check your schema!
+
             {
                 $group: {
                     _id: '$user',
                     totalTransactions: { $sum: 1 },
-                    totalPointsEarned: {
-                        $sum: { $ifNull: ['$earnedPoints', 0] },
-                    },
-                    totalPointsRedeemed: {
-                        $sum: { $ifNull: ['$spentPoints', 0] },
-                    },
+                    totalPointsEarned: { $sum: { $ifNull: ['$earnedPoints', 0] } },
+                    totalPointsRedeemed: { $sum: { $ifNull: ['$spentPoints', 0] } },
                     totalSpent: { $sum: { $ifNull: ['$finalAmount', 0] } },
+                },
+            },
+            {
+                $project: {
+                    _id: 0,
+                    userId: '$_id',
+                    totalTransactions: 1,
+                    totalPointsEarned: 1,
+                    totalPointsRedeemed: 1,
+                    totalSpent: { $round: ['$totalSpent', 3] },
                 },
             },
         ]);
 
-        const usersPerformanceAll = allUsersList
-            .map(user => {
-                const stats =
-                    userTransactionStats.find(
-                        u => u._id && u._id.toString() === user._id.toString()
-                    ) || {};
-                return {
-                    userId: user._id,
-                    userName: user.name || user.mobileNumber || 'Guest',
-                    mobile: user.mobileNumber,
-                    email: user.email,
-                    totalTransactions: stats.totalTransactions || 0,
-                    totalPointsEarned: stats.totalPointsEarned || 0,
-                    totalPointsRedeemed: stats.totalPointsRedeemed || 0,
-                    totalSpent: stats.totalSpent
-                        ? parseFloat(stats.totalSpent.toFixed(3))
-                        : 0,
-                };
-            })
-            .sort((a, b) => b.totalTransactions - a.totalTransactions);
+        // 3. Merge users + stats (users with 0 transactions included)
+        const usersPerformance = allUsersList.map(user => {
+            const stats = userTransactionStats.find(
+                s => s.userId.toString() === user._id.toString()
+            ) || {
+                totalTransactions: 0,
+                totalPointsEarned: 0,
+                totalPointsRedeemed: 0,
+                totalSpent: 0,
+            };
 
-        const escapeCSV = val => {
-            if (val === null || val === undefined) return '';
-            return '"' + String(val).replace(/"/g, '""') + '"';
+            return {
+                userName: user.name || user.mobileNumber || 'Guest',
+                mobile: user.mobileNumber || '-',
+                totalTransactions: stats.totalTransactions,
+                pointsEarned: stats.totalPointsEarned,
+                pointsRedeemed: stats.totalPointsRedeemed,
+                totalSpent: stats.totalSpent,
+            };
+        })
+        // Sort by most active users first
+        .sort((a, b) => b.totalTransactions - a.totalTransactions);
+
+        // 4. CSV Generation
+        const escapeCSV = (val) => {
+            if (val == null || val === undefined) return '';
+            const str = String(val);
+            return `"${str.replace(/"/g, '""')}"`;
         };
 
-        let csv =
-            'Name,Mobile,Email,Total Transactions,Points Earned,Points Redeemed,Total Spent (BHD)\n';
-        usersPerformanceAll.forEach(u => {
-            csv += `${escapeCSV(u.userName)} ,${escapeCSV(
-                u.mobile
-            )} ,${escapeCSV(u.email)} ,${u.totalTransactions} ,${
-                u.totalPointsEarned
-            } ,${u.totalPointsRedeemed} ,${u.totalSpent}\n`;
+        // Header – NO EMAIL
+        let csv = 'Name,Mobile,Total Transactions,Points Earned,Points Redeemed,Total Spent (BHD)\n';
+
+        usersPerformance.forEach(u => {
+            csv += [
+                escapeCSV(u.userName),
+                escapeCSV(u.mobile),
+                u.totalTransactions,
+                u.pointsEarned,
+                u.pointsRedeemed,
+                u.totalSpent.toFixed(3),
+            ].join(',') + '\n';
         });
 
-        res.setHeader('Content-Type', 'text/csv');
+        // 5. Send CSV
+        res.setHeader('Content-Type', 'text/csv; charset=utf-8');
         res.setHeader(
             'Content-Disposition',
-            `attachment; filename=users-performance-${Date.now()}.csv`
+            `attachment; filename=users-performance-${new Date().toISOString().split('T')[0]}.csv`
         );
         res.send(csv);
+
     } catch (err) {
-        console.error('Export Users Error:', err.message);
-        res.status(500).json({ success: false, message: err.message });
+        console.error('Export Users Performance Error:', err);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to generate report',
+            error: err.message
+        });
     }
 };
 

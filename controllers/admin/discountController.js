@@ -5,18 +5,35 @@ const {
 } = require('../../utils/sendNotificationStaff');
 const vendorNotificationModel = require('../../models/vendorNotificationModel');
 
-exports.getAllDiscount = async (req, res) => {
+// exports.getAllDiscount = async (req, res) => {
+//     try {
+//         const discounts = await discountModel.find({ isDelete: false }).select('-updatedAt -createdAt -__v')
+//             .populate({
+//                 path: 'vendor',
+//                 select: 'businessName'
+//             }).populate({
+//                 path: 'customerType',
+//             }).sort('-_id');
 
+//         // Remove deleted vendor
+//         res.render('discount', { discounts });
+//     } catch (error) {
+//         req.flash('red', error.message);
+//         res.redirect('/admin');
+//     }
+// };
+
+exports.getAllDiscount = async (req, res) => {
     try {
-        const discounts = await discountModel.find({ isDelete: false }).select('-updatedAt -createdAt -__v')
+        const discounts = await discountModel.find({ isDelete: false })
+            .select('-updatedAt -createdAt -__v')
             .populate({
                 path: 'vendor',
                 select: 'businessName'
-            }).populate({
-                path: 'customerType',
-            }).sort('-_id');
+            })
+            // Removed .populate('customerType')
+            .sort('-_id');
 
-        // Remove deleted vendor
         res.render('discount', { discounts });
     } catch (error) {
         req.flash('red', error.message);

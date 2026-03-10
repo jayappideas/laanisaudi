@@ -141,7 +141,7 @@ exports.editUser = async (req, res) => {
 //       return res.redirect('/admin/user');
 //     }
 
-//     // Calculate Real-time Stats
+//     // === STATS ===
 //     const stats = await Transaction.aggregate([
 //       { $match: { user: user._id } },
 //       {
@@ -156,53 +156,46 @@ exports.editUser = async (req, res) => {
 
 //     const calculated = stats[0] || { totalOrders: 0, totalEarned: 0, totalRedeemed: 0 };
 
+//     // === REDEMPTIONS WITH BRANCH NAME ===
+//     const redemptions = await Transaction.find({
+//       user: user._id,
+//       spentPoints: { $gt: 0 }
+//     })
+//     .populate({
+//       path: 'staff',
+//       select: 'name',
+//       populate: [
+//         { path: 'vendor', select: 'businessName' },
+//         { path: 'branch', select: 'buildingName' }
+//       ]
+//     })
+//     .populate('items.menuItem', 'name')
+//     .select('createdAt spentPoints discountAmount items staff _id')
+//     .sort({ createdAt: -1 })
+//     .lean();
+
+//     const redemptionHistory = redemptions.map(r => ({
+//       date: r.createdAt,
+//       vendorName: r.staff?.vendor?.businessName || 'Unknown Vendor',
+//       branchName: r.staff?.branch?.buildingName || '—',
+//       productName: r.items?.[0]?.menuItem?.name || 'General Discount',
+//       pointsRedeemed: r.spentPoints || 0,
+//       discountGiven: r.discountAmount || 0,
+//       transactionId: r._id
+//     }));
+
+//     // Attach stats
 //     user.totalPoints = calculated.totalEarned;
 //     user.pointsRedeemed = calculated.totalRedeemed;
 //     user.totalOrders = calculated.totalOrders;
-//     user.currentPoints = (user.points || 0);
+//     user.currentPoints = user.points || 0;
 
-//     res.render('user_view', { user });
-
-//   } catch (error) {
-//     console.error(error);
-//     req.flash('red', 'Server Error');
-//     res.redirect('/admin/user');
-//   }
-// };
-
-
-// exports.viewUser = async (req, res) => {
-//   try {
-//     const user = await User.findById(req.params.id).lean();
-
-//     if (!user) {
-//       req.flash('red', 'User not found!');
-//       return res.redirect('/admin/user');
-//     }
-
-//     // Calculate Real-time Stats
-//     const stats = await Transaction.aggregate([
-//       { $match: { user: user._id } },
-//       {
-//         $group: {
-//           _id: null,
-//           totalOrders: { $sum: 1 },
-//           totalEarned: { $sum: '$earnedPoints' },
-//           totalRedeemed: { $sum: '$spentPoints' }
-//         }
-//       }
-//     ]);
-
-//     const calculated = stats[0] || { totalOrders: 0, totalEarned: 0, totalRedeemed: 0 };
-
-//     user.totalPoints = calculated.totalEarned;
-//     user.pointsRedeemed = calculated.totalRedeemed;
-//     user.totalOrders = calculated.totalOrders;
-//     user.currentPoints = (user.points || 0);
+//     // console.log('branch : ',redemptionHistory)
 
 //     res.render('user_view', {
-//       title: 'User View',
-//       user
+//       title: 'User Profile',
+//       user,
+//       redemptions: redemptionHistory
 //     });
 
 //   } catch (error) {
@@ -250,7 +243,7 @@ exports.viewUser = async (req, res) => {
       ]
     })
     .populate('items.menuItem', 'name')
-    .select('createdAt spentPoints discountAmount items staff _id')
+    .select('createdAt spentPoints earnedPoints discountAmount items staff _id')
     .sort({ createdAt: -1 })
     .lean();
 
@@ -260,6 +253,7 @@ exports.viewUser = async (req, res) => {
       branchName: r.staff?.branch?.buildingName || '—',
       productName: r.items?.[0]?.menuItem?.name || 'General Discount',
       pointsRedeemed: r.spentPoints || 0,
+      pointsEarned: r.earnedPoints || 0,
       discountGiven: r.discountAmount || 0,
       transactionId: r._id
     }));
@@ -268,7 +262,7 @@ exports.viewUser = async (req, res) => {
     user.totalPoints = calculated.totalEarned;
     user.pointsRedeemed = calculated.totalRedeemed;
     user.totalOrders = calculated.totalOrders;
-    user.currentPoints = user.points || 0;
+    user.currentPoints = Math.max(calculated.totalEarned - calculated.totalRedeemed, 0);
 
     // console.log('branch : ',redemptionHistory)
 
@@ -284,7 +278,6 @@ exports.viewUser = async (req, res) => {
     res.redirect('/admin/user');
   }
 };
-
 
 
 exports.changeUserStatus = async (req, res) => {

@@ -48,24 +48,24 @@
 
                                     <div class="input-field col s12 m4">
                                         <label for="name">Name</label>
-                                        <input class="validate" id="name" name="name" type="text" value="<%= admin.name %>">
+                                        <input class="validate" id="name" name="name" type="text" value="<%= admin.name %>" required>
                                         <div class="error-message" id="nameError"></div>
                                     </div>
 
                                     <div class="input-field col s12 m4">
                                         <label for="email">Email Address</label>
-                                        <input class="validate" id="email" name="email" type="email" value="<%= admin.email %>">
+                                        <input class="validate" id="email" name="email" type="email" value="<%= admin.email %>" required>
                                         <div class="error-message" id="emailError"></div>
                                     </div>
 
                                     <div class="input-field col s12 m4">
-                                        <label for="password">Password</label>
-                                        <input class="validate" id="password" name="password" type="text" required>
+                                        <label for="password">Password (Leave blank to keep current)</label>
+                                        <input class="validate" id="password" name="password" type="text">
                                         <div class="error-message" id="passwordError"></div>
                                     </div>
 
                                     <div class="input-field col s12">
-                                        <h6>Set Permision</h6>
+                                        <h6>Set Permission</h6>
                                         <div class="row" style="padding: 0%;">
                                             <div class="col s4">
                                                 <h6><b>Module Name</b></h6>
@@ -86,53 +86,51 @@
                                         <div class="row" style="padding: 0%;">
                                             <hr/>
                                         </div>
-                                        <% for( let i=0; i < admin.permission.length; i++ ) { %>
+                                        <% 
+                                        // Filter out duplicate entries by key
+                                        const uniquePermissions = admin.permission.filter((perm, index, self) =>
+                                            index === self.findIndex((p) => p.key === perm.key)
+                                        );
+                                        %>
+                                        <% for( let i=0; i < uniquePermissions.length; i++ ) { %>
                                             <div class="row" style="padding: 0%; margin-top: 24px;">
                                                 <div class="col s4">
-                                                    <h6><b><%= admin.permission[i].module %></b></h6>
+                                                    <h6><b><%= uniquePermissions[i].module %></b></h6>
                                                 </div>
                                                 <div class="col s2">
                                                     <div class="switch">
-                                                        <div class="switch">
-                                                            <label>
-                                                              <input type="checkbox" name="permissions[<%= i %>][isView]" value="true" <%= admin.permission[i].isView ? "checked" : "" %> >
-                                                              <span class="lever"></span>
-                                                            </label>
-                                                        </div>
+                                                        <label>
+                                                            <input type="checkbox" name="permissions[<%= i %>][isView]" value="true" <%= uniquePermissions[i].isView ? "checked" : "" %> >
+                                                            <span class="lever"></span>
+                                                        </label>
                                                     </div>
                                                 </div>
                                                 <div class="col s2">
                                                     <div class="switch">
-                                                        <div class="switch">
-                                                            <label>
-                                                              <input type="checkbox" name="permissions[<%= i %>][isAdd]" value="true" <%= admin.permission[i].isAdd ? "checked" : "" %>>
-                                                              <span class="lever"></span>
-                                                            </label>
-                                                        </div>
+                                                        <label>
+                                                            <input type="checkbox" name="permissions[<%= i %>][isAdd]" value="true" <%= uniquePermissions[i].isAdd ? "checked" : "" %>>
+                                                            <span class="lever"></span>
+                                                        </label>
                                                     </div>
                                                 </div>
                                                 <div class="col s2">
                                                     <div class="switch">
-                                                        <div class="switch">
-                                                            <label>
-                                                              <input type="checkbox" name="permissions[<%= i %>][isEdit]" value="true" <%= admin.permission[i].isEdit ? "checked" : "" %>>
-                                                              <span class="lever"></span>
-                                                            </label>
-                                                        </div>
+                                                        <label>
+                                                            <input type="checkbox" name="permissions[<%= i %>][isEdit]" value="true" <%= uniquePermissions[i].isEdit ? "checked" : "" %>>
+                                                            <span class="lever"></span>
+                                                        </label>
                                                     </div>
                                                 </div>
                                                 <div class="col s2">
                                                     <div class="switch">
-                                                        <div class="switch">
-                                                            <label>
-                                                              <input type="checkbox" name="permissions[<%= i %>][isDelete]" value="true" <%= admin.permission[i].isDelete ? "checked" : "" %>>
-                                                              <span class="lever"></span>
-                                                            </label>
-                                                        </div>
+                                                        <label>
+                                                            <input type="checkbox" name="permissions[<%= i %>][isDelete]" value="true" <%= uniquePermissions[i].isDelete ? "checked" : "" %>>
+                                                            <span class="lever"></span>
+                                                        </label>
                                                     </div>
                                                 </div>
-                                                <input type="hidden" name="permissions[<%= i %>][module]" value="<%= admin.permission[i].key %>">
-                                                <input type="hidden" name="permissions[<%= i %>][moduleName]" value="<%= admin.permission[i].module %>">
+                                                <input type="hidden" name="permissions[<%= i %>][module]" value="<%= uniquePermissions[i].key %>">
+                                                <input type="hidden" name="permissions[<%= i %>][moduleName]" value="<%= uniquePermissions[i].module %>">
                                                 <div class="col s12">
                                                     <hr/>
                                                 </div>
@@ -163,95 +161,75 @@
     <script>
         $(document).ready(function() {
 
-            function validateQuestion() {
-                const value = $('#question').val().trim();
+            function validateName() {
+                const value = $('#name').val().trim();
                 if (!value) {
-                    $('#question').addClass('error-field');
-                    $('#questionError').text('Please enter a question (English).');
+                    $('#name').addClass('error-field');
+                    $('#nameError').text('Please enter a name.');
                     return false;
                 } else {
-                    $('#question').removeClass('error-field');
-                    $('#questionError').text('');
-                    return true;
-                }
-            }
-            function validateAnswer() {
-                const value = $('#answer').val().trim();
-                if (!value) {
-                    $('#answer').addClass('error-field');
-                    $('#answerError').text('Please enter a answer (English).');
-                    return false;
-                } else {
-                    $('#answer').removeClass('error-field');
-                    $('#answerError').text('');
+                    $('#name').removeClass('error-field');
+                    $('#nameError').text('');
                     return true;
                 }
             }
 
-            $('#question').on('input', function() {
-                validateQuestion();
-                if (!validateQuestion()) {
-                    $('html, body').animate({ scrollTop: $('#question').offset().top }, 500);
-                }
-            });
-            $('#answer').on('input', function() {
-                validateAnswer();
-                if (!validateAnswer()) {
-                    $('html, body').animate({ scrollTop: $('#answer').offset().top }, 500);
-                }
-            });
-
-
-            function validateAQuestion() {
-                const value = $('#Aquestion').val().trim();
+            function validateEmail() {
+                const value = $('#email').val().trim();
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                 if (!value) {
-                    $('#Aquestion').addClass('error-field');
-                    $('#AquestionError').text('Please enter a question (arabic).');
+                    $('#email').addClass('error-field');
+                    $('#emailError').text('Please enter an email address.');
+                    return false;
+                } else if (!emailRegex.test(value)) {
+                    $('#email').addClass('error-field');
+                    $('#emailError').text('Please enter a valid email address.');
                     return false;
                 } else {
-                    $('#Aquestion').removeClass('error-field');
-                    $('#AquestionError').text('');
-                    return true;
-                }
-            }
-            function validateAAnswer() {
-                const value = $('#Aanswer').val().trim();
-                if (!value) {
-                    $('#Aanswer').addClass('error-field');
-                    $('#AanswerError').text('Please enter a answer (arabic).');
-                    return false;
-                } else {
-                    $('#Aanswer').removeClass('error-field');
-                    $('#AanswerError').text('');
+                    $('#email').removeClass('error-field');
+                    $('#emailError').text('');
                     return true;
                 }
             }
 
-            $('#Aquestion').on('input', function() {
-                validateQuestion();
-                if (!validateQuestion()) {
-                    $('html, body').animate({ scrollTop: $('#Aquestion').offset().top }, 500);
+            function validatePassword() {
+                const value = $('#password').val().trim();
+                // Password is optional in edit mode
+                if (value && value.length < 6) {
+                    $('#password').addClass('error-field');
+                    $('#passwordError').text('Password must be at least 6 characters.');
+                    return false;
+                } else {
+                    $('#password').removeClass('error-field');
+                    $('#passwordError').text('');
+                    return true;
                 }
-            });
-            $('#Aanswer').on('input', function() {
-                validateAnswer();
-                if (!validateAnswer()) {
-                    $('html, body').animate({ scrollTop: $('#Aanswer').offset().top }, 500);
-                }
+            }
+
+            $('#name').on('input', function() {
+                validateName();
             });
 
+            $('#email').on('input', function() {
+                validateEmail();
+            });
+
+            $('#password').on('input', function() {
+                validatePassword();
+            });
 
             // Form Submission Validation
             $('#formValidate0').on('submit', function(e) {
                 let valid = true;
-                valid &= validateQuestion();
-                valid &= validateAnswer();
-                valid &= validateAQuestion();
-                valid &= validateAAnswer();
+                valid &= validateName();
+                valid &= validateEmail();
+                valid &= validatePassword();
 
                 if (!valid) {
                     e.preventDefault();
-                    $('html, body').animate({ scrollTop: $('.error-message:contains("Please")').first().offset().top }, 500);
+                    $('html, body').animate({ 
+                        scrollTop: $('.error-field').first().offset().top - 100 
+                    }, 500);
                 }
             });
 

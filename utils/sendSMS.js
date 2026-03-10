@@ -15,10 +15,20 @@ const validatePhoneNumber = async (number) => {
             throw createError.BadRequest('validation.notMobileNumber');
         }
     } catch (error) {
+        // Twilio specific errors
         if (error.code === 20404) {
-            throw createError.BadRequest('validation.phoneInvalid'); // number not found
+            throw createError.BadRequest('Invalid phone number'); 
         }
-        throw createError.InternalServerError('lookup.failed');
+
+        // Invalid number format error
+        if (error.code === 21211 || error.code === 21217) {
+            throw createError.BadRequest('Invalid phone number format.');
+        }
+
+        console.error('Phone validation error:', error);
+        throw createError.InternalServerError('Invalid phone number');
+
+        //  throw createError.BadRequest('validation.phoneNumberInvalid');
     }
 };
 

@@ -15,6 +15,8 @@ const pointsHistorySchema = new mongoose.Schema(
         transaction: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Transaction',
+            required: true,
+            unique: true,
         },
         type: {
             type: String,
@@ -28,7 +30,7 @@ const pointsHistorySchema = new mongoose.Schema(
         note: {
             type: String,
         },
-        transactionTime:{
+        transactionTime: {
             type: Date,
             default: Date.now,
         },

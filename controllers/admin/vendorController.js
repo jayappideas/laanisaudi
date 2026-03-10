@@ -99,7 +99,9 @@ exports.viewVendor = async (req, res) => {
                 status: 'accepted', // Only show completed transactions
                 $or: [
                     { vendor: req.params.id },
+                    // { 'items.menuItem': { $in: menuItemIds } },
                     { 'items.menuItem': { $in: menuItemIds } },
+                    { staff: { $in: await staffModel.distinct('_id', { vendor: req.params.id }) } }
                 ],
             })
             .populate({
@@ -413,8 +415,8 @@ exports.approvedVendor = async (req, res) => {
   <div style="background: #f7f7f7; padding: 15px; border-radius: 8px; margin: 15px 0;">
     <p><strong>Admin Commission:</strong> ${commission}%</p>
     <p><strong>Approval Date:</strong> ${new Date().toLocaleDateString(
-        'en-IN'
-    )}</p>
+            'en-IN'
+        )}</p>
   </div>
 
   <p>
@@ -639,9 +641,8 @@ exports.deleteAccountVendor = async (req, res, next) => {
         const user = await vendorModel.findById(req.params.id);
 
         const modifiedEmail = `${user.email}_deleted_${Date.now()}`;
-        const modifiedMobileNumber = `${
-            user.mobileNumber
-        }_deleted_${Date.now()}`;
+        const modifiedMobileNumber = `${user.mobileNumber
+            }_deleted_${Date.now()}`;
 
         user.isDelete = true;
         user.token = '';
@@ -747,8 +748,8 @@ exports.updateCommission = async (req, res) => {
   <div style="background: #f7f7f7; padding: 15px; border-radius: 8px; margin: 15px 0;">
     <p><strong>Updated Admin Commission:</strong> ${newCommission}%</p>
     <p><strong>Effective Date:</strong> ${new Date().toLocaleDateString(
-        'en-IN'
-    )}</p>
+            'en-IN'
+        )}</p>
   </div>
 
   <p>

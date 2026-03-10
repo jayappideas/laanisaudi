@@ -12,11 +12,7 @@
     <link rel="stylesheet" type="text/css" href="/app-assets/vendors/data-tables/css/select.dataTables.min.css">
     <link rel="stylesheet" type="text/css" href="/app-assets/css/pages/data-tables.css">
 
-    <!-- <style>
-
-    </style> -->
     <style>
-
         table tr td,
         th {
             text-align: center;
@@ -33,27 +29,21 @@
 
         .switch label input[type=checkbox]:not(:checked)+.lever {
             background-color: #f3374a;
-            /* Light red track */
         }
 
         .switch label input[type=checkbox]:not(:checked)+.lever::before {
             background-color: #ffaba5;
-            /* Dark red thumb */
         }
 
-        /* Toggle ON (switch track and thumb) */
         .switch label input[type=checkbox]:checked+.lever {
             background-color: #31db37;
-            /* Light green track */
         }
 
         .switch label input[type=checkbox]:checked+.lever::before {
             background-color: #4CAF50;
-            /* Dark green thumb */
         }
     </style>
 </head>
-<!-- END: Head-->
 
 <body class="vertical-layout page-header-light vertical-menu-collapsible vertical-dark-menu preload-transitions 2-columns" data-open="click" data-menu="vertical-dark-menu" data-col="2-columns">
 
@@ -72,21 +62,17 @@
                         </div>
                         <div class="col s12 m6 l6 right-align-md" style="margin-top: -10px;">
                             <ol class="breadcrumbs mb-0">
-                                <li class="breadcrumb-item"><a href="/admin">Dashboard</a>
-                                </li>
-                                <li class="breadcrumb-item active">Vendor Discount's
-                                </li>
+                                <li class="breadcrumb-item"><a href="/admin">Dashboard</a></li>
+                                <li class="breadcrumb-item active">Vendor Discount's</li>
                             </ol>
                         </div>
                     </div>
                 </div>
             </div>
 
-
             <div class="col s12">
                 <div class="container">
                     <div class="section section-data-tables">
-                        <!-- Page Length Options -->
                         <div class="row">
                             <div class="col s12">
                                 <div class="card">
@@ -114,32 +100,23 @@
                                                             <td><%= discounts[i].title %></td>
                                                             <td>BHD <%= discounts[i].minBillAmount %></td>
                                                             <td><%= discounts[i].discountValue %> <%= discounts[i].discountType == 'Fixed' ? 'BHD' : '%' %></td>
-                                                            <td><%= discounts[i].expiryDate%></td>
-                                                            <!-- <td>
-                                                                <% if (discounts[i].adminApprovedStatus == 'Pending') { %>
-                                                                    <a href="/admin/discount/change-status/<%= discounts[i]._id %>/Approved" style="background-color: rgb(212, 240, 216);padding: 5px 10px 5px 10px;color: green;border-radius: 5px;cursor: pointer;" onclick="return confirm('Are you sure want to Approve this discount?');">Approve</a>
-                                                                    &nbsp;
-                                                                    <a  href="/admin/discount/change-status/<%= discounts[i]._id %>/Rejected" style="background-color: rgb(240, 212, 212);padding: 5px 10px 5px 10px;color: red;border-radius: 5px;cursor: pointer;" onclick="return confirm('Are you sure want to Reject this discount?');">Reject</a>
-                                                                <% } else { %>
-                                                                    <a style="background-color: <%= discounts[i].adminApprovedStatus == 'Approved' ? 'rgb(212, 240, 212)' : 'rgb(240, 212, 212)' %>;padding: 5px 10px 5px 10px;color: <%= discounts[i].adminApprovedStatus == 'Approved' ? 'green' : 'red' %>; border-radius: 5px;"><%= discounts[i].adminApprovedStatus %></a>
-                                                                <% } %>
-                                                            </td> -->
-                                                        <td>
-                                                            <div class="col s12 m5" style="text-align: right;">
-                                                                <div class="switch">
-                                                                    <label>
-                                                                        <span style="color: red; font-weight: bold;"></span>
-                                                                        <input type="checkbox" <%=discounts[i].adminApprovedStatus==='Approved' ? 'checked' : '' %>
-                                                                        onchange="toggleApproval('<%= discounts[i]._id %>', this.checked)">
-                                                                            <span class="lever"></span>
-                                                                            <span style="color: green; font-weight: bold;"></span>
-                                                                    </label>
-                                                                </div>
-                                                            </div>
-                                                        </td>
-
+                                                            <td><%= discounts[i].expiryDate %></td>
                                                             <td>
-                                                                <a data-id="<%= discounts[i]._id %>" class="view-discount" style="cursor: pointer;"><i class="material-icons">visibility</i></a>
+                                                                <div class="col s12 m5" style="text-align: right;">
+                                                                    <div class="switch">
+                                                                        <label>
+                                                                            <input type="checkbox" 
+                                                                                   <%= discounts[i].adminApprovedStatus === 'Approved' ? 'checked' : '' %>
+                                                                                   onchange="toggleApproval('<%= discounts[i]._id %>', this.checked)">
+                                                                            <span class="lever"></span>
+                                                                        </label>
+                                                                    </div>
+                                                                </div>
+                                                            </td>
+                                                            <td>
+                                                                <a data-id="<%= discounts[i]._id %>" class="view-discount" style="cursor: pointer;">
+                                                                    <i class="material-icons">visibility</i>
+                                                                </a>
                                                             </td>
                                                         </tr>
                                                         <% } %>
@@ -154,18 +131,19 @@
                     </div>
                 </div>
                 <div class="content-overlay"></div>
+
                 <!-- Modal Structure -->
                 <div class="modal fade" id="discountModal" tabindex="-1" role="dialog" aria-labelledby="modalTitle" aria-hidden="true">
                     <div class="modal-dialog" role="document">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="modalTitle">Discount Details</h5>
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="modalTitle">Discount Details</h5>
+                            </div>
+                            <div class="modal-body" id="modalBody"></div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary modal-action modal-close">Close</button>
+                            </div>
                         </div>
-                        <div class="modal-body" id="modalBody"> </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary modal-action modal-close">Close</button>
-                        </div>
-                    </div>
                     </div>
                 </div>
 
@@ -181,60 +159,50 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-          document.querySelectorAll('.view-discount').forEach(icon => {
-            icon.addEventListener('click', function() {
-              const discountId = this.getAttribute('data-id');
+            document.querySelectorAll('.view-discount').forEach(icon => {
+                icon.addEventListener('click', function() {
+                    const discountId = this.getAttribute('data-id');
+                    const discount = <%- JSON.stringify(discounts) %>.find(d => d._id === discountId);
 
-              // Use the discountId to fetch and populate the modal
-              const discount = <%- JSON.stringify(discounts) %>.find(d => d._id === discountId);
-
-              if (discount) {
-                document.getElementById('modalTitle').innerText = `Details for ${discount.title}`;
-                document.getElementById('modalBody').innerHTML = `
-                  <p><strong>Business Name :</strong> ${discount.vendor.businessName}</p>
-                  <p>
-                    <strong>Min Bill Amount :</strong> BHD ${discount.minBillAmount}
-                    &nbsp;&nbsp;
-                    <strong>Discount :</strong> ${discount.discountValue} ${discount.discountType === 'Fixed' ? 'BHD' : '%'}
-                </p>
-
-                <p>
-                    <strong>Total Number of Counts :</strong> ${discount.totalUserCount}
-                    &nbsp;&nbsp;
- <strong>Customer Type :</strong>
-${Array.isArray(discount.customerType)
-                        ? discount.customerType.map(x => x.name).join(', ')
-                        : '-'}
-
-                </p>
-                  <p></p>
-                  <p><strong>Expiry Date :</strong> ${discount.expiryDate}</p>
-                  <p><strong>Admin Status :</strong> ${discount.adminApprovedStatus}</p>
-                  <p><strong>Description :</strong> ${discount.description}</p>
-                `;
-                // Show the modal
-                $('#discountModal').modal('open');
-              }
+                    if (discount) {
+                        document.getElementById('modalTitle').innerText = `Details for ${discount.title}`;
+                        document.getElementById('modalBody').innerHTML = `
+                            <p><strong>Business Name :</strong> ${discount.vendor.businessName}</p>
+                            <p>
+                                <strong>Min Bill Amount :</strong> BHD ${discount.minBillAmount}
+                                &nbsp;&nbsp;
+                                <strong>Discount :</strong> ${discount.discountValue} ${discount.discountType === 'Fixed' ? 'BHD' : '%'}
+                            </p>
+                            <p>
+                                <strong>Total Number of Counts :</strong> ${discount.totalUserCount || '0'}
+                            </p>
+                            <p><strong>Expiry Date :</strong> ${discount.expiryDate}</p>
+                            <p><strong>Admin Status :</strong> ${discount.adminApprovedStatus}</p>
+                            <p><strong>Description :</strong> ${discount.description || '-'}</p>
+                        `;
+                        
+                        $('#discountModal').modal('open');
+                    }
+                });
             });
-          });
         });
     </script>
-<script>
-    function toggleApproval(vendorId, isApproved) {
-        const action = isApproved ? 'approve' : 'disapprove';
-        const confirmation = confirm(`Are you sure you want to change the status?`);
 
-        if (confirmation) {
-            const url = `/admin/discount/${isApproved ? 'approved' : 'disapproved'}/${vendorId}`;
-            window.location.href = url;
-        } else {
-            // Prevent toggle change on cancel
-            setTimeout(() => {
-                location.reload(); // Revert UI if cancelled
-            }, 100);
+    <script>
+        function toggleApproval(discountId, isApproved) {
+            const action = isApproved ? 'approve' : 'disapprove';
+            const confirmation = confirm(`Are you sure you want to ${action} this discount?`);
+
+            if (confirmation) {
+                const url = `/admin/discount/${isApproved ? 'approved' : 'disapproved'}/${discountId}`;
+                window.location.href = url;
+            } else {
+                // Revert toggle if cancelled
+                setTimeout(() => {
+                    location.reload();
+                }, 100);
+            }
         }
-    }
-</script>
+    </script>
 </body>
-
 </html>
