@@ -82,7 +82,6 @@
         padding: 12px 8px;
       }
 
-      /* RESPONSIVE FIXES */
       @media (max-width: 768px) {
         .commission-section {
           flex-direction: column !important;
@@ -114,15 +113,29 @@
 
     <div id="main">
       <div class="row">
+
+        <!-- Breadcrumb -->
+        <!-- Breadcrumb -->
         <div id="breadcrumbs-wrapper" style="background-color: white;">
           <div class="container">
             <div class="row">
+              <!-- Left: Back arrow + Title -->
               <div class="col s12 m6 l6">
-                <h5 class="breadcrumbs-title"><span>Vendor View</span></h5>
+                <div style="display: flex; align-items: center; gap: 16px;">
+                  <a href="javascript:history.back()" style="color: #424242; text-decoration: none; line-height: 1;">
+                    <i class="material-icons" style="font-size: 32px;">arrow_back</i>
+                  </a>
+                  <h5 class="breadcrumbs-title" style="margin: 0;">
+                    <span>Vendor View</span>
+                  </h5>
+                </div>
               </div>
+
+              <!-- Right: Send Notification button -->
               <div class="col s12 m6 l6 right-align-md">
-                <a class="btn gradient-45deg-purple-deep-orange pull-right btn-breadcrumbs modal-trigger"
-                  href="#modal">Send Notification</a>
+                <a class="btn gradient-45deg-purple-deep-orange pull-right btn-breadcrumbs modal-trigger" href="#modal">
+                  Send Notification
+                </a>
               </div>
             </div>
           </div>
@@ -145,19 +158,18 @@
                             <%= vendor.businessName || 'Vendor' %>
                           </h5>
                           <span>Email:</span>
-                          <span class="users-view-id"><a href="mailto:<%= vendor.email %>">
+                          <span class="users-view-id">
+                            <a href="mailto:<%= vendor.email %>">
                               <%= vendor.email %>
-                            </a></span>
+                            </a>
+                          </span>
                         </div>
                       </div>
                     </div>
 
-                    <!-- RIGHT SIDE: COMMISSION + TOGGLE -->
                     <div class="col s12 m5" style="text-align: right;">
                       <div class="commission-section"
                         style="display: flex; align-items: center; justify-content: flex-end; gap: 20px; flex-wrap: wrap;">
-
-                        <!-- ADMIN COMMISSION -->
                         <div class="commission-input-wrapper" style="display: flex; align-items: center; gap: 10px;">
                           <div>
                             <label
@@ -173,7 +185,6 @@
                           </div>
                         </div>
 
-                        <!-- APPROVAL TOGGLE -->
                         <div class="switch">
                           <label>
                             <span style="color: red; font-weight: bold;">Pending</span>
@@ -185,35 +196,25 @@
                         </div>
                       </div>
 
-                      <!-- ACTION BUTTONS -->
                       <div
                         style="margin-top: 25px; display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap;">
-
                         <% if (vendor.adminApproved) { %>
                           <button onclick="updateCommissionNow('<%= vendor._id %>')"
                             class="btn-small waves-effect purple waves-light">
                             Update Commission
                           </button>
                           <% } %>
-
                             <a href="/admin/vendor/logs/<%= vendor._id %>"
-                              class="btn-small indigo waves-effect waves-light">
-                              View Activity
-                            </a>
+                              class="btn-small indigo waves-effect waves-light">View Activity</a>
                             <a href="/admin/vendor/edit-vendor/<%= vendor._id %>"
-                              class="btn-small blue waves-effect waves-light">
-                              Edit
-                            </a>
+                              class="btn-small blue waves-effect waves-light">Edit</a>
                             <a href="/admin/vendor/delete/<%= vendor._id %>"
                               class="btn-small red waves-effect waves-light"
-                              onclick="return confirm('Delete this vendor?');">
-                              Delete
-                            </a>
+                              onclick="return confirm('Delete this vendor?');">Delete</a>
                       </div>
                     </div>
                   </div>
                 </div>
-                <!-- Header End -->
 
                 <!-- Business Information -->
                 <div class="card">
@@ -274,7 +275,7 @@
                   </div>
                 </div>
 
-                <!-- Branches Information -->
+                <!-- Branches -->
                 <div class="row">
                   <div class="col s12">
                     <h5>Branches Information</h5>
@@ -302,10 +303,10 @@
                                     </tr>
                                   </thead>
                                   <tbody>
-                                    <% for( let i=0; i < branch.length; i++ ) { %>
+                                    <% for(let i=0; i < branch.length; i++) { %>
                                       <tr>
                                         <td>
-                                          <%= i+1 %>
+                                          <%= i + 1 %>
                                         </td>
                                         <td>
                                           <%= branch[i].name %>
@@ -347,7 +348,7 @@
                   </div>
                 </div>
 
-                <!-- Staff Members Information -->
+                <!-- Staff -->
                 <div class="row">
                   <div class="col s12">
                     <h5>Staff Members Information</h5>
@@ -380,10 +381,10 @@
                                     </tr>
                                   </thead>
                                   <tbody>
-                                    <% for(let i=0; i < staff.length; i++ ) { %>
+                                    <% for(let i=0; i < staff.length; i++) { %>
                                       <tr>
                                         <td>
-                                          <%= i+1 %>
+                                          <%= i + 1 %>
                                         </td>
                                         <td>
                                           <label>
@@ -391,8 +392,10 @@
                                             <span></span>
                                           </label>
                                         </td>
-                                        <td width="100px"><img src="<%= process.env.IMAGE_URL%><%= staff[i].qrCode %>"
-                                            style="width: 60%;" /></td>
+                                        <td width="100px">
+                                          <img src="<%= process.env.IMAGE_URL %><%= staff[i].qrCode %>"
+                                            style="width: 60%;" />
+                                        </td>
                                         <td>
                                           <%= staff[i].branch?.buildingName %>
                                         </td>
@@ -450,151 +453,130 @@
                                       <th>Final Amount</th>
                                       <th>Points Earned</th>
                                       <th>Points Spent</th>
-                                      <!-- <th>Admin Commission</th> -->
                                       <th>Staff</th>
                                     </tr>
                                   </thead>
                                   <tbody>
                                     <% if (transactions && transactions.length> 0) { %>
                                       <% for(let i=0; i < transactions.length; i++) { %>
-                                        <tr>
-                                          <td>
-                                            <%= i + 1 %>
-                                          </td>
-                                          <td>
-                                            <% const transDate=new Date(transactions[i].createdAt); const
-                                              day=String(transDate.getDate()).padStart(2, '0' ); const
-                                              month=String(transDate.getMonth() + 1).padStart(2, '0' ); const
-                                              year=transDate.getFullYear(); const
-                                              hours=String(transDate.getHours()).padStart(2, '0' ); const
-                                              minutes=String(transDate.getMinutes()).padStart(2, '0' ); %>
+                                        <% const transDate=new Date(transactions[i].createdAt); const
+                                          day=String(transDate.getDate()).padStart(2, '0' ); const
+                                          month=String(transDate.getMonth() + 1).padStart(2, '0' ); const
+                                          year=transDate.getFullYear(); const
+                                          hours=String(transDate.getHours()).padStart(2, '0' ); const
+                                          minutes=String(transDate.getMinutes()).padStart(2, '0' ); %>
+                                          <tr>
+                                            <td>
+                                              <%= i + 1 %>
+                                            </td>
+                                            <td>
                                               <%= `${day}-${month}-${year} ${hours}:${minutes}` %>
-                                          </td>
-                                          <td>
-                                            <%= transactions[i].user?.name || '-' %>
-                                          </td>
-                                          <td>
-                                            <%= transactions[i].user?.mobileNumber || '-' %>
-                                          </td>
-                                          <td>
-                                            <% if (transactions[i].items && transactions[i].items.length> 0) { %>
-                                              <ul style="margin: 0; padding-left: 20px;">
-                                                <% transactions[i].items.forEach(item=> { %>
-                                                  <li>
-                                                    <%= item.menuItem?.name || 'Item Deleted' %>
-                                                      <% if (item.menuItem?.price) { %>
-                                                        (BHD<%= item.menuItem.price %>)
-                                                          <% } %>
-                                                  </li>
-                                                  <% }) %>
-                                              </ul>
-                                              <% } else { %>
-                                                -
-                                                <% } %>
-                                          </td>
-                                          <td>
-                                            <% if (transactions[i].items && transactions[i].items.length> 0) { %>
-                                              <ul style="margin: 0; padding-left: 20px;">
-                                                <% transactions[i].items.forEach(item=> { %>
-                                                  <li>
-                                                    <%= item.quantity || 1 %>
-                                                  </li>
-                                                  <% }) %>
-                                              </ul>
-                                              <% } else { %>
-                                                -
-                                                <% } %>
-                                          </td>
-                                          <td>
-                                            <strong>
-                                              <%= 'BHD ' + (transactions[i].billAmount ?
-                                                transactions[i].billAmount.toFixed(2) : '0.00' ) %>
-                                            </strong>
-                                          </td>
-                                          <td>
-                                            <% if (transactions[i].discount) { %>
-                                              <span style="color: #ff5722;">
-                                                <%= transactions[i].discount.title %><br>
-                                                  <small>
-                                                    <% if (transactions[i].discount.discountType==='Percentage' ) { %>
-                                                      <%= transactions[i].discount.discountValue %>% off
-                                                        <% } else { %>
-                                                          BHD <%= transactions[i].discount.discountValue %> off
-                                                            <% } %>
-                                                  </small>
-                                              </span>
-                                              <% } else if (transactions[i].discountAmount> 0) { %>
-                                                <span style="color: #ff5722;">BHD<%=
-                                                    transactions[i].discountAmount?.toFixed(2) %></span>
-                                                <% } else { %>
-                                                  -
-                                                  <% } %>
-                                          </td>
-                                          <td>
-                                            <strong style="color: #4caf50; font-size: 1.1em;">
-                                              BHD<%= transactions[i].finalAmount?.toFixed(2) || '0.00' %>
-                                            </strong>
-                                          </td>
-                                          <td>
-                                            <span
-                                              style="background-color: #e8f5e9; padding: 4px 8px; border-radius: 4px; color: #2e7d32; font-weight: bold;">
-                                              +<%= transactions[i].earnedPoints || 0 %> pts
-                                            </span>
-                                          </td>
-                                          <td>
-                                            <% if (transactions[i].spentPoints> 0) { %>
+                                            </td>
+                                            <td>
+                                              <%= transactions[i].user?.name || '-' %>
+                                            </td>
+                                            <td>
+                                              <%= transactions[i].user?.mobileNumber || '-' %>
+                                            </td>
+                                            <td>
+                                              <% if (transactions[i].items && transactions[i].items.length> 0) { %>
+                                                <ul style="margin: 0; padding-left: 20px;">
+                                                  <% transactions[i].items.forEach(item=> { %>
+                                                    <li>
+                                                      <%= item.menuItem?.name || 'Item Deleted' %>
+                                                        <% if (item.menuItem?.price) { %>(BHD <%= item.menuItem.price %>
+                                                            )<% } %>
+                                                    </li>
+                                                    <% }) %>
+                                                </ul>
+                                                <% } else { %>-<% } %>
+                                            </td>
+                                            <td>
+                                              <% if (transactions[i].items && transactions[i].items.length> 0) { %>
+                                                <ul style="margin: 0; padding-left: 20px;">
+                                                  <% transactions[i].items.forEach(item=> { %>
+                                                    <li>
+                                                      <%= item.quantity || 1 %>
+                                                    </li>
+                                                    <% }) %>
+                                                </ul>
+                                                <% } else { %>-<% } %>
+                                            </td>
+                                            <td><strong>BHD <%= transactions[i].billAmount ?
+                                                  transactions[i].billAmount.toFixed(2) : '0.00' %></strong></td>
+                                            <td>
+                                              <% if (transactions[i].discount) { %>
+                                                <span style="color: #ff5722;">
+                                                  <%= transactions[i].discount.title %><br>
+                                                    <small>
+                                                      <% if (transactions[i].discount.discountType==='Percentage' ) { %>
+                                                        <%= transactions[i].discount.discountValue %>% off
+                                                          <% } else { %>
+                                                            BHD <%= transactions[i].discount.discountValue %> off
+                                                              <% } %>
+                                                    </small>
+                                                </span>
+                                                <% } else if (transactions[i].discountAmount> 0) { %>
+                                                  <span style="color: #ff5722;">BHD <%=
+                                                      transactions[i].discountAmount?.toFixed(2) %></span>
+                                                  <% } else { %>-<% } %>
+                                            </td>
+                                            <td><strong style="color: #4caf50; font-size: 1.1em;">BHD <%=
+                                                  transactions[i].finalAmount?.toFixed(2) || '0.00' %></strong></td>
+                                            <td>
                                               <span
-                                                style="background-color: #ffebee; padding: 4px 8px; border-radius: 4px; color: #c62828; font-weight: bold;">
-                                                -<%= transactions[i].spentPoints %> pts
+                                                style="background-color: #e8f5e9; padding: 4px 8px; border-radius: 4px; color: #2e7d32; font-weight: bold;">
+                                                +<%= transactions[i].earnedPoints || 0 %> pts
                                               </span>
-                                              <% } else { %>
-                                                -
-                                                <% } %>
-                                          </td>
-
-                                          <td>
-                                            <%= transactions[i].staff?.name || '-' %>
-                                          </td>
-                                        </tr>
-                                        <% } %>
-                                          <% } else { %>
-                                            <tr>
-                                              <td colspan="13" style="text-align: center;">No transactions found for
-                                                this vendor</td>
-                                            </tr>
-                                            <% } %>
+                                            </td>
+                                            <td>
+                                              <% if (transactions[i].spentPoints> 0) { %>
+                                                <span
+                                                  style="background-color: #ffebee; padding: 4px 8px; border-radius: 4px; color: #c62828; font-weight: bold;">
+                                                  -<%= transactions[i].spentPoints %> pts
+                                                </span>
+                                                <% } else { %>-<% } %>
+                                            </td>
+                                            <td>
+                                              <%= transactions[i].staff?.name || '-' %>
+                                            </td>
+                                          </tr>
+                                          <% } %>
+                                            <% } else { %>
+                                              <tr>
+                                                <td colspan="12" style="text-align: center;">No transactions found for
+                                                  this vendor</td>
+                                              </tr>
+                                              <% } %>
                                   </tbody>
                                   <tfoot>
-                                    <% if (transactions && transactions.length> 0) { %>
-                                      <% const totalBill=transactions.reduce((sum, t)=> sum + (t.billAmount || 0), 0);
-                                        const totalDiscount = transactions.reduce((sum, t) => sum + (t.discountAmount ||
-                                        0), 0);
-                                        const totalFinal = transactions.reduce((sum, t) => sum + (t.finalAmount || 0),
-                                        0);
-                                        const totalEarned = transactions.reduce((sum, t) => sum + (t.earnedPoints || 0),
-                                        0);
-                                        const totalSpent = transactions.reduce((sum, t) => sum + (t.spentPoints || 0),
-                                        0);
-                                        const totalCommission = transactions.reduce((sum, t) => sum + (t.adminCommission
-                                        || 0), 0);
-                                        %>
-                                        <tr style="background-color: #f5f5f5; font-weight: bold;">
-                                          <td colspan="6" style="text-align: right;">TOTAL:</td>
-                                          <td>BHD <%= totalBill.toFixed(2) %>
-                                          </td>
-                                          <td>BHD <%= totalDiscount.toFixed(2) %>
-                                          </td>
-                                          <td style="color: #4caf50;">BHD <%= totalFinal.toFixed(2) %>
-                                          </td>
-                                          <td style="color: #2e7d32;">+<%= totalEarned %> pts</td>
-                                          <td style="color: #c62828;">
-                                            <%= totalSpent> 0 ? '-' + totalSpent + ' pts' : '-' %>
-                                          </td>
-                                          <td style="color: #673ab7;">BHD <%= totalCommission.toFixed(2) %>
-                                          </td>
-                                          <!-- <td>-</td> -->
-                                        </tr>
-                                        <% } %>
+                                    <% if (transactions && transactions.length> 0) {
+                                      const totalBill = transactions.reduce((sum, t) => sum + (t.billAmount || 0), 0);
+                                      const totalDiscount = transactions.reduce((sum, t) => sum + (t.discountAmount ||
+                                      0), 0);
+                                      const totalFinal = transactions.reduce((sum, t) => sum + (t.finalAmount || 0), 0);
+                                      const totalEarned = transactions.reduce((sum, t) => sum + (t.earnedPoints || 0),
+                                      0);
+                                      const totalSpent = transactions.reduce((sum, t) => sum + (t.spentPoints || 0), 0);
+                                      const totalCommission = transactions.reduce((sum, t) => sum + (t.adminCommission
+                                      || 0), 0);
+                                      %>
+                                      <tr style="background-color: #f5f5f5; font-weight: bold;">
+                                        <td colspan="6" style="text-align: right;">TOTAL:</td>
+                                        <td>BHD <%= totalBill.toFixed(2) %>
+                                        </td>
+                                        <td>BHD <%= totalDiscount.toFixed(2) %>
+                                        </td>
+                                        <td style="color: #4caf50;">BHD <%= totalFinal.toFixed(2) %>
+                                        </td>
+                                        <td style="color: #2e7d32;">+<%= totalEarned %> pts</td>
+                                        <td style="color: #c62828;">
+                                          <%= totalSpent> 0 ? '-' + totalSpent + ' pts' : '-' %>
+                                        </td>
+                                        <td style="color: #673ab7;">BHD <%= totalCommission.toFixed(2) %>
+                                        </td>
+                                      </tr>
+                                      <% } %>
                                   </tfoot>
                                 </table>
                               </div>
@@ -606,36 +588,34 @@
                   </div>
                 </div>
 
-                <!-- Send Notification Modal -->
-                <div id="modal" class="modal">
-                  <div class="modal-content">
-                    <h5>Send Notification</h5>
-                    <form id="form" class="image-form" method="POST" action="/admin/vendor/notify"
-                      enctype="multipart/form-data">
-                      <div class="input-field col s12">
-                        <input placeholder="Title" id="title" name="title" type="text">
-                        <label for="title">Title</label>
-                        <small>
-                          <div id="error1" class="error"></div>
-                        </small>
-                      </div>
-                      <div class="input-field col s12 mt-0 mb-0">
-                        <input placeholder="Body" id="body" name="body" type="text">
-                        <label for="body">Body</label>
-                        <small>
-                          <div id="error2" class="error"></div>
-                        </small>
-                      </div>
-
-                      <input type="hidden" name="selectedUserIds" id="selectedUserIds" />
-                      <button type="submit" class="btn purple mr-40" id="submitBtn">Send</button>
-                    </form>
-                  </div>
-                </div>
-
               </div>
             </div>
           </div>
+      </div>
+    </div>
+
+    <!-- Send Notification Modal -->
+    <div id="modal" class="modal">
+      <div class="modal-content">
+        <h5>Send Notification</h5>
+        <form id="form" class="image-form" method="POST" action="/admin/vendor/notify" enctype="multipart/form-data">
+          <div class="input-field col s12">
+            <input placeholder="Title" id="title" name="title" type="text">
+            <label for="title">Title</label>
+            <small>
+              <div id="error1" class="error"></div>
+            </small>
+          </div>
+          <div class="input-field col s12 mt-0 mb-0">
+            <input placeholder="Body" id="body" name="body" type="text">
+            <label for="body">Body</label>
+            <small>
+              <div id="error2" class="error"></div>
+            </small>
+          </div>
+          <input type="hidden" name="selectedUserIds" id="selectedUserIds" />
+          <button type="submit" class="btn purple mr-40" id="submitBtn">Send</button>
+        </form>
       </div>
     </div>
 
@@ -649,58 +629,29 @@
         $(document).ready(function () {
           $('.modal').modal();
 
-          // Initialize all DataTables
-          $('#branches-table, #staff-table, #buyers-table').DataTable({
-            responsive: true,
-            order: [
-              [0, 'asc']
-            ]
-          });
+          // ✅ DataTable initialization NAHI - data-tables.js handle karega
 
-          // Transactions table with custom settings
-          $('#transactions-table').DataTable({
-            responsive: true,
-            order: [
-              [1, 'desc']
-            ], // Sort by date descending (newest first)
-            pageLength: 25,
-            columnDefs: [{
-              targets: [4, 5],
-              orderable: false
-            } // Disable sorting on items and quantity columns
-            ]
-          });
-
-          // Select all checkboxes functionality
+          // Select All Checkbox
           const selectAllCheckbox = document.getElementById('selectAll');
           const userCheckboxes = document.querySelectorAll('[name="selectedUsers[]"]');
           const selectedUserIdsInput = document.getElementById('selectedUserIds');
 
           if (selectAllCheckbox) {
             selectAllCheckbox.addEventListener('change', function () {
-              userCheckboxes.forEach(function (checkbox) {
-                checkbox.checked = selectAllCheckbox.checked;
-              });
+              userCheckboxes.forEach(cb => cb.checked = selectAllCheckbox.checked);
               updateSelectedUserIds();
             });
           }
 
-          userCheckboxes.forEach(function (checkbox) {
-            checkbox.addEventListener('change', function () {
-              updateSelectedUserIds();
-            });
+          userCheckboxes.forEach(cb => {
+            cb.addEventListener('change', updateSelectedUserIds);
           });
 
           function updateSelectedUserIds() {
-            const selectedUserIds = Array.from(userCheckboxes)
-              .filter(function (checkbox) {
-                return checkbox.checked;
-              })
-              .map(function (checkbox) {
-                return checkbox.value;
-              });
-
-            selectedUserIdsInput.value = selectedUserIds.join(',');
+            const ids = Array.from(userCheckboxes)
+              .filter(cb => cb.checked)
+              .map(cb => cb.value);
+            selectedUserIdsInput.value = ids.join(',');
           }
         });
 

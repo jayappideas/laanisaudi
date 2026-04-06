@@ -3,8 +3,7 @@
 
 <head>
   <%- include('_layouts/head') %>
-    <title>Reports & Analytics | <%= title %>
-    </title>
+    <title>Reports & Analytics | <%= title %></title>
 
     <!-- DataTables CSS -->
     <link rel="stylesheet" type="text/css" href="/app-assets/vendors/data-tables/css/jquery.dataTables.min.css">
@@ -15,13 +14,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
-      table tr td,
-      th {
-        text-align: center;
-        vertical-align: middle;
-      }
-
-      /* .card { border-radius: 16px; box-shadow: 0 6px 25px rgba(0,0,0,0.1); margin-bottom: 30px; overflow: hidden; } */
+      table tr td, th { text-align: center; vertical-align: middle; }
 
       .metric-card {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -46,320 +39,415 @@
         align-items: center;
       }
 
-      .chip {
-        border-radius: 30px;
-        padding: 6px 16px;
+      .chip  { border-radius: 30px; padding: 6px 16px; font-weight: 600; font-size: 13px; }
+      code   { background: #f5f5f5; padding: 4px 10px; border-radius: 8px; font-size: 13px; font-family: 'Courier New', monospace; }
+
+      .dataTables_wrapper .dataTables_scrollBody { -webkit-overflow-scrolling: touch; }
+      #page-length-option_wrapper { overflow-x: auto; }
+
+      /* ── Date-range banner ───────────────────────────────────────── */
+      .range-banner {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: #fff3e0;
+        border: 1px solid #ffb74d;
+        border-radius: 20px;
+        padding: 5px 14px;
+        font-size: 13px;
         font-weight: 600;
-        font-size: 13px;
+        color: #e65100;
+        margin-bottom: 0;
+        line-height: 1.4;
+        white-space: nowrap;
+      }
+      .range-banner.green {
+        background: #e8f5e9 !important;
+        border-color: #66bb6a;
+        color: #2e7d32;
+      }
+      /* icon perfectly vertically centred with text */
+      .range-banner i {
+        font-size: 15px;
+        line-height: 1;
+        display: flex;
+        align-items: center;
       }
 
-      code {
-        background: #f5f5f5;
-        padding: 4px 10px;
-        border-radius: 8px;
-        font-size: 13px;
-        font-family: 'Courier New', monospace;
+      /* Quick-range buttons */
+      .quick-ranges { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+      .quick-ranges .btn-flat {
+        border: 1px solid #9c27b0;
+        border-radius: 20px;
+        font-size: 12px;
+        color: #9c27b0;
+        cursor: pointer;
+        transition: all .2s;
+      }
+      .quick-ranges .btn-flat:hover,
+      .quick-ranges .btn-flat.active {
+        background: #9c27b0;
+        color: #fff;
       }
 
-      /* Vendor list jaisa scroll */
-      .dataTables_wrapper .dataTables_scrollBody {
-        -webkit-overflow-scrolling: touch;
+      /* Section header with badge */
+      .section-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 16px;
       }
-
-      #page-length-option_wrapper {
-        overflow-x: auto;
+      .section-header h5 { margin: 0; }
+      .section-header-left {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
       }
+      /* top-of-page filter card badge needs bottom margin */
+      .filter-card-banner { margin-bottom: 0; }
     </style>
 </head>
 
-<body
-  class="vertical-layout page-header-light vertical-menu-collapsible vertical-dark-menu preload-transitions 2-columns">
+<body class="vertical-layout page-header-light vertical-menu-collapsible vertical-dark-menu preload-transitions 2-columns">
   <%- include('_layouts/sidenavbar') %>
 
-    <div id="main">
-      <div class="row">
-        <div id="breadcrumbs-wrapper" style="background:white;">
-          <div class="container">
-            <div class="row">
-              <%- include('messages', { messages: messages }) %>
-                <div class="col s12">
-                  <h5>Reports & Analytics</h5>
-                </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="col s12">
-          <div class="container">
-
-            <!-- KEY METRICS -->
-            <div class="row">
-
-              <!-- FILTER FORM -->
-              <div class="card">
-                <div class="card-content">
-                  <h5 class="purple-text">Filter Reports</h5>
-                  <form action="/admin/reports" method="GET">
-                    <div class="row">
-                      <div class="input-field col s12 m4">
-                        <input type="text" name="startDate" class="datepicker" value="<%= filters.startDate || '' %>">
-                        <label>Start Date</label>
-                      </div>
-                      <div class="input-field col s12 m4">
-                        <input type="text" name="endDate" class="datepicker" value="<%= filters.endDate || '' %>">
-                        <label>End Date</label>
-                      </div>
-                      <div class="input-field col s12 m4">
-                        <select name="vendorId">
-                          <option value="">All Vendors</option>
-                          <% allVendors.forEach(v=> { %>
-                            <option value="<%= v._id %>" <%=filters.vendorId===v._id.toString() ? 'selected' : '' %>><%=
-                                v.businessName %>
-                            </option>
-                            <% }) %>
-                        </select>
-                        <label>Vendor</label>
-                      </div>
-                    </div>
-                    <button type="submit" class="btn gradient-45deg-purple-deep-orange">Apply</button>
-                    <a href="/admin/reports" class="btn grey">Reset</a>
-                  </form>
-                </div>
-              </div>
-
-              <!-- VENDOR PERFORMANCE -->
-              <div class="card">
-                <div class="card-content">
-                  <div style="display:flex;align-items:center;justify-content:space-between;">
-                    <h5>Vendors Performance</h5>
-                    <div>
-                      <a href="/admin/reports/export/vendors-performance?<%= 'startDate=' + (filters.startDate || '') + '&endDate=' + (filters.endDate || '') + '&vendorId=' + (filters.vendorId || '') %>"
-                        class="btn green">Export Vendors Performance</a>
-                    </div>
-                  </div>
-                  <div class="section section-data-tables">
-                    <div class="row">
-                      <div class="col s12">
-                        <table id="vendor-performance-table" class="display" style="width:100%">
-                          <thead>
-                            <tr>
-                              <th>Sr</th>
-                              <th>Vendor</th>
-                              <th>Total Transactions</th>
-                              <th>Points Redeemed</th>
-                              <th>Discount (BHD)</th>
-                              <th>Admin Commission (BHD)</th>
-                              <th>View</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            <% (vendorPerformanceAll || []).forEach((v, i)=> { %>
-                              <tr>
-                                <td>
-                                  <%= i + 1 %>
-                                </td>
-                                <td>
-                                  <%= v.vendorName %>
-                                </td>
-                                <td>
-                                  <%= v.totalTransactions %>
-                                </td>
-                                <td><span class="new badge red" data-badge-caption="pts">
-                                    <%= v.totalPointsRedeemed %>
-                                  </span></td>
-                                <td><strong class="green-text">
-                                    <%= v.totalDiscountGiven %> BHD
-                                  </strong></td>
-                                <td><strong>
-                                    <%= v.totalAdminCommission %> BHD
-                                  </strong></td>
-                                <td>
-                                  <a href="/admin/vendor/view/<%= v.vendorId %>">
-                                    <i class="material-icons">visibility</i>
-                                  </a>
-                                </td>
-                              </tr>
-                              <% }) %>
-                                <% if(!vendorPerformanceAll || vendorPerformanceAll.length===0) { %>
-                                  <tr>
-                                    <td colspan="7" class="center grey-text">No vendor data</td>
-                                  </tr>
-                                  <% } %>
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- USERS PERFORMANCE -->
-              <div class="card">
-                <div class="card-content">
-                  <div style="display:flex;align-items:center;justify-content:space-between;">
-                    <h5>Users Performance</h5>
-                    <div>
-                      <a href="/admin/reports/export/users-performance?<%= 'startDate=' + (filters.startDate || '') + '&endDate=' + (filters.endDate || '') %>"
-                        class="btn blue">Export Users Performance</a>
-                    </div>
-                  </div>
-                  <div class="section section-data-tables">
-                    <div class="row">
-                      <div class="col s12">
-                        <table id="users-performance-table" class="display" style="width:100%">
-                          <thead>
-                            <tr>
-                              <th>Sr</th>
-                              <th>Name</th>
-                              <th>Mobile</th>
-                              <th>Total Transactions</th>
-                              <th>View</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            <% (usersPerformanceAll || []).forEach((u, i)=> { %>
-                              <tr>
-                                <td>
-                                  <%= i + 1 %>
-                                </td>
-                                <td>
-                                  <%= u.userName %>
-                                </td>
-                                <td>
-                                  <%= u.mobile || '-' %>
-                                </td>
-                                <td>
-                                  <%= u.totalTransactions %>
-                                </td>
-                                <td>
-                                  <a href="/admin/user/view/<%= u.userId %>">
-                                    <i class="material-icons">visibility</i>
-                                  </a>
-                                </td>
-                              </tr>
-                              <% }) %>
-                                <% if(!usersPerformanceAll || usersPerformanceAll.length===0) { %>
-                                  <tr>
-                                    <td colspan="9" class="center grey-text">No user data</td>
-                                  </tr>
-                                  <% } %>
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- RECENT REDEMPTIONS TABLE -->
-              <div class="card">
-                <div class="card-content">
-                  <h5>Redemptions History</h5>
-                  <div class="section section-data-tables">
-                    <div class="row">
-                      <div class="col s12">
-                        <table id="page-length-option" class="display" style="width:100%">
-                          <thead>
-                            <tr>
-                              <th>Sr</th>
-                              <th>Date & Time</th>
-                              <th>Customer</th>
-                              <th>Vendor</th>
-                              <th>Points Used</th>
-                              <th>Points Earned</th>
-                              <th>Discount (BHD)</th>
-                              <th>View</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            <% recentRedemptions.forEach((r, i)=> { %>
-                              <tr>
-                                <td>
-                                  <%= i + 1 %>
-                                </td>
-                                <td>
-                                  <% const d=new Date(r.date); %>
-                                    <%=
-                                      `${String(d.getDate()).padStart(2,'0')}-${String(d.getMonth()+1).padStart(2,'0')}-${d.getFullYear()}
-                                      ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`
-                                      %>
-                                </td>
-                                <td>
-                                  <%= r.customer || 'Guest' %>
-                                </td>
-                                <td><span class="chip teal lighten-4">
-                                    <%= r.vendor %>
-                                  </span></td>
-                                <td><span class="new badge red" data-badge-caption="pts">
-                                    <%= r.points %>
-                                  </span></td>
-                                <td><span class="new badge blue" data-badge-caption="pts">
-                                    <%= r.pointsEarned || 0 %>
-                                  </span></td>
-
-                                <td><strong class="green-text">
-                                    <%= r.discount %> BHD
-                                  </strong></td>
-
-                                <td>
-                                  <a href="/admin/reports/view/<%= r._id %>">
-                                    <i class="material-icons">visibility</i>
-                                  </a>
-                                </td>
-                              </tr>
-                              <% }) %>
-                                <% if(recentRedemptions.length===0) { %>
-                                  <tr>
-                                    <td colspan="7" class="center grey-text">No redemptions found</td>
-                                  </tr>
-                                  <% } %>
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
+  <div id="main">
+    <div class="row">
+      <div id="breadcrumbs-wrapper" style="background:white;">
+        <div class="container">
+          <div class="row">
+            <%- include('messages', { messages: messages }) %>
+            <div class="col s12">
+              <h5>Reports &amp; Analytics</h5>
             </div>
           </div>
         </div>
       </div>
 
-      <%- include('_layouts/commonJs') %>
+      <div class="col s12">
+        <div class="container">
 
-        <!-- DataTables + Chart.js -->
-        <script src="/app-assets/vendors/data-tables/js/jquery.dataTables.min.js"></script>
-        <script src="/app-assets/js/scripts/data-tables.js"></script>
+          <!-- ── FILTER CARD ──────────────────────────────────────────────── -->
+          <div class="card">
+            <div class="card-content">
+              <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+                <h5 class="purple-text" style="margin:0;">Filter Reports</h5>
 
-        <script>
-          // Initialize pagination for Vendors Performance table
-          $(document).ready(function () {
-            $('#vendor-performance-table').DataTable({
-              pageLength: 10,
-              lengthMenu: [
-                [10, 25, 50, -1],
-                [10, 25, 50, 'All']
-              ],
-              ordering: true,
-              searching: true,
-              responsive: true
-            });
+                <!-- Active range badge -->
+                <% if (isDefaultRange) { %>
+                  <span class="range-banner filter-card-banner">
+                    <i class="material-icons">schedule</i>Showing: Last 24 Hours
+                  </span>
+                <% } else { %>
+                  <span class="range-banner green filter-card-banner">
+                    <i class="material-icons">date_range</i><%= filters.startDate %> → <%= filters.endDate %>
+                  </span>
+                <% } %>
+              </div>
 
-            // Initialize pagination for Users Performance table
-            $('#users-performance-table').DataTable({
-              pageLength: 10,
-              lengthMenu: [
-                [10, 25, 50, -1],
-                [10, 25, 50, 'All']
-              ],
-              ordering: true,
-              searching: true,
-              responsive: true
-            });
-          });
-        </script>
+              <!-- Quick-range shortcuts -->
+              <div class="quick-ranges" style="margin-top:12px;">
+                <span class="btn-flat <%= isDefaultRange ? 'active' : '' %>" onclick="setRange('today')">Last 24 hrs</span>
+                <span class="btn-flat" onclick="setRange('7d')">Last 7 Days</span>
+                <span class="btn-flat" onclick="setRange('30d')">Last 30 Days</span>
+                <span class="btn-flat" onclick="setRange('thisMonth')">This Month</span>
+                <span class="btn-flat" onclick="setRange('lastMonth')">Last Month</span>
+                <span class="btn-flat" onclick="setRange('all')">All Time</span>
+              </div>
+
+              <form id="filter-form" action="/admin/reports" method="GET">
+                <div class="row">
+                  <div class="input-field col s12 m4">
+                    <input type="text" id="startDate" name="startDate" class="datepicker"
+                           value="<%= isDefaultRange ? '' : (filters.startDate || '') %>">
+                    <label for="startDate" class="<%= !isDefaultRange && filters.startDate ? 'active' : '' %>">
+                      Start Date
+                    </label>
+                  </div>
+                  <div class="input-field col s12 m4">
+                    <input type="text" id="endDate" name="endDate" class="datepicker"
+                           value="<%= isDefaultRange ? '' : (filters.endDate || '') %>">
+                    <label for="endDate" class="<%= !isDefaultRange && filters.endDate ? 'active' : '' %>">
+                      End Date
+                    </label>
+                  </div>
+                  <div class="input-field col s12 m4">
+                    <select name="vendorId">
+                      <option value="">All Vendors</option>
+                      <% allVendors.forEach(v => { %>
+                        <option value="<%= v._id %>"
+                          <%= filters.vendorId === v._id.toString() ? 'selected' : '' %>>
+                          <%= v.businessName %>
+                        </option>
+                      <% }) %>
+                    </select>
+                    <label>Vendor</label>
+                  </div>
+                </div>
+
+                <button type="submit" class="btn gradient-45deg-purple-deep-orange">Apply</button>
+                <a href="/admin/reports" class="btn grey">Reset to 24 hrs</a>
+              </form>
+            </div>
+          </div>
+
+          <!-- ── VENDOR PERFORMANCE ──────────────────────────────────────── -->
+          <div class="card">
+            <div class="card-content">
+              <div class="section-header">
+                <div class="section-header-left">
+                  <h5>Vendors Performance</h5>
+                  <% if (isDefaultRange) { %>
+                    <span class="range-banner">
+                      <i class="material-icons">schedule</i>Last 24 Hours
+                    </span>
+                  <% } else { %>
+                    <span class="range-banner green">
+                      <i class="material-icons">date_range</i><%= filters.startDate %> → <%= filters.endDate %>
+                    </span>
+                  <% } %>
+                </div>
+                <a href="/admin/reports/export/vendors-performance?<%= 'startDate=' + (filters.startDate || '') + '&endDate=' + (filters.endDate || '') + '&vendorId=' + (filters.vendorId || '') %>"
+                   class="btn green">Export Vendors Performance</a>
+              </div>
+              <div class="section section-data-tables">
+                <div class="row">
+                  <div class="col s12">
+                    <table id="vendor-performance-table" class="display" style="width:100%">
+                      <thead>
+                        <tr>
+                          <th>Sr</th>
+                          <th>Vendor</th>
+                          <th>Total Transactions</th>
+                          <th>Points Redeemed</th>
+                          <th>Discount (BHD)</th>
+                          <th>Admin Commission (BHD)</th>
+                          <th>View</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <% 
+                          const visibleVendors = (vendorPerformanceAll || []).filter(v => v.totalTransactions > 0);
+                          visibleVendors.forEach((v, i) => { 
+                        %>
+                          <tr>
+                            <td><%= i + 1 %></td>
+                            <td><%= v.vendorName %></td>
+                            <td><%= v.totalTransactions %></td>
+                            <td><span class="new badge red" data-badge-caption="pts"><%= v.totalPointsRedeemed %></span></td>
+                            <td><strong class="green-text"><%= v.totalDiscountGiven %> BHD</strong></td>
+                            <td><strong><%= v.totalAdminCommission %> BHD</strong></td>
+                            <td><a href="/admin/vendor/view/<%= v.vendorId %>"><i class="material-icons">visibility</i></a></td>
+                          </tr>
+                        <% }) %>
+                        <% if (visibleVendors.length === 0) { %>
+                          <tr>
+                            <td colspan="7" class="center grey-text" style="padding: 40px 0;">
+                              <i class="material-icons" style="font-size:48px; color:#ccc; display:block; margin-bottom:8px;">store_mall_directory</i>
+                              No vendor transactions found for this period
+                            </td>
+                          </tr>
+                        <% } %>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── USERS PERFORMANCE ───────────────────────────────────────── -->
+          <div class="card">
+            <div class="card-content">
+              <div class="section-header">
+                <div class="section-header-left">
+                  <h5>Users Performance</h5>
+                  <% if (isDefaultRange) { %>
+                    <span class="range-banner">
+                      <i class="material-icons">schedule</i>Last 24 Hours
+                    </span>
+                  <% } else { %>
+                    <span class="range-banner green">
+                      <i class="material-icons">date_range</i><%= filters.startDate %> → <%= filters.endDate %>
+                    </span>
+                  <% } %>
+                </div>
+                <a href="/admin/reports/export/users-performance?<%= 'startDate=' + (filters.startDate || '') + '&endDate=' + (filters.endDate || '') %>"
+                   class="btn blue">Export Users Performance</a>
+              </div>
+              <div class="section section-data-tables">
+                <div class="row">
+                  <div class="col s12">
+                    <table id="users-performance-table" class="display" style="width:100%">
+                      <thead>
+                        <tr>
+                          <th>Sr</th>
+                          <th>Name</th>
+                          <th>Mobile</th>
+                          <th>Total Transactions</th>
+                          <th>View</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <% 
+                          const visibleUsers = (usersPerformanceAll || []).filter(u => u.totalTransactions > 0);
+                          visibleUsers.forEach((u, i) => { 
+                        %>
+                          <tr>
+                            <td><%= i + 1 %></td>
+                            <td><%= u.userName %></td>
+                            <td><%= u.mobile || '-' %></td>
+                            <td><%= u.totalTransactions %></td>
+                            <td><a href="/admin/user/view/<%= u.userId %>"><i class="material-icons">visibility</i></a></td>
+                          </tr>
+                        <% }) %>
+                        <% if (visibleUsers.length === 0) { %>
+                          <tr>
+                            <td colspan="5" class="center grey-text" style="padding: 40px 0;">
+                              <i class="material-icons" style="font-size:48px; color:#ccc; display:block; margin-bottom:8px;">people_outline</i>
+                              No user transactions found for this period
+                            </td>
+                          </tr>
+                        <% } %>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── REDEMPTIONS HISTORY ─────────────────────────────────────── -->
+          <div class="card">
+            <div class="card-content">
+              <div class="section-header">
+                <div class="section-header-left">
+                  <h5>Redemptions History</h5>
+                  <% if (isDefaultRange) { %>
+                    <span class="range-banner">
+                      <i class="material-icons">schedule</i>Last 24 hrs
+                    </span>
+                  <% } else { %>
+                    <span class="range-banner green">
+                      <i class="material-icons">date_range</i><%= filters.startDate %> → <%= filters.endDate %>
+                    </span>
+                  <% } %>
+                </div>
+              </div>
+              <div class="section section-data-tables">
+                <div class="row">
+                  <div class="col s12">
+                    <table id="page-length-option" class="display" style="width:100%">
+                      <thead>
+                        <tr>
+                          <th>Sr</th>
+                          <th>Date &amp; Time</th>
+                          <th>Customer</th>
+                          <th>Vendor</th>
+                          <th>Points Used</th>
+                          <th>Points Earned</th>
+                          <th>Discount (BHD)</th>
+                          <th>View</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <% recentRedemptions.forEach((r, i) => { %>
+                          <tr>
+                            <td><%= i + 1 %></td>
+                            <td>
+                              <% const d = new Date(r.date); %>
+                              <%= `${String(d.getDate()).padStart(2,'0')}-${String(d.getMonth()+1).padStart(2,'0')}-${d.getFullYear()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}` %>
+                            </td>
+                            <td><%= r.customer || 'Guest' %></td>
+                            <td><span class="chip teal lighten-4"><%= r.vendor %></span></td>
+                            <td><span class="new badge red" data-badge-caption="pts"><%= r.points %></span></td>
+                            <td><span class="new badge blue" data-badge-caption="pts"><%= r.pointsEarned || 0 %></span></td>
+                            <td><strong class="green-text"><%= r.discount %> BHD</strong></td>
+                            <td><a href="/admin/reports/view/<%= r._id %>"><i class="material-icons">visibility</i></a></td>
+                          </tr>
+                        <% }) %>
+                        <% if (recentRedemptions.length === 0) { %>
+                          <tr><td colspan="8" class="center grey-text">No redemptions found in this period</td></tr>
+                        <% } %>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- /container -->
+      </div><!-- /col s12 -->
+    </div><!-- /row -->
+  </div><!-- /main -->
+
+  <%- include('_layouts/commonJs') %>
+
+  <!-- DataTables -->
+  <script src="/app-assets/vendors/data-tables/js/jquery.dataTables.min.js"></script>
+  <script src="/app-assets/js/scripts/data-tables.js"></script>
+
+  <script>
+    // ── DataTables init ──────────────────────────────────────────────────────
+    $(document).ready(function () {
+      $('#vendor-performance-table').DataTable({
+        pageLength: 10,
+        lengthMenu: [[10, 25, 50, -1], [10, 25, 50, 'All']],
+        ordering: true, searching: true, responsive: true
+      });
+      $('#users-performance-table').DataTable({
+        pageLength: 10,
+        lengthMenu: [[10, 25, 50, -1], [10, 25, 50, 'All']],
+        ordering: true, searching: true, responsive: true
+      });
+    });
+
+    // ── Quick-range shortcuts ────────────────────────────────────────────────
+    function pad(n) { return String(n).padStart(2, '0'); }
+    function fmt(d) { return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
+
+    function setRange(range) {
+      const now   = new Date();
+      let start, end;
+
+      if (range === 'today') {
+        // Clear both → server default = last 24 hrs
+        document.getElementById('startDate').value = '';
+        document.getElementById('endDate').value   = '';
+        document.getElementById('filter-form').submit();
+        return;
+      }
+
+      if (range === '7d') {
+        end   = new Date(now);
+        start = new Date(now); start.setDate(start.getDate() - 6);
+      } else if (range === '30d') {
+        end   = new Date(now);
+        start = new Date(now); start.setDate(start.getDate() - 29);
+      } else if (range === 'thisMonth') {
+        start = new Date(now.getFullYear(), now.getMonth(), 1);
+        end   = new Date(now);
+      } else if (range === 'lastMonth') {
+        start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        end   = new Date(now.getFullYear(), now.getMonth(), 0);
+      } else if (range === 'all') {
+        start = new Date('2020-01-01');
+        end   = new Date(now);
+      }
+
+      document.getElementById('startDate').value = fmt(start);
+      document.getElementById('endDate').value   = fmt(end);
+
+      // Refresh Materialize labels
+      M.updateTextFields();
+
+      document.getElementById('filter-form').submit();
+    }
+  </script>
 
 </body>
-
 </html>

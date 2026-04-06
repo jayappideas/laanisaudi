@@ -151,33 +151,179 @@ exports.dashboardStaff = async (req, res, next) => {
 //     }
 // };
 
+// exports.getCategoryList = async (req, res, next) => {
+//     try {
+//         if (!req.vendor?.id) {
+//             // Step 1: Get vendor IDs who have at least one non-deleted branch
+//             const vendorsWithBranches = await branchModel
+//                 .find({ isDelete: false })
+//                 .distinct('vendor');
+
+//             // Step 2: Get businessType (category) IDs used by those vendors
+//             const usedCategoryIds = await vendorModel
+//                 .find({
+//                     _id: { $in: vendorsWithBranches },
+//                     isActive: true,
+//                     isDelete: false,
+//                 })
+//                 .distinct('businessType');
+
+//             // Step 3: Get businessType categories based on those IDs
+//             let categories = await businessTypeModel
+//                 .find({
+//                     _id: { $in: usedCategoryIds },
+//                     isDelete: false,
+//                     isActive: true,
+//                 })
+//                 .select('en ar image');
+
+//             // Step 4: Map to multilingual
+//             categories = categories.map(x => multilingual(x, req));
+
+//             return res.status(200).json({
+//                 success: true,
+//                 message: req.t('success'),
+//                 data: categories,
+//             });
+//         } else {
+//             let categories = await businessTypeModel
+//                 .find({
+//                     isDelete: false,
+//                     isActive: true,
+//                 })
+//                 .select('en ar image');
+
+//             // Step 4: Map to multilingual
+//             categories = categories.map(x => multilingual(x, req));
+
+//             res.status(200).json({
+//                 success: true,
+//                 message: req.t('success'),
+//                 data: categories,
+//             });
+//         }
+//     } catch (error) {
+//         next(error);
+//     }
+// };
+
+//////////////////lat log updated
+// exports.getCategoryList = async (req, res, next) => {
+//     try {
+//         const { latitude, longitude } = req.body; // Same as restaurant list
+
+//         let categories;
+
+//         // Agar vendor logged in hai (admin/vendor panel), toh saari categories dikhao (location ignore)
+//         if (req.vendor?.id) {
+//             categories = await businessTypeModel
+//                 .find({
+//                     isDelete: false,
+//                     isActive: true,
+//                 })
+//                 .select('en ar image');
+
+//             categories = categories.map(x => multilingual(x, req));
+
+//             return res.status(200).json({
+//                 success: true,
+//                 message: req.t('success'),
+//                 data: categories,
+//             });
+//         }
+
+//         // Normal user ke liye: location-based filtering
+//         let matchCondition = {
+//             isDelete: false,
+//             isActive: true,
+//         };
+
+//         if (latitude && longitude) {
+//             const maxDistance = 50000; // 50 KM (same default as restaurant list)
+
+//             const pipeline = [
+//                 {
+//                     $geoNear: {
+//                         near: {
+//                             type: 'Point',
+//                             coordinates: [parseFloat(longitude), parseFloat(latitude)],
+//                         },
+//                         distanceField: 'distance',
+//                         maxDistance: maxDistance,
+//                         spherical: true,
+//                     },
+//                 },
+//                 { $match: { isDelete: false } },
+//                 {
+//                     $lookup: {
+//                         from: 'vendors',
+//                         localField: 'vendor',
+//                         foreignField: '_id',
+//                         as: 'vendorDetails',
+//                     },
+//                 },
+//                 { $unwind: '$vendorDetails' },
+//                 {
+//                     $match: {
+//                         'vendorDetails.isDelete': false,
+//                         'vendorDetails.isActive': true,
+//                         'vendorDetails.adminApproved': true,
+//                     },
+//                 },
+//                 {
+//                     $group: {
+//                         _id: '$vendorDetails.businessType', // Category ID
+//                     },
+//                 },
+//                 { $match: { _id: { $ne: null } } },
+//             ];
+
+//             const result = await branchModel.aggregate(pipeline);
+//             const availableCategoryIds = result.map(item => item._id);
+
+//             if (availableCategoryIds.length === 0) {
+//                 return res.status(200).json({
+//                     success: true,
+//                     message: req.t('success'),
+//                     data: [],
+//                 });
+//             }
+
+//             matchCondition._id = { $in: availableCategoryIds };
+//         }
+//         // Agar lat/long nahi diye toh saari active categories dikhao (fallback)
+
+//         categories = await businessTypeModel
+//             .find(matchCondition)
+//             .select('en ar image')
+//             .sort({ 'en.name': 1 }); // Optional: alphabetical sort
+
+//         categories = categories.map(x => multilingual(x, req));
+
+//         res.status(200).json({
+//             success: true,
+//             message: req.t('success'),
+//             data: categories,
+//         });
+//     } catch (error) {
+//         next(error);
+//     }
+// };
+
 exports.getCategoryList = async (req, res, next) => {
     try {
-        if (!req.vendor?.id) {
-            // Step 1: Get vendor IDs who have at least one non-deleted branch
-            const vendorsWithBranches = await branchModel
-                .find({ isDelete: false })
-                .distinct('vendor');
+        const { latitude, longitude } = req.body;
 
-            // Step 2: Get businessType (category) IDs used by those vendors
-            const usedCategoryIds = await vendorModel
-                .find({
-                    _id: { $in: vendorsWithBranches },
-                    isActive: true,
-                    isDelete: false,
-                })
-                .distinct('businessType');
-
-            // Step 3: Get businessType categories based on those IDs
+        // ── Vendor/Admin logged in → show ALL active categories (ignore location)
+        if (req.vendor?.id) {
             let categories = await businessTypeModel
                 .find({
-                    _id: { $in: usedCategoryIds },
                     isDelete: false,
                     isActive: true,
                 })
-                .select('en ar image');
+                .select('en ar image')
+                .sort({ 'en.name': 1 }); // optional: alphabetical
 
-            // Step 4: Map to multilingual
             categories = categories.map(x => multilingual(x, req));
 
             return res.status(200).json({
@@ -185,23 +331,112 @@ exports.getCategoryList = async (req, res, next) => {
                 message: req.t('success'),
                 data: categories,
             });
-        } else {
-            let categories = await businessTypeModel
-                .find({
-                    isDelete: false,
-                    isActive: true,
-                })
-                .select('en ar image');
-
-            // Step 4: Map to multilingual
-            categories = categories.map(x => multilingual(x, req));
-
-            res.status(200).json({
-                success: true,
-                message: req.t('success'),
-                data: categories,
-            });
         }
+
+        // ── Normal user ────────────────────────────────────────────────
+
+        let matchCondition = {
+            isDelete: false,
+            isActive: true,
+        };
+
+        let categories;
+
+        // Case 1: Latitude + Longitude provided → use geo-based nearby filtering
+        if (latitude && longitude) {
+            const maxDistance = 50000; // 50 km
+
+            const pipeline = [
+                {
+                    $geoNear: {
+                        near: {
+                            type: 'Point',
+                            coordinates: [parseFloat(longitude), parseFloat(latitude)],
+                        },
+                        distanceField: 'distance',
+                        maxDistance: maxDistance,
+                        spherical: true,
+                    },
+                },
+                { $match: { isDelete: false } },
+                {
+                    $lookup: {
+                        from: 'vendors',
+                        localField: 'vendor',
+                        foreignField: '_id',
+                        as: 'vendorDetails',
+                    },
+                },
+                { $unwind: '$vendorDetails' },
+                {
+                    $match: {
+                        'vendorDetails.isDelete': false,
+                        'vendorDetails.isActive': true,
+                        'vendorDetails.adminApproved': true,
+                    },
+                },
+                {
+                    $group: {
+                        _id: '$vendorDetails.businessType', // category ID
+                    },
+                },
+                { $match: { _id: { $ne: null } } },
+            ];
+
+            const result = await branchModel.aggregate(pipeline);
+            const availableCategoryIds = result.map(item => item._id);
+
+            if (availableCategoryIds.length === 0) {
+                return res.status(200).json({
+                    success: true,
+                    message: req.t('success'),
+                    data: [],
+                });
+            }
+
+            matchCondition._id = { $in: availableCategoryIds };
+        }
+        // Case 2: No lat/long → fallback to "only categories that have at least one valid vendor/branch"
+        else {
+            // Get vendors who have at least one non-deleted branch
+            const vendorsWithBranches = await branchModel
+                .find({ isDelete: false })
+                .distinct('vendor');
+
+            // Get businessTypes used by those active + approved vendors
+            const usedCategoryIds = await vendorModel
+                .find({
+                    _id: { $in: vendorsWithBranches },
+                    isActive: true,
+                    isDelete: false,
+                    adminApproved: true,          // ← important: added this (was missing in your 2nd code)
+                })
+                .distinct('businessType');
+
+            if (usedCategoryIds.length === 0) {
+                return res.status(200).json({
+                    success: true,
+                    message: req.t('success'),
+                    data: [],
+                });
+            }
+
+            matchCondition._id = { $in: usedCategoryIds };
+        }
+
+        // Final query — common for both user cases (with or without location)
+        categories = await businessTypeModel
+            .find(matchCondition)
+            .select('en ar image')
+            .sort({ 'en.name': 1 });
+
+        categories = categories.map(x => multilingual(x, req));
+
+        return res.status(200).json({
+            success: true,
+            message: req.t('success'),
+            data: categories,
+        });
     } catch (error) {
         next(error);
     }
@@ -278,6 +513,460 @@ exports.getSearchSuggestion = async (req, res, next) => {
     }
 };
 
+
+
+// exports.getRestaurantList = async (req, res, next) => {
+//     try {
+//         const {
+//             latitude,
+//             longitude,
+//             categoryId,
+//             location,
+//             searchTerm,
+//             rating,
+//             sortBy,
+//         } = req.body;
+
+//         const showPopular = req.body.includePopular === true || req.body.includePopular === 'true' || req.query.popularitem === 'true';
+//         const showLiked = req.body.includeLiked === true || req.body.includeLiked === 'true' || req.query.likeditem === 'true';
+
+//         let categoryIds = [];
+//         if (categoryId) {
+//             if (typeof categoryId === 'string') {
+//                 try {
+//                     const parsed = JSON.parse(categoryId);
+//                     categoryIds = Array.isArray(parsed) ? parsed : [categoryId];
+//                 } catch (err) {
+//                     categoryIds = [categoryId];
+//                 }
+//             } else if (Array.isArray(categoryId)) {
+//                 categoryIds = categoryId;
+//             } else {
+//                 categoryIds = [categoryId];
+//             }
+//         }
+
+//         let sortCondition = {};
+//         if (sortBy === 'high_to_low_rating') {
+//             sortCondition = { rating: -1 };
+//         } else if (sortBy === 'low_to_high_rating') {
+//             sortCondition = { rating: 1 };
+//         } else if (sortBy === 'nearby') {
+//             sortCondition = { distance_in_mt: 1 };
+//         } else {
+//             sortCondition = { businessName: 1 };
+//         }
+
+//         let pipeline = [];
+//         const includeGeo = sortBy !== 'all';
+
+//         if (includeGeo) {
+//             if (!latitude || !longitude) {
+//                 return res.status(400).json({
+//                     success: false,
+//                     message: 'Latitude and longitude are required for this sortBy option',
+//                 });
+//             }
+//             pipeline.push({
+//                 $geoNear: {
+//                     near: {
+//                         type: 'Point',
+//                         coordinates: [parseFloat(longitude), parseFloat(latitude)],
+//                     },
+//                     distanceField: 'distance',
+//                     maxDistance: location ? location * 1000 : 50000, // default 50km
+//                     spherical: true,
+//                 },
+//             });
+//         }
+
+//         pipeline = pipeline.concat([
+//             { $match: { isDelete: false } },
+//             {
+//                 $lookup: {
+//                     from: 'vendors',
+//                     localField: 'vendor',
+//                     foreignField: '_id',
+//                     as: 'vendorDetails',
+//                 },
+//             },
+//             { $unwind: '$vendorDetails' },
+//             {
+//                 $match: {
+//                     'vendorDetails.isDelete': false,
+//                     'vendorDetails.isActive': true,
+//                     'vendorDetails.adminApproved': true,
+//                     ...(categoryIds?.length && {
+//                         'vendorDetails.businessType': {
+//                             $in: categoryIds.map(id => mongoose.Types.ObjectId(id)),
+//                         },
+//                     }),
+//                     // ✅ FIX: $eq + parseFloat — exact match, decimals bhi support
+//                     // ❌ Old: $lte + parseInt — sab lower ratings aa jaate the
+//                     ...(rating && {
+//                         'vendorDetails.businessRating': { $eq: parseFloat(rating) },
+//                     }),
+//                 },
+//             },
+//         ]);
+
+//         if (searchTerm) {
+//             pipeline = pipeline.concat([
+//                 {
+//                     $lookup: {
+//                         from: 'menuitems',
+//                         localField: 'vendorDetails._id',
+//                         foreignField: 'vendor',
+//                         as: 'menuItems',
+//                     },
+//                 },
+//                 { $unwind: { path: '$menuItems', preserveNullAndEmptyArrays: true } },
+//                 {
+//                     $match: {
+//                         $and: [
+//                             {
+//                                 $or: [
+//                                     { 'vendorDetails.businessName': { $regex: searchTerm, $options: 'i' } },
+//                                     { 'menuItems.name': { $regex: searchTerm, $options: 'i' } },
+//                                 ],
+//                             },
+//                             {
+//                                 $or: [
+//                                     { menuItems: { $eq: null } },
+//                                     { 'menuItems.isActive': true },
+//                                 ],
+//                             },
+//                         ],
+//                     },
+//                 },
+//             ]);
+//         }
+
+//         pipeline.push({
+//             $group: {
+//                 _id: '$vendorDetails._id',
+//                 businessName: { $first: '$vendorDetails.businessName' },
+//                 businessLogo: { $first: '$vendorDetails.businessLogo' },
+//                 rating: { $first: '$vendorDetails.businessRating' },
+//                 review: { $first: '$vendorDetails.businessReview' },
+//                 distance_in_mt: { $min: { $ifNull: ['$distance', 0] } },
+//                 branchId: { $first: '$_id' },
+//                 branches: {
+//                     $addToSet: {
+//                         _id: '$_id',
+//                         buildingName: '$buildingName',
+//                         roadName: '$roadName',
+//                         city: '$city',
+//                         country: '$country',
+//                         state: '$state',
+//                         location: '$location',
+//                         buildingNo: '$buildingNo',
+//                         isSelected: '$isSelected',
+//                     },
+//                 },
+//             },
+//         });
+
+//         pipeline.push({
+//             $match: {
+//                 businessName: { $ne: null },
+//                 businessLogo: { $ne: null },
+//             },
+//         });
+
+//         if (showPopular) {
+//             pipeline.push({
+//                 $lookup: {
+//                     from: 'transactions',
+//                     let: { vendorId: '$_id' },
+//                     pipeline: [
+//                         { $match: { $expr: { $eq: ['$vendor', '$$vendorId'] }, status: 'accepted' } },
+//                         { $unwind: '$items' },
+//                         { $group: { _id: '$items.menuItem', totalSold: { $sum: '$items.quantity' } } },
+//                         { $match: { totalSold: { $gt: 0 } } },
+//                         { $sort: { totalSold: -1 } },
+//                         { $limit: 5 },
+//                         { $lookup: { from: 'menuitems', localField: '_id', foreignField: '_id', as: 'menuItemDetails' } },
+//                         { $unwind: { path: '$menuItemDetails', preserveNullAndEmptyArrays: false } },
+//                         { $match: { 'menuItemDetails.isActive': true, 'menuItemDetails.isDelete': false } },
+//                         { $project: { _id: 0, menuItemId: '$menuItemDetails._id', name: '$menuItemDetails.name', price: { $ifNull: ['$menuItemDetails.price', 0] }, image: '$menuItemDetails.image', totalSold: 1 } },
+//                     ],
+//                     as: 'mostPopularItems',
+//                 },
+//             });
+//             pipeline.push({ $match: { 'mostPopularItems.0': { $exists: true } } });
+//         }
+
+//         if (showLiked) {
+//             pipeline.push({
+//                 $lookup: {
+//                     from: 'favoriteitems',
+//                     let: { vendorId: '$_id' },
+//                     pipeline: [
+//                         { $lookup: { from: 'menuitems', localField: 'menuItem', foreignField: '_id', as: 'menuItemDetails' } },
+//                         { $unwind: { path: '$menuItemDetails', preserveNullAndEmptyArrays: false } },
+//                         { $match: { $expr: { $eq: ['$menuItemDetails.vendor', '$$vendorId'] }, 'menuItemDetails.isActive': true, 'menuItemDetails.isDelete': false } },
+//                         { $group: { _id: '$menuItem', name: { $first: '$menuItemDetails.name' }, price: { $first: { $ifNull: ['$menuItemDetails.price', 0] } }, image: { $first: '$menuItemDetails.image' }, likeCount: { $sum: 1 } } },
+//                         { $match: { likeCount: { $gt: 0 } } },
+//                         { $sort: { likeCount: -1 } },
+//                         { $limit: 5 },
+//                         { $project: { _id: 0, menuItemId: '$_id', name: 1, price: 1, image: 1, likeCount: 1 } },
+//                     ],
+//                     as: 'mostLikedItems',
+//                 },
+//             });
+//             pipeline.push({ $match: { 'mostLikedItems.0': { $exists: true } } });
+//         }
+
+//         pipeline.push({ $sort: sortCondition });
+
+//         const vendors = await branchModel.aggregate(pipeline);
+
+//         res.status(200).json({
+//             success: true,
+//             message: req.t('success'),
+//             data: vendors,
+//         });
+
+//     } catch (error) {
+//         console.error('getRestaurantList error:', error);
+//         next(error);
+//     }
+// };
+
+// exports.getRestaurantList = async (req, res, next) => {
+//     try {
+//         const {
+//             latitude,
+//             longitude,
+//             categoryId,
+//             location,
+//             searchTerm,
+//             rating,
+//             sortBy,
+//         } = req.body;
+
+//         // ✅ DEBUG LOGS — remove after fixing
+//         console.log('=== getRestaurantList DEBUG ===');
+//         console.log('latitude:', latitude, '| longitude:', longitude);
+//         console.log('rating:', rating, '| type:', typeof rating);
+//         console.log('sortBy:', sortBy);
+//         console.log('location:', location);
+//         console.log('===============================');
+
+//         const showPopular = req.body.includePopular === true || req.body.includePopular === 'true' || req.query.popularitem === 'true';
+//         const showLiked = req.body.includeLiked === true || req.body.includeLiked === 'true' || req.query.likeditem === 'true';
+
+//         let categoryIds = [];
+//         if (categoryId) {
+//             if (typeof categoryId === 'string') {
+//                 try {
+//                     const parsed = JSON.parse(categoryId);
+//                     categoryIds = Array.isArray(parsed) ? parsed : [categoryId];
+//                 } catch (err) {
+//                     categoryIds = [categoryId];
+//                 }
+//             } else if (Array.isArray(categoryId)) {
+//                 categoryIds = categoryId;
+//             } else {
+//                 categoryIds = [categoryId];
+//             }
+//         }
+
+//         let sortCondition = {};
+//         if (sortBy === 'high_to_low_rating') {
+//             sortCondition = { rating: -1 };
+//         } else if (sortBy === 'low_to_high_rating') {
+//             sortCondition = { rating: 1 };
+//         } else if (sortBy === 'nearby') {
+//             sortCondition = { distance_in_mt: 1 };
+//         } else {
+//             sortCondition = { businessName: 1 };
+//         }
+
+//         const hasLatLng =
+//             latitude !== undefined && latitude !== null && latitude !== '' &&
+//             longitude !== undefined && longitude !== null && longitude !== '';
+
+//         let pipeline = [];
+
+//         // ✅ geoNear sirf tab jab lat/lng diya ho
+//         if (hasLatLng) {
+//             pipeline.push({
+//                 $geoNear: {
+//                     near: {
+//                         type: 'Point',
+//                         coordinates: [parseFloat(longitude), parseFloat(latitude)],
+//                     },
+//                     distanceField: 'distance',
+//                     maxDistance: location ? parseFloat(location) * 1000 : 50000, // default 50km
+//                     spherical: true,
+//                 },
+//             });
+//         }
+
+//         // ✅ rating sanitize
+//         const sanitizedRating = rating !== undefined && rating !== null && rating !== '' ? parseFloat(rating) : null;
+//         console.log('sanitizedRating:', sanitizedRating, '| hasLatLng:', hasLatLng);
+
+//         pipeline = pipeline.concat([
+//             { $match: { isDelete: false } },
+//             {
+//                 $lookup: {
+//                     from: 'vendors',
+//                     localField: 'vendor',
+//                     foreignField: '_id',
+//                     as: 'vendorDetails',
+//                 },
+//             },
+//             { $unwind: '$vendorDetails' },
+//             {
+//                 $match: {
+//                     'vendorDetails.isDelete': false,
+//                     'vendorDetails.isActive': true,
+//                     'vendorDetails.adminApproved': true,
+//                     ...(categoryIds?.length && {
+//                         'vendorDetails.businessType': {
+//                             $in: categoryIds.map(id => mongoose.Types.ObjectId(id)),
+//                         },
+//                     }),
+//                     // ✅ rating filter — exact match with parseFloat
+//                     ...(sanitizedRating !== null && {
+//                         'vendorDetails.businessRating': { $eq: sanitizedRating },
+//                     }),
+//                 },
+//             },
+//         ]);
+
+//         if (searchTerm) {
+//             pipeline = pipeline.concat([
+//                 {
+//                     $lookup: {
+//                         from: 'menuitems',
+//                         localField: 'vendorDetails._id',
+//                         foreignField: 'vendor',
+//                         as: 'menuItems',
+//                     },
+//                 },
+//                 { $unwind: { path: '$menuItems', preserveNullAndEmptyArrays: true } },
+//                 {
+//                     $match: {
+//                         $and: [
+//                             {
+//                                 $or: [
+//                                     { 'vendorDetails.businessName': { $regex: searchTerm, $options: 'i' } },
+//                                     { 'menuItems.name': { $regex: searchTerm, $options: 'i' } },
+//                                 ],
+//                             },
+//                             {
+//                                 $or: [
+//                                     { menuItems: { $eq: null } },
+//                                     { 'menuItems.isActive': true },
+//                                 ],
+//                             },
+//                         ],
+//                     },
+//                 },
+//             ]);
+//         }
+
+//         pipeline.push({
+//             $group: {
+//                 _id: '$vendorDetails._id',
+//                 businessName: { $first: '$vendorDetails.businessName' },
+//                 businessLogo: { $first: '$vendorDetails.businessLogo' },
+//                 rating: { $first: '$vendorDetails.businessRating' },
+//                 review: { $first: '$vendorDetails.businessReview' },
+//                 distance_in_mt: { $min: { $ifNull: ['$distance', null] } },
+//                 branchId: { $first: '$_id' },
+//                 branches: {
+//                     $addToSet: {
+//                         _id: '$_id',
+//                         buildingName: '$buildingName',
+//                         roadName: '$roadName',
+//                         city: '$city',
+//                         country: '$country',
+//                         state: '$state',
+//                         location: '$location',
+//                         buildingNo: '$buildingNo',
+//                         isSelected: '$isSelected',
+//                     },
+//                 },
+//             },
+//         });
+
+//         pipeline.push({
+//             $match: {
+//                 businessName: { $ne: null },
+//                 businessLogo: { $ne: null },
+//             },
+//         });
+
+//         if (showPopular) {
+//             pipeline.push({
+//                 $lookup: {
+//                     from: 'transactions',
+//                     let: { vendorId: '$_id' },
+//                     pipeline: [
+//                         { $match: { $expr: { $eq: ['$vendor', '$$vendorId'] }, status: 'accepted' } },
+//                         { $unwind: '$items' },
+//                         { $group: { _id: '$items.menuItem', totalSold: { $sum: '$items.quantity' } } },
+//                         { $match: { totalSold: { $gt: 0 } } },
+//                         { $sort: { totalSold: -1 } },
+//                         { $limit: 5 },
+//                         { $lookup: { from: 'menuitems', localField: '_id', foreignField: '_id', as: 'menuItemDetails' } },
+//                         { $unwind: { path: '$menuItemDetails', preserveNullAndEmptyArrays: false } },
+//                         { $match: { 'menuItemDetails.isActive': true, 'menuItemDetails.isDelete': false } },
+//                         { $project: { _id: 0, menuItemId: '$menuItemDetails._id', name: '$menuItemDetails.name', price: { $ifNull: ['$menuItemDetails.price', 0] }, image: '$menuItemDetails.image', totalSold: 1 } },
+//                     ],
+//                     as: 'mostPopularItems',
+//                 },
+//             });
+//             pipeline.push({ $match: { 'mostPopularItems.0': { $exists: true } } });
+//         }
+
+//         if (showLiked) {
+//             pipeline.push({
+//                 $lookup: {
+//                     from: 'favoriteitems',
+//                     let: { vendorId: '$_id' },
+//                     pipeline: [
+//                         { $lookup: { from: 'menuitems', localField: 'menuItem', foreignField: '_id', as: 'menuItemDetails' } },
+//                         { $unwind: { path: '$menuItemDetails', preserveNullAndEmptyArrays: false } },
+//                         { $match: { $expr: { $eq: ['$menuItemDetails.vendor', '$$vendorId'] }, 'menuItemDetails.isActive': true, 'menuItemDetails.isDelete': false } },
+//                         { $group: { _id: '$menuItem', name: { $first: '$menuItemDetails.name' }, price: { $first: { $ifNull: ['$menuItemDetails.price', 0] } }, image: { $first: '$menuItemDetails.image' }, likeCount: { $sum: 1 } } },
+//                         { $match: { likeCount: { $gt: 0 } } },
+//                         { $sort: { likeCount: -1 } },
+//                         { $limit: 5 },
+//                         { $project: { _id: 0, menuItemId: '$_id', name: 1, price: 1, image: 1, likeCount: 1 } },
+//                     ],
+//                     as: 'mostLikedItems',
+//                 },
+//             });
+//             pipeline.push({ $match: { 'mostLikedItems.0': { $exists: true } } });
+//         }
+
+//         pipeline.push({ $sort: sortCondition });
+
+//         const vendors = await branchModel.aggregate(pipeline);
+
+//         console.log('Total vendors found:', vendors.length);
+//         if (vendors.length > 0) {
+//             console.log('First vendor rating:', vendors[0].rating, '| distance:', vendors[0].distance_in_mt);
+//         }
+
+//         res.status(200).json({
+//             success: true,
+//             message: req.t('success'),
+//             data: vendors,
+//         });
+
+//     } catch (error) {
+//         console.error('getRestaurantList error:', error);
+//         next(error);
+//     }
+// };
+
 exports.getRestaurantList = async (req, res, next) => {
     try {
         const {
@@ -289,19 +978,25 @@ exports.getRestaurantList = async (req, res, next) => {
             rating,
             sortBy,
         } = req.body;
-        let categoryIds = [];
 
+        // ✅ DEBUG LOGS — remove after fixing
+        console.log('=== getRestaurantList DEBUG ===');
+        console.log('latitude:', latitude, '| longitude:', longitude);
+        console.log('rating:', rating, '| type:', typeof rating);
+        console.log('sortBy:', sortBy);
+        console.log('location:', location);
+        console.log('===============================');
+
+        const showPopular = req.body.includePopular === true || req.body.includePopular === 'true' || req.query.popularitem === 'true';
+        const showLiked = req.body.includeLiked === true || req.body.includeLiked === 'true' || req.query.likeditem === 'true';
+
+        let categoryIds = [];
         if (categoryId) {
             if (typeof categoryId === 'string') {
                 try {
                     const parsed = JSON.parse(categoryId);
-                    if (Array.isArray(parsed)) {
-                        categoryIds = parsed;
-                    } else {
-                        categoryIds = [categoryId];
-                    }
+                    categoryIds = Array.isArray(parsed) ? parsed : [categoryId];
                 } catch (err) {
-                    // Not a JSON string, treat it as a single value
                     categoryIds = [categoryId];
                 }
             } else if (Array.isArray(categoryId)) {
@@ -312,7 +1007,6 @@ exports.getRestaurantList = async (req, res, next) => {
         }
 
         let sortCondition = {};
-
         if (sortBy === 'high_to_low_rating') {
             sortCondition = { rating: -1 };
         } else if (sortBy === 'low_to_high_rating') {
@@ -323,40 +1017,33 @@ exports.getRestaurantList = async (req, res, next) => {
             sortCondition = { businessName: 1 };
         }
 
-        // Start building the pipeline
+        const hasLatLng =
+            latitude !== undefined && latitude !== null && latitude !== '' &&
+            longitude !== undefined && longitude !== null && longitude !== '';
+
         let pipeline = [];
 
-        const includeGeo = sortBy !== 'all';
-
-        if (includeGeo) {
-            if (!latitude || !longitude) {
-                return res.status(400).json({
-                    error: 'Latitude and longitude are required for this sortBy option',
-                });
-            }
-
+        // ✅ geoNear sirf tab jab lat/lng diya ho
+        if (hasLatLng) {
             pipeline.push({
                 $geoNear: {
                     near: {
                         type: 'Point',
-                        coordinates: [
-                            parseFloat(longitude),
-                            parseFloat(latitude),
-                        ],
+                        coordinates: [parseFloat(longitude), parseFloat(latitude)],
                     },
                     distanceField: 'distance',
-                    maxDistance: location ? location * 1000 : 50000, // default 50KM
+                    maxDistance: location ? parseFloat(location) * 1000 : 50000, // default 50km
                     spherical: true,
                 },
             });
         }
 
+        // ✅ rating sanitize
+        const sanitizedRating = rating !== undefined && rating !== null && rating !== '' ? parseFloat(rating) : null;
+        console.log('sanitizedRating:', sanitizedRating, '| hasLatLng:', hasLatLng);
+
         pipeline = pipeline.concat([
-            {
-                $match: {
-                    isDelete: false,
-                },
-            },
+            { $match: { isDelete: false } },
             {
                 $lookup: {
                     from: 'vendors',
@@ -365,116 +1052,155 @@ exports.getRestaurantList = async (req, res, next) => {
                     as: 'vendorDetails',
                 },
             },
-            {
-                $unwind: '$vendorDetails',
-            },
-            {
-                $lookup: {
-                    from: 'menuitems',
-                    localField: 'vendorDetails._id',
-                    foreignField: 'vendor',
-                    as: 'menuItems',
-                },
-            },
-            {
-                $unwind: {
-                    path: '$menuItems',
-                    preserveNullAndEmptyArrays: true,
-                },
-            },
+            { $unwind: '$vendorDetails' },
             {
                 $match: {
                     'vendorDetails.isDelete': false,
                     'vendorDetails.isActive': true,
                     'vendorDetails.adminApproved': true,
-                    // ...(categoryId && {
-                    //     'vendorDetails.businessType':
-                    //         mongoose.Types.ObjectId(categoryId),
-                    // }),
                     ...(categoryIds?.length && {
                         'vendorDetails.businessType': {
-                            $in: categoryIds.map(id =>
-                                mongoose.Types.ObjectId(id)
-                            ),
+                            $in: categoryIds.map(id => mongoose.Types.ObjectId(id)),
                         },
                     }),
-                    ...(searchTerm && {
-                        $and: [
-                            {
-                                $or: [
-                                    {
-                                        'vendorDetails.businessName': {
-                                            $regex: searchTerm,
-                                            $options: 'i',
-                                        },
-                                    },
-                                    {
-                                        'menuItems.name': {
-                                            $regex: searchTerm,
-                                            $options: 'i',
-                                        },
-                                    },
-                                ],
-                            },
-                            {
-                                $or: [
-                                    { menuItems: { $eq: null } }, // Allow vendors with no menu items
-                                    { 'menuItems.isActive': true }, // OR menu item must be active
-                                ],
-                            },
-                        ],
-                    }),
-                    ...(rating && {
+                    // ✅ rating filter — ceil based range match
+                    // e.g. client ne 2 diya → 1.01 to 2.00 wale sab aayenge
+                    // kyunki Math.ceil(1.4) = 2, Math.ceil(2.0) = 2
+                    ...(sanitizedRating !== null && {
                         'vendorDetails.businessRating': {
-                            $lte: parseInt(rating),
+                            $gt: sanitizedRating - 1,  // > 1 (i.e. 1.01+)
+                            $lte: sanitizedRating,      // <= 2
                         },
                     }),
                 },
-            },
-            {
-                $group: {
-                    _id: '$vendorDetails._id',
-                    businessName: { $first: '$vendorDetails.businessName' },
-                    businessLogo: { $first: '$vendorDetails.businessLogo' },
-                    rating: { $first: '$vendorDetails.businessRating' },
-                    review: { $first: '$vendorDetails.businessReview' },
-                    // distance_in_mt: { $min: '$distance' }, // May be undefined if no geoNear
-                    distance_in_mt: { $min: { $ifNull: ['$distance', 0] } },
-                    branchId: { $first: '$_id' },
-                    branches: {
-                        $addToSet: {
-                            _id: '$_id',
-                            buildingName: '$buildingName',
-                            roadName: '$roadName',
-                            city: '$city',
-                            country: '$country',
-                            state: '$state',
-                            location: '$location',
-                            buildingNo: '$buildingNo',
-                            isSelected: '$isSelected',
-                        },
-                    },
-                },
-            },
-            {
-                $match: {
-                    businessName: { $ne: null },
-                    businessLogo: { $ne: null },
-                },
-            },
-            {
-                $sort: sortCondition,
             },
         ]);
 
-        const branches = await branchModel.aggregate(pipeline);
+        if (searchTerm) {
+            pipeline = pipeline.concat([
+                {
+                    $lookup: {
+                        from: 'menuitems',
+                        localField: 'vendorDetails._id',
+                        foreignField: 'vendor',
+                        as: 'menuItems',
+                    },
+                },
+                { $unwind: { path: '$menuItems', preserveNullAndEmptyArrays: true } },
+                {
+                    $match: {
+                        $and: [
+                            {
+                                $or: [
+                                    { 'vendorDetails.businessName': { $regex: searchTerm, $options: 'i' } },
+                                    { 'menuItems.name': { $regex: searchTerm, $options: 'i' } },
+                                ],
+                            },
+                            {
+                                $or: [
+                                    { menuItems: { $eq: null } },
+                                    { 'menuItems.isActive': true },
+                                ],
+                            },
+                        ],
+                    },
+                },
+            ]);
+        }
+
+        pipeline.push({
+            $group: {
+                _id: '$vendorDetails._id',
+                businessName: { $first: '$vendorDetails.businessName' },
+                businessLogo: { $first: '$vendorDetails.businessLogo' },
+                rating: { $first: '$vendorDetails.businessRating' },
+                review: { $first: '$vendorDetails.businessReview' },
+                distance_in_mt: { $min: { $ifNull: ['$distance', null] } },
+                branchId: { $first: '$_id' },
+                branches: {
+                    $addToSet: {
+                        _id: '$_id',
+                        buildingName: '$buildingName',
+                        roadName: '$roadName',
+                        city: '$city',
+                        country: '$country',
+                        state: '$state',
+                        location: '$location',
+                        buildingNo: '$buildingNo',
+                        isSelected: '$isSelected',
+                    },
+                },
+            },
+        });
+
+        pipeline.push({
+            $match: {
+                businessName: { $ne: null },
+                businessLogo: { $ne: null },
+            },
+        });
+
+        if (showPopular) {
+            pipeline.push({
+                $lookup: {
+                    from: 'transactions',
+                    let: { vendorId: '$_id' },
+                    pipeline: [
+                        { $match: { $expr: { $eq: ['$vendor', '$$vendorId'] }, status: 'accepted' } },
+                        { $unwind: '$items' },
+                        { $group: { _id: '$items.menuItem', totalSold: { $sum: '$items.quantity' } } },
+                        { $match: { totalSold: { $gt: 0 } } },
+                        { $sort: { totalSold: -1 } },
+                        { $limit: 5 },
+                        { $lookup: { from: 'menuitems', localField: '_id', foreignField: '_id', as: 'menuItemDetails' } },
+                        { $unwind: { path: '$menuItemDetails', preserveNullAndEmptyArrays: false } },
+                        { $match: { 'menuItemDetails.isActive': true, 'menuItemDetails.isDelete': false } },
+                        { $project: { _id: 0, menuItemId: '$menuItemDetails._id', name: '$menuItemDetails.name', price: { $ifNull: ['$menuItemDetails.price', 0] }, image: '$menuItemDetails.image', totalSold: 1 } },
+                    ],
+                    as: 'mostPopularItems',
+                },
+            });
+            pipeline.push({ $match: { 'mostPopularItems.0': { $exists: true } } });
+        }
+
+        if (showLiked) {
+            pipeline.push({
+                $lookup: {
+                    from: 'favoriteitems',
+                    let: { vendorId: '$_id' },
+                    pipeline: [
+                        { $lookup: { from: 'menuitems', localField: 'menuItem', foreignField: '_id', as: 'menuItemDetails' } },
+                        { $unwind: { path: '$menuItemDetails', preserveNullAndEmptyArrays: false } },
+                        { $match: { $expr: { $eq: ['$menuItemDetails.vendor', '$$vendorId'] }, 'menuItemDetails.isActive': true, 'menuItemDetails.isDelete': false } },
+                        { $group: { _id: '$menuItem', name: { $first: '$menuItemDetails.name' }, price: { $first: { $ifNull: ['$menuItemDetails.price', 0] } }, image: { $first: '$menuItemDetails.image' }, likeCount: { $sum: 1 } } },
+                        { $match: { likeCount: { $gt: 0 } } },
+                        { $sort: { likeCount: -1 } },
+                        { $limit: 5 },
+                        { $project: { _id: 0, menuItemId: '$_id', name: 1, price: 1, image: 1, likeCount: 1 } },
+                    ],
+                    as: 'mostLikedItems',
+                },
+            });
+            pipeline.push({ $match: { 'mostLikedItems.0': { $exists: true } } });
+        }
+
+        pipeline.push({ $sort: sortCondition });
+
+        const vendors = await branchModel.aggregate(pipeline);
+
+        console.log('Total vendors found:', vendors.length);
+        if (vendors.length > 0) {
+            console.log('First vendor rating:', vendors[0].rating, '| distance:', vendors[0].distance_in_mt);
+        }
 
         res.status(200).json({
             success: true,
             message: req.t('success'),
-            data: branches,
+            data: vendors,
         });
+
     } catch (error) {
+        console.error('getRestaurantList error:', error);
         next(error);
     }
 };
@@ -499,10 +1225,10 @@ exports.restaurantDetail = async (req, res, next) => {
             vendor: vendorId,
         });
 
-            //   let userSpecificP = await userPoint.find({
-            //       user: req.user.id,
-            //     //   vendor: vendorId,
-            //   });
+        //   let userSpecificP = await userPoint.find({
+        //       user: req.user.id,
+        //     //   vendor: vendorId,
+        //   });
 
         const branches = await branchModel
             .find({ vendor: vendor._id, isDelete: false })
@@ -609,7 +1335,9 @@ exports.restaurantDetail = async (req, res, next) => {
         vendor.branches = branches;
         vendor.menu = menu;
         vendor.isFavourite = isFavourite ? true : false;
-        vendor.totalPoints = userSpecificP ? userSpecificP.totalPoints : 0;
+        // vendor.totalPoints = userSpecificP ? userSpecificP.totalPoints : 0;
+        vendor.totalPoints = userSpecificP ? Math.max(0, userSpecificP.totalPoints) : 0;
+
         // console.log('userSpecificP: ', userSpecificP);
         // console.log('vendor.totalPoints: ', vendor.totalPoints);
         // console.log('vendor: ', vendor);

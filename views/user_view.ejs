@@ -118,11 +118,23 @@
         <div id="breadcrumbs-wrapper" style="background-color: white;">
           <div class="container">
             <div class="row">
+              <!-- Left side: Back + Title -->  
               <div class="col s12 m6 l6">
-                <h5 class="breadcrumbs-title"><span>User Profile</span></h5>
+                <div style="display: flex; align-items: center; gap: 16px;">
+                  <a href="javascript:history.back()" style="color: #424242; text-decoration: none;">
+                    <i class="material-icons" style="font-size: 32px; vertical-align: middle;">arrow_back</i>
+                  </a>
+                  <h5 class="breadcrumbs-title" style="margin: 0;">
+                    <span>User Profile</span>
+                  </h5>
+                </div>
               </div>
+
+              <!-- Right side: Notification button -->
               <div class="col s12 m6 l6 right-align-md">
-                <a class="btn gradient-45deg-purple-deep-orange modal-trigger" href="#notifyModal">Send Notification</a>
+                <a class="btn gradient-45deg-purple-deep-orange modal-trigger" href="#notifyModal">
+                  Send Notification
+                </a>
               </div>
             </div>
           </div>
@@ -273,10 +285,12 @@
                                     <td>
                                       <%= r.productName || 'General Discount' %>
                                     </td>
-                                    <td><span class="new badge white-text" style="background-color: #f44336 ;" data-badge-caption="pts">
+                                    <td><span class="new badge white-text" style="background-color: #f44336 ;"
+                                        data-badge-caption="pts">
                                         <%= r.pointsRedeemed %>
                                       </span></td>
-                                    <td><span class="new badge blue" style="background-color: #f44336 ;" data-badge-caption="pts">
+                                    <td><span class="new badge blue" style="background-color: #f44336 ;"
+                                        data-badge-caption="pts">
                                         <%= r.pointsEarned %>
                                       </span></td>
                                     <td><strong class="green-text">

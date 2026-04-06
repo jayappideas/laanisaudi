@@ -48,6 +48,539 @@ const getVendorStaffIds = async (vendorId) => {
 
 // ==================== 1. POINTS REDEMPTION REPORT ====================
 
+// exports.getPointsRedemptionReport = async (req, res) => {
+//   try {
+//     const vendorId = getVendorId(req);
+//     if (!vendorId) {
+//       return res.status(401).json({
+//         success: false,
+//         message: "Unauthorized: Vendor ID not found"
+//       });
+//     }
+
+//     const page = parseInt(req.query.page) || 1;
+//     const limit = parseInt(req.query.limit) || 20;
+//     const skip = (page - 1) * limit;
+
+//     const { startDate, endDate } = req.query;
+//     const dateFilter = buildDateFilter(startDate, endDate);
+
+//     const staffIds = await getVendorStaffIds(vendorId);
+
+//     const filter = {
+//       staff: { $in: staffIds },
+//       spentPoints: { $gt: 0 },
+//       ...dateFilter
+//     };
+
+//     const redemptions = await Transaction.find(filter)
+//       .populate('user', 'name mobileNumber')  
+//       .populate('staff', 'name')
+//       .populate({
+//         path: 'items.menuItem',
+//         select: 'name'
+//       })
+//       .sort({ createdAt: -1 })
+//       .skip(skip)
+//       .limit(limit)
+//       .lean();
+
+//     const total = await Transaction.countDocuments(filter);
+
+//     const stats = await Transaction.aggregate([
+//       { $match: filter },
+//       {
+//         $group: {
+//           _id: null,
+//           totalPointsRedeemed: { $sum: '$spentPoints' },
+//           totalDiscountGiven: { $sum: '$discountAmount' },
+//           totalRedemptions: { $sum: 1 },
+//           totalTransactions: { $sum: 1 },
+//           totalAdminCommission: {
+//             $sum: {
+//               $multiply: [
+//                 '$discountAmount',
+//                 { $divide: [{$ifNull: ['$vendor.adminCommission', 0]}, 100] }
+//               ]
+//             }
+//           }
+//         }
+//       },
+//       {
+//         $project: {
+//           _id: 0,
+//           totalPointsRedeemed: 1,
+//           totalDiscountGiven: { $round: ['$totalDiscountGiven', 3] },
+//           totalRedemptions: 1,
+//           totalTransactions: 1,
+//           totalAdminCommission: { $round: ['$totalAdminCommission', 3] }
+//         }
+//       }
+//     ]);
+
+//     const statsResult = stats[0] || {
+//       totalPointsRedeemed: 0,
+//       totalDiscountGiven: 0,
+//       totalRedemptions: 0,
+//       totalTransactions: 0,
+//       totalAdminCommission: 0
+//     };
+
+//     const formattedRedemptions = redemptions.map((r, i) => {
+//       const firstItem = r.items?.[0];
+//       const productName = firstItem?.menuItem?.name || firstItem?.itemName || 'General Discount';
+
+//       return {
+//         sr: skip + i + 1,
+//         date: r.createdAt,
+//         userName: r.user?.name || 'Unknown User',
+//         userMobile: r.user?.mobileNumber || '-',
+//         productName: productName,
+//         pointsRedeemed: r.spentPoints || 0,
+//         discountGiven: (r.discountAmount || 0).toFixed(3),
+//         transactionId: r._id
+//       };
+//     });
+
+//     return res.json({
+//       success: true,
+//       redemptions: formattedRedemptions,
+//       stats: statsResult,
+//       pagination: {
+//         currentPage: page,
+//         totalPages: Math.ceil(total / limit),
+//         totalRecords: total,
+//         limit,
+//         hasNext: page < Math.ceil(total / limit),
+//         hasPrev: page > 1
+//       }
+//     });
+
+//   } catch (err) {
+//     console.error('Points Redemption Report Error:', err);
+//     res.status(500).json({
+//       success: false,
+//       redemptions: [],
+//       stats: {
+//         totalPointsRedeemed: 0,
+//         totalDiscountGiven: 0,
+//         totalRedemptions: 0,
+//         totalTransactions: 0,
+//         totalAdminCommission: 0
+//       },
+//       message: err.message
+//     });
+//   }
+// };
+
+// exports.getPointsRedemptionReport = async (req, res) => {
+//   try {
+//     const vendorId = getVendorId(req);
+//     if (!vendorId) {
+//       return res.status(401).json({
+//         success: false,
+//         message: "Unauthorized: Vendor ID not found"
+//       });
+//     }
+
+//     const page = parseInt(req.query.page) || 1;
+//     const limit = parseInt(req.query.limit) || 20;
+//     const skip = (page - 1) * limit;
+
+//     const { startDate, endDate } = req.query;
+//     const dateFilter = buildDateFilter(startDate, endDate);
+
+//     const staffIds = await getVendorStaffIds(vendorId);
+
+//     // Staff guard
+//     if (!staffIds || staffIds.length === 0) {
+//       return res.json({
+//         success: true,
+//         redemptions: [],
+//         stats: {
+//           totalPointsRedeemed: 0,
+//           totalDiscountGiven: 0,
+//           totalRedemptions: 0,
+//           totalTransactions: 0,
+//           totalAdminCommission: 0
+//         },
+//         pagination: {
+//           currentPage: page,
+//           totalPages: 0,
+//           totalRecords: 0,
+//           limit,
+//           hasNext: false,
+//           hasPrev: false
+//         }
+//       });
+//     }
+
+//     const filter = {
+//       staff: { $in: staffIds },
+//       // spentPoints: { $gt: 0 },
+//       // ✅ Sirf accepted transactions — rejected/expired exclude
+//       status: 'accepted',
+//       ...dateFilter
+//     };
+
+//     const redemptions = await Transaction.find(filter)
+//       .populate('user', 'name mobileNumber')
+//       .populate('staff', 'name')
+//       .populate({
+//         path: 'items.menuItem',
+//         select: 'name'
+//       })
+//       .sort({ createdAt: -1 })
+//       .skip(skip)
+//       .limit(limit)
+//       .lean();
+
+//     const total = await Transaction.countDocuments(filter);
+
+//     const stats = await Transaction.aggregate([
+//       { $match: filter },
+//       {
+//         $group: {
+//           _id: null,
+//           totalPointsRedeemed: { $sum: '$spentPoints' },
+//           totalDiscountGiven: { $sum: '$discountAmount' },
+//           totalRedemptions: { $sum: 1 },
+//           totalTransactions: { $sum: 1 },
+//           totalAdminCommission: {
+//             $sum: {
+//               $multiply: [
+//                 '$discountAmount',
+//                 { $divide: [{ $ifNull: ['$adminCommission', 0] }, 100] }
+//               ]
+//             }
+//           }
+//         }
+//       },
+//       {
+//         $project: {
+//           _id: 0,
+//           totalPointsRedeemed: 1,
+//           totalDiscountGiven: { $round: ['$totalDiscountGiven', 3] },
+//           totalRedemptions: 1,
+//           totalTransactions: 1,
+//           totalAdminCommission: { $round: ['$totalAdminCommission', 3] }
+//         }
+//       }
+//     ]);
+
+//     const statsResult = stats[0] || {
+//       totalPointsRedeemed: 0,
+//       totalDiscountGiven: 0,
+//       totalRedemptions: 0,
+//       totalTransactions: 0,
+//       totalAdminCommission: 0
+//     };
+
+//     const formattedRedemptions = redemptions.map((r, i) => {
+//       const firstItem = r.items?.[0];
+//       const productName =
+//         firstItem?.menuItem?.name || firstItem?.itemName || 'General Discount';
+
+//       return {
+//         sr: skip + i + 1,
+//         date: r.createdAt,
+//         userName: r.user?.name || 'Unknown User',
+//         userMobile: r.user?.mobileNumber || '-',
+//         productName: productName,
+//         pointsRedeemed: r.spentPoints || 0,
+//         discountGiven: (r.discountAmount || 0).toFixed(3),
+//         transactionId: r._id
+//       };
+//     });
+
+//     return res.json({
+//       success: true,
+//       redemptions: formattedRedemptions,
+//       stats: statsResult,
+//       pagination: {
+//         currentPage: page,
+//         totalPages: Math.ceil(total / limit),
+//         totalRecords: total,
+//         limit,
+//         hasNext: page < Math.ceil(total / limit),
+//         hasPrev: page > 1
+//       }
+//     });
+
+//   } catch (err) {
+//     console.error('Points Redemption Report Error:', err);
+//     res.status(500).json({
+//       success: false,
+//       redemptions: [],
+//       stats: {
+//         totalPointsRedeemed: 0,
+//         totalDiscountGiven: 0,
+//         totalRedemptions: 0,
+//         totalTransactions: 0,
+//         totalAdminCommission: 0
+//       },
+//       message: err.message
+//     });
+//   }
+// };
+// ==================== 2. CUSTOMER ACTIVITY REPORT ====================
+
+// exports.getCustomerActivityReport = async (req, res) => {
+//   try {
+//     // ─────────────────────────────────────────────────────────────
+//     //          DETAILED REQUEST & DATE DEBUG LOGGING
+//     // ─────────────────────────────────────────────────────────────
+//     console.log("┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓");
+//     console.log("┃       CUSTOMER ACTIVITY REPORT - REQUEST DEBUG      ┃");
+//     console.log("┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛");
+
+//     console.log("→ Method:".padEnd(25), req.method);
+//     console.log("→ Full URL:".padEnd(25), req.protocol + '://' + req.get('host') + req.originalUrl);
+//     console.log("→ Raw query string:".padEnd(25), req.url.includes('?') ? req.url.split('?')[1] : "(no query string)");
+
+//     console.log("\n📦 Full req.query (as received from frontend):");
+//     console.log(JSON.stringify(req.query, null, 2));
+
+//     console.log("\n🗓️ DATE PARAMETERS - SPECIAL FOCUS:");
+//     console.log("   startDate (raw):".padEnd(30), 
+//       req.query.startDate ?? "undefined / missing",
+//       `  (type: ${typeof req.query.startDate})`
+//     );
+//     console.log("   endDate (raw):".padEnd(30), 
+//       req.query.endDate ?? "undefined / missing",
+//       `  (type: ${typeof req.query.endDate})`
+//     );
+
+//     // Show parsing result for debugging
+//     if (req.query.startDate) {
+//       const parsed = new Date(req.query.startDate);
+//       console.log("   → Parsed startDate:".padEnd(30),
+//         isNaN(parsed.getTime()) ? "❌ INVALID FORMAT" : parsed.toISOString() + " (valid)"
+//       );
+//     }
+//     if (req.query.endDate) {
+//       const parsed = new Date(req.query.endDate);
+//       console.log("   → Parsed endDate:".padEnd(30),
+//         isNaN(parsed.getTime()) ? "❌ INVALID FORMAT" : parsed.toISOString() + " (valid)"
+//       );
+//     }
+
+//     console.log("All received query keys:", Object.keys(req.query));
+
+//     // ─────────────────────────────────────────────────────────────
+//     //                     MAIN LOGIC STARTS
+//     // ─────────────────────────────────────────────────────────────
+
+//     const vendorId = getVendorId(req);
+//     console.log("Vendor ID:", vendorId);
+
+//     if (!vendorId) {
+//       return res.status(401).json({
+//         success: false,
+//         message: "Unauthorized: Vendor ID not found"
+//       });
+//     }
+
+//     // Query Parameters
+//     const page = parseInt(req.query.page) || 1;
+//     const limit = parseInt(req.query.limit) || 20;
+//     const skip = (page - 1) * limit;
+
+//     const { 
+//       startDate, endDate 
+//     } = req.query;
+
+//     // ── Date Filter (shows all data if no dates provided) ────────
+//     let dateFilter = {};
+//     if (startDate || endDate) {
+//       dateFilter.createdAt = {};
+
+//       if (startDate) {
+//         const start = new Date(startDate);
+//         if (!isNaN(start.getTime())) {
+//           start.setHours(0, 0, 0, 0);
+//           dateFilter.createdAt.$gte = start;
+//           console.log("→ startDate accepted:", start.toISOString());
+//         } else {
+//           console.log("→ startDate IGNORED - invalid format");
+//         }
+//       }
+
+//       if (endDate) {
+//         const end = new Date(endDate);
+//         if (!isNaN(end.getTime())) {
+//           end.setHours(23, 59, 59, 999);
+//           dateFilter.createdAt.$lte = end;
+//           console.log("→ endDate accepted:", end.toISOString());
+//         } else {
+//           console.log("→ endDate IGNORED - invalid format");
+//         }
+//       }
+//     } else {
+//       console.log("→ No date filters provided by frontend → Showing ALL data (no date restriction)");
+//     }
+
+//     console.log("Final dateFilter that will be used in $match:");
+//     console.log(JSON.stringify(dateFilter, null, 2));
+
+//     // Staff restriction
+//     const staffIds = await getVendorStaffIds(vendorId);
+//     console.log("Staff IDs count:", staffIds.length);
+
+//     const matchFilter = {
+//       staff: { $in: staffIds },
+//       vendor: new mongoose.Types.ObjectId(vendorId),
+//       ...dateFilter
+//     };
+
+//     console.log("Base match filter (including date):");
+//     console.log(JSON.stringify(matchFilter, null, 2));
+
+//     // ─────────────────────────────────────────────────────────────
+//     //               PIPELINE - STEP BY STEP CONSTRUCTION
+//     // ─────────────────────────────────────────────────────────────
+//     const customerActivityPipeline = [];
+
+//     // 1. Base match
+//     customerActivityPipeline.push({ $match: matchFilter });
+
+//     // 2. Group by customer (user)
+//     customerActivityPipeline.push({
+//       $group: {
+//         _id: '$user',
+//         totalSpent: { $sum: '$billAmount' },           // revenue
+//         totalPointsEarned: { $sum: '$earnedPoints' },
+//         totalPointsRedeemed: { $sum: '$spentPoints' },
+//         lastVisit: { $max: '$createdAt' },
+//         firstVisit: { $min: '$createdAt' }
+//       }
+//     });
+
+//     // 3. Lookup customer details
+//     customerActivityPipeline.push({
+//       $lookup: {
+//         from: 'users',
+//         localField: '_id',
+//         foreignField: '_id',
+//         as: 'customer'
+//       }
+//     });
+//     customerActivityPipeline.push({ $unwind: { path: '$customer', preserveNullAndEmptyArrays: true } });
+
+//     // 4. Lookup current points balance
+//     customerActivityPipeline.push({
+//       $lookup: {
+//         from: 'userpoints',
+//         let: { userId: '$_id' },
+//         pipeline: [
+//           {
+//             $match: {
+//               $expr: {
+//                 $and: [
+//                   { $eq: ['$user', '$$userId'] },
+//                   { $eq: ['$vendor', new mongoose.Types.ObjectId(vendorId)] }
+//                 ]
+//               }
+//             }
+//           }
+//         ],
+//         as: 'userPoint'
+//       }
+//     });
+//     customerActivityPipeline.push({ $unwind: { path: '$userPoint', preserveNullAndEmptyArrays: true } });
+
+//     // 5. Final projection
+//     customerActivityPipeline.push({
+//       $project: {
+//         customerId: '$_id',
+//         customerName: { $ifNull: ['$customer.name', 'Unknown Customer'] },
+//         customerMobileNumber: { $ifNull: ['$customer.mobileNumber', 'Not available'] },
+//         customerPhoto: { $ifNull: ['$customer.photo', null] },
+//         totalSpent: { $round: ['$totalSpent', 2] },
+//         totalPointsEarned: { $round: ['$totalPointsEarned', 0] },
+//         totalPointsRedeemed: { $round: ['$totalPointsRedeemed', 0] },
+//         remainingPoints: { $max: [{ $ifNull: ['$userPoint.totalPoints', 0] }, 0] },
+//         lastVisit: 1,
+//         firstVisit: 1
+//       }
+//     });
+
+//     // 6. Sort + Pagination
+//     customerActivityPipeline.push({ $sort: { totalSpent: -1 } });
+//     customerActivityPipeline.push({ $skip: skip });
+//     customerActivityPipeline.push({ $limit: limit });
+
+//     console.log("Customer Activity Pipeline length:", customerActivityPipeline.length);
+//     console.log("Pipeline stages:", customerActivityPipeline.map(stage => Object.keys(stage)[0]).join(" → "));
+
+//     // ─────────────────────────────────────────────────────────────
+//     //                   EXECUTE AGGREGATION
+//     // ─────────────────────────────────────────────────────────────
+//     const customerActivity = await Transaction.aggregate(customerActivityPipeline);
+
+//     console.log("Customer activity results count:", customerActivity.length);
+
+//     // Total count pipeline
+//     const countPipeline = [
+//       { $match: matchFilter },
+//       { $group: { _id: '$user' } },
+//       { $count: 'totalCustomers' }
+//     ];
+
+//     const totalResult = await Transaction.aggregate(countPipeline);
+//     const totalCustomers = totalResult[0]?.totalCustomers || 0;
+//     console.log("Total unique customers (count):", totalCustomers);
+
+//     // ─────────────────────────────────────────────────────────────
+//     //                     FINAL RESPONSE
+//     // ─────────────────────────────────────────────────────────────
+//     return res.json({
+//       success: true,
+//       customerActivity: customerActivity.map((c, i) => ({
+//         sr: skip + i + 1,
+//         customerId: c.customerId,
+//         customerName: c.customerName,
+//         customerMobileNumber: c.customerMobileNumber,
+//         customerPhoto: c.customerPhoto,
+//         totalSpent: c.totalSpent || 0,
+//         totalPointsEarned: c.totalPointsEarned || 0,
+//         totalPointsRedeemed: c.totalPointsRedeemed || 0,
+//         remainingPoints: c.remainingPoints || 0,
+//         lastVisit: c.lastVisit,
+//         firstVisit: c.firstVisit
+//       })),
+
+//       stats: {
+//         totalUniqueCustomers: totalCustomers,
+//         totalRevenue: customerActivity.reduce((sum, c) => sum + (c.totalSpent || 0), 0).toFixed(2),
+//         totalPointsDistributed: customerActivity.reduce((sum, c) => sum + (c.totalPointsEarned || 0), 0),
+//         totalPointsRedeemed: customerActivity.reduce((sum, c) => sum + (c.totalPointsRedeemed || 0), 0),
+//         totalRemainingPoints: customerActivity.reduce((sum, c) => sum + (c.remainingPoints || 0), 0)
+//       },
+
+//       pagination: {
+//         currentPage: page,
+//         totalPages: Math.ceil(totalCustomers / limit),
+//         totalRecords: totalCustomers,
+//         limit,
+//         hasNext: page < Math.ceil(totalCustomers / limit),
+//         hasPrev: page > 1
+//       }
+//     });
+
+//   } catch (err) {
+//     console.error('Customer Activity Report Error:', err.stack || err.message);
+//     if (!res.headersSent) {
+//       return res.status(500).json({
+//         success: false,
+//         message: "Internal server error",
+//         error: err.message
+//       });
+//     }
+//   }
+// };
+
+
 exports.getPointsRedemptionReport = async (req, res) => {
   try {
     const vendorId = getVendorId(req);
@@ -67,14 +600,37 @@ exports.getPointsRedemptionReport = async (req, res) => {
 
     const staffIds = await getVendorStaffIds(vendorId);
 
+    if (!staffIds || staffIds.length === 0) {
+      return res.json({
+        success: true,
+        redemptions: [],
+        stats: {
+          totalPointsRedeemed: 0,
+          totalDiscountGiven: 0,
+          totalRedemptions: 0,
+          totalTransactions: 0,
+          totalAdminCommission: 0
+        },
+        pagination: {
+          currentPage: page,
+          totalPages: 0,
+          totalRecords: 0,
+          limit,
+          hasNext: false,
+          hasPrev: false
+        }
+      });
+    }
+
     const filter = {
       staff: { $in: staffIds },
-      spentPoints: { $gt: 0 },
+      status: 'accepted',
+      // spentPoints: { $gt: 0 },
       ...dateFilter
     };
 
     const redemptions = await Transaction.find(filter)
-      .populate('user', 'name mobileNumber')  
+      .populate('user', 'name mobileNumber')
       .populate('staff', 'name')
       .populate({
         path: 'items.menuItem',
@@ -100,7 +656,7 @@ exports.getPointsRedemptionReport = async (req, res) => {
             $sum: {
               $multiply: [
                 '$discountAmount',
-                { $divide: [{$ifNull: ['$vendor.adminCommission', 0]}, 100] }
+                { $divide: [{ $ifNull: ['$adminCommission', 0] }, 100] }
               ]
             }
           }
@@ -128,7 +684,8 @@ exports.getPointsRedemptionReport = async (req, res) => {
 
     const formattedRedemptions = redemptions.map((r, i) => {
       const firstItem = r.items?.[0];
-      const productName = firstItem?.menuItem?.name || firstItem?.itemName || 'General Discount';
+      const productName =
+        firstItem?.menuItem?.name || firstItem?.itemName || 'General Discount';
 
       return {
         sr: skip + i + 1,
@@ -173,205 +730,11 @@ exports.getPointsRedemptionReport = async (req, res) => {
   }
 };
 
-// ==================== 2. CUSTOMER ACTIVITY REPORT ====================
-
-// exports.getCustomerActivityReport = async (req, res) => {
-//   try {
-//     const vendorId = getVendorId(req);
-//     if (!vendorId) {
-//       return res.status(401).json({
-//         success: false,
-//         message: "Unauthorized: Vendor ID not found"
-//       });
-//     }
-
-//     const page = parseInt(req.query.page) || 1;
-//     const limit = parseInt(req.query.limit) || 20;
-//     const skip = (page - 1) * limit;
-
-//     const { startDate, endDate } = req.query;
-//     const dateFilter = buildDateFilter(startDate, endDate);
-
-//     const staffIds = await getVendorStaffIds(vendorId);
-
-//     const matchFilter = {
-//       staff: { $in: staffIds },
-//       ...dateFilter
-//     };
-
-//     const customerActivity = await Transaction.aggregate([
-//       { $match: matchFilter },
-
-//       {
-//         $group: {
-//           _id: '$user',
-//           totalSpent: { $sum: '$finalAmount' },
-//           totalPointsEarned: { $sum: '$earnedPoints' },
-//           totalPointsRedeemed: { $sum: '$spentPoints' },
-//           lastVisit: { $max: '$createdAt' },
-//           firstVisit: { $min: '$createdAt' }
-//         }
-//       },
-
-//       // Join users for name, photo, mobile
-//       {
-//         $lookup: {
-//           from: 'users',
-//           localField: '_id',
-//           foreignField: '_id',
-//           as: 'customer'
-//         }
-//       },
-//       { $unwind: { path: '$customer', preserveNullAndEmptyArrays: true } },
-
-//       // MOST IMPORTANT: Join userPoint for this vendor to get actual remaining points
-//       {
-//         $lookup: {
-//           from: 'userpoints',  // ← Ye collection name confirm kar lena (usually lowercase plural)
-//           let: { userId: '$_id' },
-//           pipeline: [
-//             {
-//               $match: {
-//                 $expr: {
-//                   $and: [
-//                     { $eq: ['$user', '$$userId'] },
-//                     { $eq: ['$vendor', new mongoose.Types.ObjectId(vendorId)] }
-//                   ]
-//                 }
-//               }
-//             }
-//           ],
-//           as: 'userPoint'
-//         }
-//       },
-//       { $unwind: { path: '$userPoint', preserveNullAndEmptyArrays: true } },
-
-//       {
-//         $project: {
-//           customerId: '$_id',
-//           customerName: '$customer.name',
-//           customermMbileNumber: '$customer.mobileNumber',
-//           customerPhoto: '$customer.photo',
-//           totalSpent: { $round: ['$totalSpent', 3] },
-//           totalPointsEarned: 1,
-//           totalPointsRedeemed: 1,
-//           lastVisit: 1,
-//           firstVisit: 1,
-//           remainingPointsFromUserPoint: '$userPoint.totalPoints'  // Ye asli wala hai
-//         }
-//       },
-
-//       { $sort: { totalSpent: -1 } },
-//       { $skip: skip },
-//       { $limit: limit }
-//     ]);
-
-//     const totalResult = await Transaction.aggregate([
-//       { $match: matchFilter },
-//       { $group: { _id: '$user' } },
-//       { $count: 'totalCustomers' }
-//     ]);
-
-//     const totalCustomers = totalResult[0]?.totalCustomers || 0;
-
-//     return res.json({
-//       success: true,
-//       customerActivity: customerActivity.map((c, i) => ({
-//         sr: skip + i + 1,
-//         customerId: c.customerId,
-//         customerName: c.customerName || 'Unknown Customer',
-//         customermMbileNumber: c.customermMbileNumber || "0123456789",
-//         customerPhoto: c.customerPhoto || null,
-//         totalVisits: c.totalVisits,
-//         totalSpent: c.totalSpent || 0,
-//         totalPointsEarned: c.totalPointsEarned || 0,
-//         totalPointsRedeemed: c.totalPointsRedeemed || 0,
-//         // Ab ye 100% sahi dikhega – userPoint se direct
-//         remainingPoints: c.remainingPointsFromUserPoint >= 0 ? c.remainingPointsFromUserPoint : 0,
-//         lastVisit: c.lastVisit,
-//         firstVisit: c.firstVisit
-//       })),
-//       stats: {
-//         totalUniqueCustomers: totalCustomers,
-//         totalVisitsAll: customerActivity.reduce((sum, c) => sum + (c.totalVisits || 0), 0),
-//         totalRevenue: customerActivity.reduce((sum, c) => sum + (c.totalSpent || 0), 0).toFixed(3),
-//         totalPointsDistributed: customerActivity.reduce((sum, c) => sum + (c.totalPointsEarned || 0), 0),
-//         totalPointsRedeemed: customerActivity.reduce((sum, c) => sum + (c.totalPointsRedeemed || 0), 0),
-//         totalRemainingPoints: customerActivity.reduce((sum, c) => 
-//           sum + (c.remainingPointsFromUserPoint >= 0 ? c.remainingPointsFromUserPoint : 0), 0
-//         )
-//       },
-//       pagination: {
-//         currentPage: page,
-//         totalPages: Math.ceil(totalCustomers / limit),
-//         totalRecords: totalCustomers,
-//         limit: limit,
-//         hasNext: page < Math.ceil(totalCustomers / limit),
-//         hasPrev: page > 1
-//       }
-//     });
-
-//   } catch (err) {
-//     console.error('Customer Activity Report Error:', err);
-//     if (!res.headersSent) {
-//       res.status(500).json({
-//         success: false,
-//         message: "Internal server error",
-//         error: err.message
-//       });
-//     }
-//   }
-// };
+// ==================== 2. Customer activity ====================
 
 exports.getCustomerActivityReport = async (req, res) => {
   try {
-    // ─────────────────────────────────────────────────────────────
-    //          DETAILED REQUEST & DATE DEBUG LOGGING
-    // ─────────────────────────────────────────────────────────────
-    console.log("┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓");
-    console.log("┃       CUSTOMER ACTIVITY REPORT - REQUEST DEBUG      ┃");
-    console.log("┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛");
-
-    console.log("→ Method:".padEnd(25), req.method);
-    console.log("→ Full URL:".padEnd(25), req.protocol + '://' + req.get('host') + req.originalUrl);
-    console.log("→ Raw query string:".padEnd(25), req.url.includes('?') ? req.url.split('?')[1] : "(no query string)");
-
-    console.log("\n📦 Full req.query (as received from frontend):");
-    console.log(JSON.stringify(req.query, null, 2));
-
-    console.log("\n🗓️ DATE PARAMETERS - SPECIAL FOCUS:");
-    console.log("   startDate (raw):".padEnd(30), 
-      req.query.startDate ?? "undefined / missing",
-      `  (type: ${typeof req.query.startDate})`
-    );
-    console.log("   endDate (raw):".padEnd(30), 
-      req.query.endDate ?? "undefined / missing",
-      `  (type: ${typeof req.query.endDate})`
-    );
-
-    // Show parsing result for debugging
-    if (req.query.startDate) {
-      const parsed = new Date(req.query.startDate);
-      console.log("   → Parsed startDate:".padEnd(30),
-        isNaN(parsed.getTime()) ? "❌ INVALID FORMAT" : parsed.toISOString() + " (valid)"
-      );
-    }
-    if (req.query.endDate) {
-      const parsed = new Date(req.query.endDate);
-      console.log("   → Parsed endDate:".padEnd(30),
-        isNaN(parsed.getTime()) ? "❌ INVALID FORMAT" : parsed.toISOString() + " (valid)"
-      );
-    }
-
-    console.log("All received query keys:", Object.keys(req.query));
-
-    // ─────────────────────────────────────────────────────────────
-    //                     MAIN LOGIC STARTS
-    // ─────────────────────────────────────────────────────────────
-
     const vendorId = getVendorId(req);
-    console.log("Vendor ID:", vendorId);
-
     if (!vendorId) {
       return res.status(401).json({
         success: false,
@@ -379,159 +742,175 @@ exports.getCustomerActivityReport = async (req, res) => {
       });
     }
 
-    // Query Parameters
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 20;
     const skip = (page - 1) * limit;
 
-    const { 
-      startDate, endDate 
-    } = req.query;
+    const { startDate, endDate } = req.query;
 
-    // ── Date Filter (shows all data if no dates provided) ────────
+    // ── Date Filter ──────────────────────────────────────────────
     let dateFilter = {};
     if (startDate || endDate) {
       dateFilter.createdAt = {};
-
       if (startDate) {
         const start = new Date(startDate);
         if (!isNaN(start.getTime())) {
           start.setHours(0, 0, 0, 0);
           dateFilter.createdAt.$gte = start;
-          console.log("→ startDate accepted:", start.toISOString());
-        } else {
-          console.log("→ startDate IGNORED - invalid format");
         }
       }
-
       if (endDate) {
         const end = new Date(endDate);
         if (!isNaN(end.getTime())) {
           end.setHours(23, 59, 59, 999);
           dateFilter.createdAt.$lte = end;
-          console.log("→ endDate accepted:", end.toISOString());
-        } else {
-          console.log("→ endDate IGNORED - invalid format");
         }
       }
-    } else {
-      console.log("→ No date filters provided by frontend → Showing ALL data (no date restriction)");
     }
 
-    console.log("Final dateFilter that will be used in $match:");
-    console.log(JSON.stringify(dateFilter, null, 2));
-
-    // Staff restriction
+    // ── Staff IDs ────────────────────────────────────────────────
     const staffIds = await getVendorStaffIds(vendorId);
-    console.log("Staff IDs count:", staffIds.length);
 
+    // Agar koi staff nahi hai to empty result return karo
+    if (!staffIds || staffIds.length === 0) {
+      return res.json({
+        success: true,
+        customerActivity: [],
+        stats: {
+          totalUniqueCustomers: 0,
+          totalRevenue: "0.00",
+          totalPointsDistributed: 0,
+          totalPointsRedeemed: 0,
+          totalRemainingPoints: 0
+        },
+        pagination: {
+          currentPage: page,
+          totalPages: 0,
+          totalRecords: 0,
+          limit,
+          hasNext: false,
+          hasPrev: false
+        }
+      });
+    }
+
+    // ── Match Filter ─────────────────────────────────────────────
     const matchFilter = {
       staff: { $in: staffIds },
       vendor: new mongoose.Types.ObjectId(vendorId),
+
+      // ✅ Sirf accepted/completed transactions — cancelled/rejected exclude
+      // Note: Apne Transaction model ke status enum values se match karo
+      status: { $in: ['completed', 'accepted', 'approved'] },
+
       ...dateFilter
     };
 
-    console.log("Base match filter (including date):");
-    console.log(JSON.stringify(matchFilter, null, 2));
+    // ── Pipeline ─────────────────────────────────────────────────
+    const customerActivityPipeline = [
 
-    // ─────────────────────────────────────────────────────────────
-    //               PIPELINE - STEP BY STEP CONSTRUCTION
-    // ─────────────────────────────────────────────────────────────
-    const customerActivityPipeline = [];
+      // Step 1: Base match — sirf valid transactions
+      { $match: matchFilter },
 
-    // 1. Base match
-    customerActivityPipeline.push({ $match: matchFilter });
+      // Step 2: Group by user
+      {
+        $group: {
+          _id: '$user',
+          totalSpent: { $sum: '$billAmount' },
+          totalPointsEarned: { $sum: '$earnedPoints' },
 
-    // 2. Group by customer (user)
-    customerActivityPipeline.push({
-      $group: {
-        _id: '$user',
-        totalSpent: { $sum: '$billAmount' },           // revenue
-        totalPointsEarned: { $sum: '$earnedPoints' },
-        totalPointsRedeemed: { $sum: '$spentPoints' },
-        lastVisit: { $max: '$createdAt' },
-        firstVisit: { $min: '$createdAt' }
-      }
-    });
+          // spentPoints sirf tabhi count karo jab actually redeem hua ho
+          totalPointsRedeemed: {
+            $sum: {
+              $cond: [{ $gt: ['$spentPoints', 0] }, '$spentPoints', 0]
+            }
+          },
 
-    // 3. Lookup customer details
-    customerActivityPipeline.push({
-      $lookup: {
-        from: 'users',
-        localField: '_id',
-        foreignField: '_id',
-        as: 'customer'
-      }
-    });
-    customerActivityPipeline.push({ $unwind: { path: '$customer', preserveNullAndEmptyArrays: true } });
+          // discountAmount bhi sirf redemption wali transactions ka
+          // totalDiscount: {
+          //   $sum: {
+          //     $cond: [{ $gt: ['$spentPoints', 0] }, '$discountAmount', 0]
+          //   }
+          // },
 
-    // 4. Lookup current points balance
-    customerActivityPipeline.push({
-      $lookup: {
-        from: 'userpoints',
-        let: { userId: '$_id' },
-        pipeline: [
-          {
-            $match: {
-              $expr: {
-                $and: [
-                  { $eq: ['$user', '$$userId'] },
-                  { $eq: ['$vendor', new mongoose.Types.ObjectId(vendorId)] }
-                ]
+          totalDiscount: { $sum: '$discountAmount' },
+
+          lastVisit: { $max: '$createdAt' },
+          firstVisit: { $min: '$createdAt' }
+        }
+      },
+
+      // Step 3: Lookup customer details
+      {
+        $lookup: {
+          from: 'users',
+          localField: '_id',
+          foreignField: '_id',
+          as: 'customer'
+        }
+      },
+      { $unwind: { path: '$customer', preserveNullAndEmptyArrays: true } },
+
+      // Step 4: Lookup current points balance from userpoints collection
+      {
+        $lookup: {
+          from: 'userpoints',
+          let: { userId: '$_id' },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ['$user', '$$userId'] },
+                    { $eq: ['$vendor', new mongoose.Types.ObjectId(vendorId)] }
+                  ]
+                }
               }
             }
-          }
-        ],
-        as: 'userPoint'
-      }
-    });
-    customerActivityPipeline.push({ $unwind: { path: '$userPoint', preserveNullAndEmptyArrays: true } });
+          ],
+          as: 'userPoint'
+        }
+      },
+      { $unwind: { path: '$userPoint', preserveNullAndEmptyArrays: true } },
 
-    // 5. Final projection
-    customerActivityPipeline.push({
-      $project: {
-        customerId: '$_id',
-        customerName: { $ifNull: ['$customer.name', 'Unknown Customer'] },
-        customerMobileNumber: { $ifNull: ['$customer.mobileNumber', 'Not available'] },
-        customerPhoto: { $ifNull: ['$customer.photo', null] },
-        totalSpent: { $round: ['$totalSpent', 2] },
-        totalPointsEarned: { $round: ['$totalPointsEarned', 0] },
-        totalPointsRedeemed: { $round: ['$totalPointsRedeemed', 0] },
-        remainingPoints: { $max: [{ $ifNull: ['$userPoint.totalPoints', 0] }, 0] },
-        lastVisit: 1,
-        firstVisit: 1
-      }
-    });
+      // Step 5: Final projection
+      {
+        $project: {
+          customerId: '$_id',
+          customerName: { $ifNull: ['$customer.name', 'Unknown Customer'] },
+          customerMobileNumber: { $ifNull: ['$customer.mobileNumber', 'Not available'] },
+          customerPhoto: { $ifNull: ['$customer.photo', null] },
+          totalSpent: { $round: ['$totalSpent', 2] },
+          totalPointsEarned: { $round: ['$totalPointsEarned', 0] },
+          totalPointsRedeemed: { $round: ['$totalPointsRedeemed', 0] },
+          totalDiscount: { $round: ['$totalDiscount', 2] },
 
-    // 6. Sort + Pagination
-    customerActivityPipeline.push({ $sort: { totalSpent: -1 } });
-    customerActivityPipeline.push({ $skip: skip });
-    customerActivityPipeline.push({ $limit: limit });
+          // remainingPoints — userPoint se lo, 0 se kam na ho
+          remainingPoints: {
+            $max: [{ $ifNull: ['$userPoint.totalPoints', 0] }, 0]
+          },
+          lastVisit: 1,
+          firstVisit: 1
+        }
+      },
 
-    console.log("Customer Activity Pipeline length:", customerActivityPipeline.length);
-    console.log("Pipeline stages:", customerActivityPipeline.map(stage => Object.keys(stage)[0]).join(" → "));
+      // Step 6: Sort + Pagination
+      { $sort: { totalSpent: -1 } },
+      { $skip: skip },
+      { $limit: limit }
+    ];
 
-    // ─────────────────────────────────────────────────────────────
-    //                   EXECUTE AGGREGATION
-    // ─────────────────────────────────────────────────────────────
     const customerActivity = await Transaction.aggregate(customerActivityPipeline);
 
-    console.log("Customer activity results count:", customerActivity.length);
-
-    // Total count pipeline
-    const countPipeline = [
+    // ── Total Count ───────────────────────────────────────────────
+    const totalResult = await Transaction.aggregate([
       { $match: matchFilter },
       { $group: { _id: '$user' } },
       { $count: 'totalCustomers' }
-    ];
-
-    const totalResult = await Transaction.aggregate(countPipeline);
+    ]);
     const totalCustomers = totalResult[0]?.totalCustomers || 0;
-    console.log("Total unique customers (count):", totalCustomers);
 
-    // ─────────────────────────────────────────────────────────────
-    //                     FINAL RESPONSE
-    // ─────────────────────────────────────────────────────────────
+    // ── Final Response ────────────────────────────────────────────
     return res.json({
       success: true,
       customerActivity: customerActivity.map((c, i) => ({
@@ -543,6 +922,7 @@ exports.getCustomerActivityReport = async (req, res) => {
         totalSpent: c.totalSpent || 0,
         totalPointsEarned: c.totalPointsEarned || 0,
         totalPointsRedeemed: c.totalPointsRedeemed || 0,
+        totalDiscount: c.totalDiscount || 0,
         remainingPoints: c.remainingPoints || 0,
         lastVisit: c.lastVisit,
         firstVisit: c.firstVisit
@@ -550,10 +930,14 @@ exports.getCustomerActivityReport = async (req, res) => {
 
       stats: {
         totalUniqueCustomers: totalCustomers,
-        totalRevenue: customerActivity.reduce((sum, c) => sum + (c.totalSpent || 0), 0).toFixed(2),
-        totalPointsDistributed: customerActivity.reduce((sum, c) => sum + (c.totalPointsEarned || 0), 0),
-        totalPointsRedeemed: customerActivity.reduce((sum, c) => sum + (c.totalPointsRedeemed || 0), 0),
-        totalRemainingPoints: customerActivity.reduce((sum, c) => sum + (c.remainingPoints || 0), 0)
+        totalRevenue: customerActivity
+          .reduce((sum, c) => sum + (c.totalSpent || 0), 0).toFixed(2),
+        totalPointsDistributed: customerActivity
+          .reduce((sum, c) => sum + (c.totalPointsEarned || 0), 0),
+        totalPointsRedeemed: customerActivity
+          .reduce((sum, c) => sum + (c.totalPointsRedeemed || 0), 0),
+        totalRemainingPoints: customerActivity
+          .reduce((sum, c) => sum + (c.remainingPoints || 0), 0)
       },
 
       pagination: {
@@ -1173,3 +1557,85 @@ exports.getUserWisePointsSpentReport = async (req, res) => {
     });
   }
 };
+
+// ==================== GET POPULAR RESTAURANTS ====================
+
+exports.getPopularRestaurants = async (req, res) => {
+  try {
+    // Assuming vendors represent restaurants in this system.
+    // This API aggregates across all vendors (restaurants) without restricting to a single vendorId,
+    // as popularity ranking makes sense in a global/admin context. If needed, add vendor filter similar to others.
+
+    const { startDate, endDate } = req.query;
+    const dateFilter = buildDateFilter(startDate, endDate);
+
+    const popularRestaurants = await Transaction.aggregate([
+      { $match: { ...dateFilter } },  // No vendor/staff restriction for global popularity
+
+      // Group by vendor (restaurant)
+      {
+        $group: {
+          _id: "$vendor",
+          totalRevenue: { $sum: "$finalAmount" },
+          transactionCount: { $sum: 1 },
+          totalPointsEarned: { $sum: "$earnedPoints" },
+          totalPointsRedeemed: { $sum: "$spentPoints" },
+          totalDiscountGiven: { $sum: "$discountAmount" }
+        }
+      },
+
+      // Lookup restaurant (vendor) details
+      {
+        $lookup: {
+          from: 'vendors',  // Assuming collection name is 'vendors'
+          localField: '_id',
+          foreignField: '_id',
+          as: 'restaurant'
+        }
+      },
+      { $unwind: { path: '$restaurant', preserveNullAndEmptyArrays: true } },
+
+      // Project final fields
+      {
+        $project: {
+          _id: 0,
+          restaurantId: "$_id",
+          restaurantName: { $ifNull: ["$restaurant.name", "Unknown Restaurant"] },  // Assuming vendor has 'name' field
+          category: { $ifNull: ["$restaurant.category", "Uncategorized"] },  // Optional, if vendor has category
+          totalRevenue: { $round: ["$totalRevenue", 3] },
+          transactionCount: 1,
+          totalPointsEarned: 1,
+          totalPointsRedeemed: 1,
+          totalDiscountGiven: { $round: ["$totalDiscountGiven", 3] },
+          averageBill: {
+            $cond: [
+              { $gt: ["$transactionCount", 0] },
+              { $round: [{ $divide: ["$totalRevenue", "$transactionCount"] }, 3] },
+              0
+            ]
+          }
+        }
+      },
+
+      { $sort: { totalRevenue: -1 } },  // Sort by revenue descending for popularity
+      { $limit: 20 }
+    ]);
+
+    return res.json({
+      success: true,
+      message: popularRestaurants.length > 0 
+        ? "Popular restaurants loaded successfully!" 
+        : "No restaurants found in this period.",
+      totalRestaurants: popularRestaurants.length,
+      popularRestaurants
+    });
+
+  } catch (err) {
+    console.error('Popular Restaurants Error:', err.message);
+    return res.status(500).json({
+      success: false,
+      message: "Error fetching popular restaurants"
+    });
+  }
+};
+

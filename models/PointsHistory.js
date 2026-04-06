@@ -16,7 +16,7 @@ const pointsHistorySchema = new mongoose.Schema(
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Transaction',
             required: true,
-            unique: true,
+            // unique: true,
         },
         type: {
             type: String,

@@ -214,9 +214,9 @@ exports.viewUser = async (req, res) => {
       return res.redirect('/admin/user');
     }
 
-    // === STATS ===
+    // === STATS - only accepted ===
     const stats = await Transaction.aggregate([
-      { $match: { user: user._id } },
+      { $match: { user: user._id, status: 'accepted' } }, // ✅ accepted only
       {
         $group: {
           _id: null,
@@ -229,10 +229,10 @@ exports.viewUser = async (req, res) => {
 
     const calculated = stats[0] || { totalOrders: 0, totalEarned: 0, totalRedeemed: 0 };
 
-    // === REDEMPTIONS WITH BRANCH NAME ===
+    // === TRANSACTIONS - only accepted ===
     const redemptions = await Transaction.find({
       user: user._id,
-      spentPoints: { $gt: 0 }
+      status: 'accepted' // ✅ accepted only
     })
     .populate({
       path: 'staff',
@@ -263,8 +263,6 @@ exports.viewUser = async (req, res) => {
     user.pointsRedeemed = calculated.totalRedeemed;
     user.totalOrders = calculated.totalOrders;
     user.currentPoints = Math.max(calculated.totalEarned - calculated.totalRedeemed, 0);
-
-    // console.log('branch : ',redemptionHistory)
 
     res.render('user_view', {
       title: 'User Profile',

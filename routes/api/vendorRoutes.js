@@ -7,6 +7,7 @@ getPointsRedemptionReport,
 getPopularMenuItems,
 getCustomerSegments,
 getUserWisePointsSpentReport,
+getPopularRestaurants,
 
 } = require('../../controllers/api/vendorReportController');
 const { isVendor } = require('../../controllers/api/authController');
@@ -23,6 +24,8 @@ router.get('/reports/customer-activity', isVendor, getCustomerActivityReport);
 router.get('/reports/sales-commission', isVendor, getSalesAndCommissionReport);
 
 router.get('/reports/popular-items', isVendor, getPopularMenuItems);
+router.get("/reports/popular-Restaurants", isVendor, getPopularRestaurants)
+
 router.get('/reports/customer-segments', isVendor, getCustomerSegments);
 
 router.get("/user-points", isVendor, getUserWisePointsSpentReport);

@@ -37,132 +37,252 @@ exports.getAllVendors = async (req, res) => {
     }
 };
 
+// exports.viewVendor = async (req, res) => {
+//     try {
+//         const vendor = await vendorModel.findById(req.params.id).populate({
+//             path: 'businessType',
+//             select: 'en ar',
+//         });
+//         if (!vendor) {
+//             req.flash('red', 'vendor not found!');
+//             return res.redirect('/admin/vendor');
+//         }
+
+//         const branch = await branchModel
+//             .find({ vendor: req.params.id, isDelete: false })
+//             .select('-createdAt -updatedAt -__v')
+//             .sort('-_id');
+
+//         const staff = await staffModel
+//             .find({ vendor: req.params.id, isDelete: false })
+//             .select('qrCode name email mobileNumber occupation photo')
+//             .populate({
+//                 path: 'branch',
+//                 select: 'buildingName name',
+//             })
+//             .sort('-_id');
+
+//         // Fetch users who have points with this vendor
+//         const userPointModel = require('../../models/userPoint');
+//         const userModel = require('../../models/userModel');
+
+//         const userPoints = await userPointModel
+//             .find({ vendor: req.params.id })
+//             .populate({
+//                 path: 'user',
+//                 select: 'qrCode name mobileNumber language gender birthDate totalPoints isActive createdAt',
+//                 match: { isDelete: false },
+//             })
+//             .sort('-totalPoints');
+
+//         // Filter out null users (deleted users)
+//         const users = userPoints
+//             .filter(up => up.user != null)
+//             .map(up => ({
+//                 ...up.user.toObject(),
+//                 vendorPoints: up.totalPoints,
+//             }));
+
+//         // ADD THIS: Fetch transactions with items for this vendor
+//         const transactionModel = require('../../models/transactionModel');
+//         const menuItemModel = require('../../models/menuItemModel');
+
+//         // Find menu items belonging to this vendor (fallback for older transactions that may not have vendor set)
+//         const menuItems = await menuItemModel
+//             .find({ vendor: req.params.id, isDelete: false })
+//             .select('_id')
+//             .lean();
+//         const menuItemIds = menuItems.map(mi => mi._id);
+
+//         const transactions = await transactionModel
+//             .find({
+//                 status: 'accepted', // Only show completed transactions
+//                 $or: [
+//                     { vendor: req.params.id },
+//                     // { 'items.menuItem': { $in: menuItemIds } },
+//                     { 'items.menuItem': { $in: menuItemIds } },
+//                     { staff: { $in: await staffModel.distinct('_id', { vendor: req.params.id }) } }
+//                 ],
+//             })
+//             .populate({
+//                 path: 'user',
+//                 select: 'name mobileNumber qrCode',
+//                 match: { isDelete: false },
+//             })
+//             .populate({
+//                 path: 'staff',
+//                 select: 'name email',
+//             })
+//             .populate({
+//                 path: 'items.menuItem',
+//                 select: 'name price image',
+//             })
+//             .populate({
+//                 path: 'discount',
+//                 select: 'title discountType discountValue',
+//             })
+//             .sort('-createdAt')
+//             .limit(100); // Limit to last 100 transactions for performance
+
+//         // Filter out transactions with deleted users
+//         const validTransactions = transactions.filter(t => t.user != null);
+
+//         // Aggregate unique buyers (customers) from these transactions
+//         const buyersMap = new Map();
+//         for (const t of validTransactions) {
+//             const u = t.user;
+//             const uid = u._id.toString();
+//             if (!buyersMap.has(uid)) {
+//                 buyersMap.set(uid, {
+//                     ...u.toObject(),
+//                     totalSpent: 0,
+//                     txCount: 0,
+//                     lastPurchasedAt: t.createdAt,
+//                 });
+//             }
+//             const b = buyersMap.get(uid);
+//             b.totalSpent += t.finalAmount || 0;
+//             b.txCount += 1;
+//             if (new Date(t.createdAt) > new Date(b.lastPurchasedAt))
+//                 b.lastPurchasedAt = t.createdAt;
+//         }
+//         const buyers = Array.from(buyersMap.values()).sort(
+//             (a, b) => b.totalSpent - a.totalSpent
+//         );
+
+//         res.render('vendor_view', {
+//             vendor,
+//             staff,
+//             branch,
+//             users,
+//             buyers,
+//             transactions: validTransactions,
+//         });
+//     } catch (error) {
+//         if (error.name === 'CastError') req.flash('red', 'vendor not found!');
+//         else req.flash('red', error.message);
+//         res.redirect('/admin/vendor');
+//     }
+// };
+
 exports.viewVendor = async (req, res) => {
-    try {
-        const vendor = await vendorModel.findById(req.params.id).populate({
-            path: 'businessType',
-            select: 'en ar',
-        });
-        if (!vendor) {
-            req.flash('red', 'vendor not found!');
-            return res.redirect('/admin/vendor');
-        }
+  try {
+    const vendor = await vendorModel.findById(req.params.id).populate({
+      path: 'businessType',
+      select: 'en ar',
+    });
 
-        const branch = await branchModel
-            .find({ vendor: req.params.id, isDelete: false })
-            .select('-createdAt -updatedAt -__v')
-            .sort('-_id');
-
-        const staff = await staffModel
-            .find({ vendor: req.params.id, isDelete: false })
-            .select('qrCode name email mobileNumber occupation photo')
-            .populate({
-                path: 'branch',
-                select: 'buildingName name',
-            })
-            .sort('-_id');
-
-        // Fetch users who have points with this vendor
-        const userPointModel = require('../../models/userPoint');
-        const userModel = require('../../models/userModel');
-
-        const userPoints = await userPointModel
-            .find({ vendor: req.params.id })
-            .populate({
-                path: 'user',
-                select: 'qrCode name mobileNumber language gender birthDate totalPoints isActive createdAt',
-                match: { isDelete: false },
-            })
-            .sort('-totalPoints');
-
-        // Filter out null users (deleted users)
-        const users = userPoints
-            .filter(up => up.user != null)
-            .map(up => ({
-                ...up.user.toObject(),
-                vendorPoints: up.totalPoints,
-            }));
-
-        // ADD THIS: Fetch transactions with items for this vendor
-        const transactionModel = require('../../models/transactionModel');
-        const menuItemModel = require('../../models/menuItemModel');
-
-        // Find menu items belonging to this vendor (fallback for older transactions that may not have vendor set)
-        const menuItems = await menuItemModel
-            .find({ vendor: req.params.id, isDelete: false })
-            .select('_id')
-            .lean();
-        const menuItemIds = menuItems.map(mi => mi._id);
-
-        const transactions = await transactionModel
-            .find({
-                status: 'accepted', // Only show completed transactions
-                $or: [
-                    { vendor: req.params.id },
-                    // { 'items.menuItem': { $in: menuItemIds } },
-                    { 'items.menuItem': { $in: menuItemIds } },
-                    { staff: { $in: await staffModel.distinct('_id', { vendor: req.params.id }) } }
-                ],
-            })
-            .populate({
-                path: 'user',
-                select: 'name mobileNumber qrCode',
-                match: { isDelete: false },
-            })
-            .populate({
-                path: 'staff',
-                select: 'name email',
-            })
-            .populate({
-                path: 'items.menuItem',
-                select: 'name price image',
-            })
-            .populate({
-                path: 'discount',
-                select: 'title discountType discountValue',
-            })
-            .sort('-createdAt')
-            .limit(100); // Limit to last 100 transactions for performance
-
-        // Filter out transactions with deleted users
-        const validTransactions = transactions.filter(t => t.user != null);
-
-        // Aggregate unique buyers (customers) from these transactions
-        const buyersMap = new Map();
-        for (const t of validTransactions) {
-            const u = t.user;
-            const uid = u._id.toString();
-            if (!buyersMap.has(uid)) {
-                buyersMap.set(uid, {
-                    ...u.toObject(),
-                    totalSpent: 0,
-                    txCount: 0,
-                    lastPurchasedAt: t.createdAt,
-                });
-            }
-            const b = buyersMap.get(uid);
-            b.totalSpent += t.finalAmount || 0;
-            b.txCount += 1;
-            if (new Date(t.createdAt) > new Date(b.lastPurchasedAt))
-                b.lastPurchasedAt = t.createdAt;
-        }
-        const buyers = Array.from(buyersMap.values()).sort(
-            (a, b) => b.totalSpent - a.totalSpent
-        );
-
-        res.render('vendor_view', {
-            vendor,
-            staff,
-            branch,
-            users,
-            buyers,
-            transactions: validTransactions,
-        });
-    } catch (error) {
-        if (error.name === 'CastError') req.flash('red', 'vendor not found!');
-        else req.flash('red', error.message);
-        res.redirect('/admin/vendor');
+    if (!vendor) {
+      req.flash('red', 'Vendor not found!');
+      return res.redirect('/admin/vendor');
     }
+
+    const branch = await branchModel
+      .find({ vendor: req.params.id, isDelete: false })
+      .select('-createdAt -updatedAt -__v')
+      .sort('-_id');
+
+    const staff = await staffModel
+      .find({ vendor: req.params.id, isDelete: false })
+      .select('qrCode name email mobileNumber occupation photo')
+      .populate({ path: 'branch', select: 'buildingName name' })
+      .sort('-_id');
+
+    const userPointModel = require('../../models/userPoint');
+    const transactionModel = require('../../models/transactionModel');
+
+    const userPoints = await userPointModel
+      .find({ vendor: req.params.id })
+      .populate({
+        path: 'user',
+        select: 'qrCode name mobileNumber language gender birthDate totalPoints isActive createdAt',
+        match: { isDelete: false },
+      })
+      .sort('-totalPoints');
+
+    const users = userPoints
+      .filter(up => up.user != null)
+      .map(up => ({
+        ...up.user.toObject(),
+        vendorPoints: up.totalPoints,
+      }));
+
+    // ✅ Staff IDs fetch karo - $or mein duplicate avoid
+    const staffIds = await staffModel.distinct('_id', {
+      vendor: req.params.id,
+      isDelete: false
+    });
+
+    // ✅ Sab transactions fetch karo - limit hataya, duplicate $or hataya
+    const transactions = await transactionModel
+      .find({
+        status: 'accepted',
+        $or: [
+          { vendor: req.params.id },
+          { staff: { $in: staffIds } }
+        ],
+      })
+      .populate({
+        path: 'user',
+        select: 'name mobileNumber qrCode',
+      })
+      .populate({
+        path: 'staff',
+        select: 'name email',
+      })
+      .populate({
+        path: 'items.menuItem',
+        select: 'name price image',
+      })
+      .populate({
+        path: 'discount',
+        select: 'title discountType discountValue',
+      })
+      .sort('-createdAt')
+      .lean();
+
+    // ✅ Deleted users filter
+    const validTransactions = transactions.filter(t => t.user != null);
+
+    // ✅ Buyers aggregate
+    const buyersMap = new Map();
+    for (const t of validTransactions) {
+      const u = t.user;
+      const uid = u._id.toString();
+      if (!buyersMap.has(uid)) {
+        buyersMap.set(uid, {
+          ...u,
+          totalSpent: 0,
+          txCount: 0,
+          lastPurchasedAt: t.createdAt,
+        });
+      }
+      const b = buyersMap.get(uid);
+      b.totalSpent += t.finalAmount || 0;
+      b.txCount += 1;
+      if (new Date(t.createdAt) > new Date(b.lastPurchasedAt)) {
+        b.lastPurchasedAt = t.createdAt;
+      }
+    }
+    const buyers = Array.from(buyersMap.values()).sort((a, b) => b.totalSpent - a.totalSpent);
+
+    res.render('vendor_view', {
+      title: 'Vendor View',
+      vendor,
+      staff,
+      branch,
+      users,
+      buyers,
+      transactions: validTransactions,
+      messages: req.flash(),
+    });
+
+  } catch (error) {
+    console.error('viewVendor Error:', error);
+    if (error.name === 'CastError') req.flash('red', 'Vendor not found!');
+    else req.flash('red', error.message);
+    res.redirect('/admin/vendor');
+  }
 };
 
 exports.vendorlogs = async (req, res) => {
